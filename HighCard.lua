@@ -57,8 +57,9 @@ local locs = {
     XPlayingSpade2 = {
         name = "Neo New Nambu",
         text = {
-            "Gain {C:blue}+#1#{} Hand",
-            "upon hand played, but",
+            "Gain {C:blue}+#1#{} Hand upon hand",
+            "played, but you must play ",
+            "{C:attention}#3# cards per hand{},",
             "{C:attention}lose all discards{} and",
             "set hand size to {C:attention}#2#{}.",
             "Transform back to",
@@ -238,7 +239,7 @@ function Card.generate_UIBox_ability_table(self)
         if self.ability.name == 'X-Play' then
             loc_vars = { self.ability.extra.placeholder }
         elseif self.ability.name == 'Neo New Nambu' then
-            loc_vars = { self.ability.extra.hand_gain, self.ability.extra.hand_size }
+            loc_vars = { self.ability.extra.hand_gain, self.ability.extra.hand_size, self.ability.extra.hand_ge }
         else
             customJoker = false
         end
@@ -296,10 +297,10 @@ function Card:add_to_deck(from_debuff)
             G.hand:change_size(handsize_change)
             G.GAME.round_resets.temp_handsize = handsize_change
             
-            sendDebugMessage("Debuff Set!")
-            G.GAME.blind.debuff["h_size_ge"] = 5
+            --sendDebugMessage("Debuff Set!")
+            G.GAME.blind.debuff["h_size_ge"] = self.ability.extra.hand_ge
             if G.GAME.blind.boss then 
-                sendDebugMessage("Boss Blind!")
+                --sendDebugMessage("Boss Blind!")
                 if G.GAME.blind.name ~= 'The Psychic' then 
                     if G.GAME.blind.loc_debuff_text and G.GAME.blind.loc_debuff_text ~= '' then
                         local loc_target = localize{type = 'raw_descriptions', key = "bl_psychic", set = 'Blind', vars = loc_vars or G.GAME.blind.vars}
@@ -331,8 +332,7 @@ function Card:remove_from_deck(from_debuff)
         if self.ability.name == 'Neo New Nambu' then
             G.GAME.blind.debuff["h_size_ge"] = 1
             G.GAME.blind.loc_debuff_text = ''
-            sendDebugMessage("Debuff Reset via remove!")
-            --G.GAME.blind:set_blind(nil, nil, true)
+            --sendDebugMessage("Debuff Reset via remove!")
         end
     end
     remove_from_deckref(self, from_debuff)
