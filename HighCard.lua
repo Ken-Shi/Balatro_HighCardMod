@@ -18,6 +18,8 @@ local config = {
     XPlayingSpadeA = true,
     -- Heart Family
     XPlayingHeart5 = true,
+    -- Diamond Family
+    XPlayingDiamond7 = true,
 }
 
 -- Initialize deck effect
@@ -92,6 +94,17 @@ local locs = {
             "at end of round. "
         }
     },
+    XPlayingDiamond7 = {
+        name = "Never No Dollars",
+        text = {
+            "Spend up to {C:attention}#1#{} dollars,",
+            "add that amount to {C:mult}Mult{}",
+            "and {X:chips,C:white}X#2#{} that amount to {C:chips}Chips{}.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
 }
 
 -- Create Decks
@@ -109,7 +122,7 @@ local jokers = {
         ability_name = "X-Play",
         slug = "xplay",
         ability = { extra = { placeholder = 1.0 } },
-        rarity = 3,
+        rarity = 4,
         cost = 0,
         unlocked = true,
         discovered = true,
@@ -120,7 +133,7 @@ local jokers = {
         ability_name = "Neo New Nambu",
         slug = "neo_new_nambu",
         ability = { extra = { hand_gain = 1, hand_size = 6, hand_ge = 5, done = false} },
-        rarity = 3,
+        rarity = 4,
         cost = 0,
         unlocked = true,
         discovered = true,
@@ -131,7 +144,7 @@ local jokers = {
         ability_name = "Love and Peace",
         slug = "love_and_peace",
         ability = { extra = { chips_gain = 200, mult_gain = 20, done = false} },
-        rarity = 3,
+        rarity = 4,
         cost = 0,
         unlocked = true,
         discovered = true,
@@ -142,7 +155,18 @@ local jokers = {
         ability_name = "Calories High",
         slug = "calories_high",
         ability = { extra = { discard_gain = 1, hand_play = 1, done = false} },
-        rarity = 3,
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
+    XPlayingDiamond7= {
+        ability_name = "Never No Dollars",
+        slug = "never_no_dollars",
+        ability = { extra = { max_money = 20, chip_mult = 10, done = false} },
+        rarity = 4,
         cost = 0,
         unlocked = true,
         discovered = true,
@@ -153,7 +177,8 @@ local jokers = {
 local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
     XPlayingSpadeA = "j_love_and_peace",
-    XPlayingHeart5 = "j_calories_high"
+    XPlayingHeart5 = "j_calories_high",
+    XPlayingDiamond7 = "j_never_no_dollars",
 }
 
 function SMODS.INIT.HighCardMod()
@@ -227,6 +252,7 @@ function SMODS.INIT.HighCardMod()
             delay = 0.0,
             func = function() 
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_xplay", nil)
+                --card:set_eternal(true)
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 G.GAME.joker_buffer = 0
@@ -247,6 +273,9 @@ function SMODS.INIT.HighCardMod()
                         end
                         if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Hearts") then
                             xplay("XPlayingHeart5")
+                        end
+                        if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Diamonds") then
+                            xplay("XPlayingDiamond7")
                         end
                     end 
                 end
@@ -324,6 +353,33 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+
+    if config.XPlayingDiamond7 then
+        SMODS.Jokers.j_never_no_dollars.calculate = function(self, context)
+            if context.end_of_round and not self.ability.extra.done then
+                end_xplay("XPlayingDiamond7")
+                self.ability.extra.done = true
+            end
+            if SMODS.end_calculate_context(context) then
+                self.ability.extra.done = false
+                local wallet = math.min(self.ability.extra.max_money, G.GAME.dollars)
+                if wallet > 0 then
+                    ease_dollars(-wallet)
+                    return {
+                        message = "Never No Dollars!",
+                        chip_mod = self.ability.extra.chip_mult * wallet,
+                        mult_mod = wallet,
+                        card = self
+                    }
+                else
+                    return {
+                        message = "No Dollars :(",
+                        card = self
+                    }
+                end
+            end
+        end
+    end
 end
 
 -- Copied and modifed from LushMod
@@ -349,6 +405,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.chips_gain, self.ability.extra.mult_gain}
         elseif self.ability.name == 'Calories High' then
             loc_vars = { self.ability.extra.discard_gain, self.ability.extra.hand_play, }
+        elseif self.ability.name == 'Never No Dollars' then
+            loc_vars = { self.ability.extra.max_money, self.ability.extra.chip_mult, }
         else
             customJoker = false
         end
