@@ -13,7 +13,11 @@ local config = {
     XPlayingDeck = true,
     -- Jokers
     XPlayingJoker = true,
+    -- Spade Family
     XPlayingSpade2 = true,
+    XPlayingSpadeA = true,
+    -- Heart Family
+    XPlayingHeart5 = true,
 }
 
 -- Initialize deck effect
@@ -67,6 +71,16 @@ local locs = {
             "at end of round. "
         }
     },
+    XPlayingSpadeA = {
+        name = "Love & Peace",
+        text = {
+            "Gain {C:chips}+#1#{} Chips and {C:mult}+#2#{} Mult,",
+            "but {C:attention}force a card{} for each hand.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    }
 }
 
 -- Create Decks
@@ -102,9 +116,21 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingSpadeA = {
+        ability_name = "Love and Peace",
+        slug = "love_and_peace",
+        ability = { extra = { chips_gain = 200, mult_gain = 20, done = false} },
+        rarity = 3,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
 }
 local joker_map = {
-    XPlayingSpade2 = "j_neo_new_nambu"
+    XPlayingSpade2 = "j_neo_new_nambu",
+    XPlayingSpadeA = "j_love_and_peace"
 }
 
 function SMODS.INIT.HighCardMod()
@@ -193,6 +219,9 @@ function SMODS.INIT.HighCardMod()
                         if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Spades") then
                             xplay("XPlayingSpade2")
                         end
+                        if context.full_hand[1]:get_id() == 14 and context.full_hand[1]:is_suit("Spades") then
+                            xplay("XPlayingSpadeA")
+                        end
                     end 
                 end
             end
@@ -219,6 +248,41 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+
+    if config.XPlayingSpadeA then
+        SMODS.Jokers.j_love_and_peace.calculate = function(self, context)
+            if context.before then 
+                sendDebugMessage("Love-P")
+                local any_forced = nil
+                for k, v in ipairs(G.hand.cards) do
+                    if v.ability.forced_selection then
+                        any_forced = true
+                    end
+                end
+                if not any_forced then 
+                    G.hand:unhighlight_all()
+                    local forced_card = pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
+                    forced_card.ability.forced_selection = true
+                    G.hand:add_to_highlighted(forced_card)
+                end
+            end
+
+            if context.end_of_round and not self.ability.extra.done then
+                end_xplay("XPlayingSpadeA")
+                self.ability.extra.done = true
+            end
+            if SMODS.end_calculate_context(context) then
+                self.ability.extra.done = false
+                --sendDebugMessage("Love & Peace!")
+                return {
+                    message = "Love & Peace!",
+                    chip_mod = self.ability.extra.chips_gain,
+                    mult_mod = self.ability.extra.mult_gain,
+                    card = self
+                }
+            end
+        end
+    end
 end
 
 -- Copied and modifed from LushMod
@@ -240,6 +304,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.placeholder }
         elseif self.ability.name == 'Neo New Nambu' then
             loc_vars = { self.ability.extra.hand_gain, self.ability.extra.hand_size, self.ability.extra.hand_ge }
+        elseif self.ability.name == 'Love and Peace' then
+            loc_vars = { self.ability.extra.chips_gain, self.ability.extra.mult_gain}
         else
             customJoker = false
         end
@@ -319,6 +385,20 @@ function Card:add_to_deck(from_debuff)
                         G.GAME.blind.loc_debuff_text = G.GAME.blind.loc_debuff_text..v..(k <= #loc_target and ' ' or '')
                     end
                 end
+            end
+        end
+        if self.ability.name == 'Love and Peace' then 
+            local any_forced = nil
+            for k, v in ipairs(G.hand.cards) do
+                if v.ability.forced_selection then
+                    any_forced = true
+                end
+            end
+            if not any_forced then 
+                G.hand:unhighlight_all()
+                local forced_card = pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
+                forced_card.ability.forced_selection = true
+                G.hand:add_to_highlighted(forced_card)
             end
         end
 
