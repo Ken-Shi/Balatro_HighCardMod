@@ -24,7 +24,7 @@ At the end of the round, it will transform back to X-Playing Joker so you can de
 
 ![Neo New Nambu](./assets/2x/j_neo_new_nambu.png)![Love and Peace](./assets/2x/j_love_and_peace.png)![Calories High](./assets/2x/j_calories_high.png)![Never No Dollars](./assets/2x/j_never_no_dollars.png)
 
-More X-Playing Cards and X-hands are WIP! 
+You can discover their amazing abilities in collection tab once you install the mod! More X-Playing Cards and X-hands are WIP! 
 
 Feel Free to reach out in the modding chat of [Balatro official discord](https://discord.com/invite/balatro)! 
 
