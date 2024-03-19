@@ -26,6 +26,6 @@ At the end of the round, it will transform back to X-Playing Joker so you can de
 
 You can discover their amazing abilities in collection tab once you install the mod! More X-Playing Cards and X-hands are WIP! 
 
-Feel Free to reach out in the modding chat of [Balatro official discord](https://discord.com/invite/balatro)! 
+Feel free to reach out in the modding chat of [Balatro official discord](https://discord.com/invite/balatro)! 
 
-My IGN is **Kenny Stone**, any feed back is welcomed! 
+My IGN is **Kenny Stone**, any feedback is welcomed! 
