@@ -185,7 +185,8 @@ function SMODS.INIT.HighCardMod()
 
     init_localization()
 
-    G.cardback_info = InjectCardBack()
+    --G.cardback_info = InjectCardBack()
+    G.cardback_info = ReadCardBackInfo()
 
     decks["XPlayingDeck"].sprite = G.cardback_info["xplaying"]
 
