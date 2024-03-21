@@ -19,6 +19,7 @@ local config = {
     -- Heart Family
     XPlayingHeart5 = true,
     -- Diamond Family
+    XPlayingDiamond3 = true,
     XPlayingDiamond7 = true,
     -- Club Family
     XPlayingClub3 = true,
@@ -65,11 +66,10 @@ local locs = {
     XPlayingSpade2 = {
         name = "Neo New Nambu",
         text = {
-            "Gain {C:blue}+#1#{} Hand upon hand",
-            "played, but you must play ",
-            "{C:attention}#3# cards per hand{},",
-            "{C:attention}lose all discards{} and",
-            "set hand size to {C:attention}#2#{}.",
+            "Gain {C:blue}+#1#{} Hand upon hand played, ",
+            "but you must play {C:attention}#3# cards{}",
+            "{C:attention}per hand{}, {C:attention}lose all discards{}",
+            "and set hand size to {C:attention}#2#{}.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -91,6 +91,16 @@ local locs = {
             "Gain {C:red}+#1#{} Discard upon ",
             "card(s) discarded, but ",
             "you only play {C:attention}#2# hand{}.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
+    XPlayingDiamond3 = {
+        name = "Marble Rumble",
+        text = {
+            "Turn your {C:attention}scoring hand{}",
+            "into {C:attention}Glass Card{}.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -175,6 +185,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingDiamond3= {
+        ability_name = "Marble Rumble",
+        slug = "marble_rumble",
+        ability = { extra = { done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingDiamond7= {
         ability_name = "Never No Dollars",
         slug = "never_no_dollars",
@@ -202,6 +223,7 @@ local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
     XPlayingSpadeA = "j_love_and_peace",
     XPlayingHeart5 = "j_calories_high",
+    XPlayingDiamond3 = "j_marble_rumble",
     XPlayingDiamond7 = "j_never_no_dollars",
     XPlayingClub3 = "j_green_green",
 }
@@ -303,6 +325,9 @@ function SMODS.INIT.HighCardMod()
                         end
                         if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Hearts") then
                             return xplay("XPlayingHeart5")
+                        end
+                        if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Diamonds") then
+                            return xplay("XPlayingDiamond3")
                         end
                         if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Diamonds") then
                             return xplay("XPlayingDiamond7")
@@ -427,6 +452,33 @@ function SMODS.INIT.HighCardMod()
             if SMODS.end_calculate_context(context) then
                 self.ability.extra.done = false
                 self.ability.extra.discard_cnt = 0
+            end
+        end
+    end
+
+    if config.XPlayingDiamond3 then
+        SMODS.Jokers.j_marble_rumble.calculate = function(self, context)
+            if context.end_of_round and not self.ability.extra.done then
+                end_xplay("XPlayingDiamond3")
+                self.ability.extra.done = true
+            end
+            if context.before then 
+                for k, v in ipairs(context.scoring_hand) do
+                    v:set_ability(G.P_CENTERS.m_glass, nil, true)
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            v:juice_up()
+                            return true
+                        end
+                    })) 
+                end
+                return {
+                    message = "Marble Rumble!",
+                    card = self
+                }
+            end
+            if SMODS.end_calculate_context(context) then
+                self.ability.extra.done = false
             end
         end
     end
