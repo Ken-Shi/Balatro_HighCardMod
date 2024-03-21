@@ -17,6 +17,7 @@ local config = {
     XPlayingSpade2 = true,
     XPlayingSpadeA = true,
     -- Heart Family
+    XPlayingHeart4 = true,
     XPlayingHeart5 = true,
     -- Diamond Family
     XPlayingDiamond3 = true,
@@ -81,6 +82,17 @@ local locs = {
         text = {
             "Gain {C:chips}+#1#{} Chips and {C:mult}+#2#{} Mult,",
             "but {C:attention}force a card{} for each hand.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
+    XPlayingHeart4 = {
+        name = "Agent S",
+        text = {
+            "Retrigger the lowest",
+            "played card used in",
+            "scoring for {C:attention}#1# times{}.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -185,6 +197,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingHeart4 = {
+        ability_name = "Agent S",
+        slug = "agent_s",
+        ability = { extra = { retrigger_cnt = 4, repeated = false, done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingHeart5 = {
         ability_name = "Calories High",
         slug = "calories_high",
@@ -244,6 +267,7 @@ local jokers = {
 local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
     XPlayingSpadeA = "j_love_and_peace",
+    XPlayingHeart4 = "j_agent_s",
     XPlayingHeart5 = "j_calories_high",
     XPlayingDiamond3 = "j_marble_rumble",
     XPlayingDiamond7 = "j_never_no_dollars",
@@ -345,6 +369,9 @@ function SMODS.INIT.HighCardMod()
                         end
                         if context.full_hand[1]:get_id() == 14 and context.full_hand[1]:is_suit("Spades") then
                             return xplay("XPlayingSpadeA")
+                        end
+                        if context.full_hand[1]:get_id() == 4 and context.full_hand[1]:is_suit("Hearts") then
+                            return xplay("XPlayingHeart4")
                         end
                         if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Hearts") then
                             return xplay("XPlayingHeart5")
@@ -456,6 +483,38 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+
+    if config.XPlayingHeart4 then
+        SMODS.Jokers.j_agent_s.calculate = function(self, context)
+            if context.end_of_round and not self.ability.extra.done then
+                end_xplay("XPlayingHeart4")
+                self.ability.extra.done = true
+            end
+            --if context.before then 
+            --    local lowest_card_value = math.floor(get_lowest_value(context.scoring_hand))
+            --    sendDebugMessage(lowest_card_value)
+            --end
+            if context.repetition then
+                --sendDebugMessage("Repetition!")
+                --sendDebugMessage(context.other_card:get_id())
+                --sendDebugMessage(context.cardarea)
+                if context.cardarea == G.play and context.other_card:get_id() == math.floor(get_lowest_value(context.scoring_hand)) and not self.ability.extra.repeated then
+                    sendDebugMessage("Agent S triggered!")
+                    self.ability.extra.repeated = true
+                    return {
+                        message = 'Agent S!',
+                        repetitions = self.ability.extra.retrigger_cnt,
+                        card = self
+                    }
+                end
+            end
+            if SMODS.end_calculate_context(context) then
+                self.ability.extra.done = false
+                self.ability.extra.repeated = false
+            end
+        end
+    end
+
 
     if config.XPlayingHeart5 then
         SMODS.Jokers.j_calories_high.calculate = function(self, context)
@@ -606,6 +665,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.max_money, self.ability.extra.chip_mult, }
         elseif self.ability.name == 'Metallical Parade' then
             loc_vars = { self.ability.extra.Xmult }
+        elseif self.ability.name == 'Agent S' then
+            loc_vars = { self.ability.extra.retrigger_cnt }
         else
             customJoker = false
         end
@@ -726,6 +787,17 @@ function Card:remove_from_deck(from_debuff)
         end
     end
     remove_from_deckref(self, from_debuff)
+end
+
+function get_lowest_value(hand)
+    local lowest = nil
+    for k, v in ipairs(hand) do
+        if not lowest or v:get_nominal() < lowest:get_nominal() then
+        --if not lowest or v:get_id() > lowest:get_id() then
+            lowest = v
+        end
+    end
+    if #hand > 0 then return lowest:get_id() else return nil end
 end
 
 
