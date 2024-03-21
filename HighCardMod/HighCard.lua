@@ -88,8 +88,8 @@ local locs = {
     XPlayingHeart5 = {
         name = "Calorie's High",
         text = {
-            "Gain {C:red}+#1#{} Discard per ",
-            "card discarded, but ",
+            "Gain {C:red}+#1#{} Discard upon ",
+            "card(s) discarded, but ",
             "you only play {C:attention}#2# hand{}.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
@@ -167,7 +167,7 @@ local jokers = {
     XPlayingHeart5 = {
         ability_name = "Calories High",
         slug = "calories_high",
-        ability = { extra = { discard_gain = 1, hand_play = 1, done = false} },
+        ability = { extra = { discard_gain = 1, hand_play = 1, discard_cnt = 0, done = false} },
         rarity = 4,
         cost = 0,
         unlocked = true,
@@ -256,6 +256,10 @@ function SMODS.INIT.HighCardMod()
                 G.jokers:emplace(card)
                 return true
             end}))
+        return {
+            message = "PLAY!",
+            card = self
+        }
     end
 
     local function end_xplay(hand_name)
@@ -292,19 +296,19 @@ function SMODS.INIT.HighCardMod()
                 if G.GAME.current_round.hands_played == 0 then
                     if context.scoring_name == "High Card" then
                         if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Spades") then
-                            xplay("XPlayingSpade2")
+                            return xplay("XPlayingSpade2")
                         end
                         if context.full_hand[1]:get_id() == 14 and context.full_hand[1]:is_suit("Spades") then
-                            xplay("XPlayingSpadeA")
+                            return xplay("XPlayingSpadeA")
                         end
                         if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Hearts") then
-                            xplay("XPlayingHeart5")
+                            return xplay("XPlayingHeart5")
                         end
                         if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Diamonds") then
-                            xplay("XPlayingDiamond7")
+                            return xplay("XPlayingDiamond7")
                         end
                         if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Clubs") then
-                            xplay("XPlayingClub3")
+                            return xplay("XPlayingClub3")
                         end
                     end 
                 end
@@ -329,6 +333,10 @@ function SMODS.INIT.HighCardMod()
             if SMODS.end_calculate_context(context) then
                 self.ability.extra.done = false
                 ease_hands_played(self.ability.extra.hand_gain)
+                return{
+                    message = "Neo New Nambu!",
+                    card = self
+                }
             end
         end
     end
@@ -405,10 +413,20 @@ function SMODS.INIT.HighCardMod()
                 self.ability.extra.done = true
             end
             if context.discard then
-                ease_discard(self.ability.extra.discard_gain, nil, true)
+                self.ability.extra.discard_cnt = self.ability.extra.discard_cnt + 1
+                if self.ability.extra.discard_cnt == #G.hand.highlighted then
+                    ease_discard(self.ability.extra.discard_gain, nil, true)
+                    self.ability.extra.discard_cnt = 0
+                    return {
+                        message = "Calorie's High!",
+                        card = self
+                    }
+                end
+
             end
             if SMODS.end_calculate_context(context) then
                 self.ability.extra.done = false
+                self.ability.extra.discard_cnt = 0
             end
         end
     end
