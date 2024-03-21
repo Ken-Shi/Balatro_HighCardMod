@@ -22,6 +22,7 @@ local config = {
     XPlayingDiamond3 = true,
     XPlayingDiamond7 = true,
     -- Club Family
+    XPlayingClub2 = true,
     XPlayingClub3 = true,
 }
 
@@ -117,6 +118,16 @@ local locs = {
             "at end of round. "
         }
     },
+    XPlayingClub2 = {
+        name = "Metallical Parade",
+        text = {
+            "{X:mult,C:white}X#1#{} per {C:attention}Steel Card{} or",
+            "{C:attention}Gold Card{} played when scored.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
     XPlayingClub3 = {
         name = "Green Green",
         text = {
@@ -207,6 +218,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingClub2= {
+        ability_name = "Metallical Parade",
+        slug = "metallical_parade",
+        ability = { extra = { Xmult = 1.5, done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingClub3= {
         ability_name = "Green Green",
         slug = "green_green",
@@ -225,6 +247,7 @@ local joker_map = {
     XPlayingHeart5 = "j_calories_high",
     XPlayingDiamond3 = "j_marble_rumble",
     XPlayingDiamond7 = "j_never_no_dollars",
+    XPlayingClub2 = "j_metallical_parade",
     XPlayingClub3 = "j_green_green",
 }
 
@@ -331,6 +354,9 @@ function SMODS.INIT.HighCardMod()
                         end
                         if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Diamonds") then
                             return xplay("XPlayingDiamond7")
+                        end
+                        if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Clubs") then
+                            return xplay("XPlayingClub2")
                         end
                         if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Clubs") then
                             return xplay("XPlayingClub3")
@@ -510,6 +536,30 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    if config.XPlayingClub2 then
+        SMODS.Jokers.j_metallical_parade.calculate = function(self, context)
+            if context.end_of_round and not self.ability.extra.done then
+                end_xplay("XPlayingClub2")
+                self.ability.extra.done = true
+            end
+            if context.individual then 
+                if context.cardarea == G.play then
+                    if context.other_card.config.center == G.P_CENTERS.m_steel or context.other_card.config.center == G.P_CENTERS.m_gold then
+                        return {
+                            --extra = {message = "Metallical Parade!", Xmult_mod = self.ability.extra.Xmult},
+                            --message = "Metallical Parade!", 
+                            x_mult = self.ability.extra.Xmult,
+                            card = self
+                        }
+                    end
+                end
+            end
+            if SMODS.end_calculate_context(context) then
+                self.ability.extra.done = false
+            end
+        end
+    end
+
     if config.XPlayingClub3 then
         SMODS.Jokers.j_green_green.calculate = function(self, context)
             if context.end_of_round and not self.ability.extra.done then
@@ -554,6 +604,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.discard_gain, self.ability.extra.hand_play, }
         elseif self.ability.name == 'Never No Dollars' then
             loc_vars = { self.ability.extra.max_money, self.ability.extra.chip_mult, }
+        elseif self.ability.name == 'Metallical Parade' then
+            loc_vars = { self.ability.extra.Xmult }
         else
             customJoker = false
         end
