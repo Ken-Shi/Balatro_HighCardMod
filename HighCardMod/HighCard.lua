@@ -22,6 +22,7 @@ local config = {
     -- Diamond Family
     XPlayingDiamond3 = true,
     XPlayingDiamond7 = true,
+    XPlayingDiamond10 = true,
     -- Club Family
     XPlayingClub2 = true,
     XPlayingClub3 = true,
@@ -125,6 +126,21 @@ local locs = {
             "Spend up to {C:attention}#1#{} dollars,",
             "add that amount to {C:mult}Mult{}",
             "and {X:chips,C:white}X#2#{} that amount to {C:chips}Chips{}.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
+    XPlayingDiamond10 = {
+        name = "Unlucky Poky",
+        text = {
+            --"All {C:green,E:1,S:1.1}probabilities{} ",
+            --"become {C:green,E:1,S:1.1}deterministic{}",
+            --"(i.e. they always trigger)",
+            "Turn your {C:attention}scoring hand{}",
+            "into {C:attention}Lucky Card{}",
+            "and become {C:green,E:1,S:1.1}extra-lucky{}",
+            "during the scoring stage.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -241,6 +257,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingDiamond10= {
+        ability_name = "Unlucky Poky",
+        slug = "unlucky_poky",
+        ability = { extra = { done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingClub2= {
         ability_name = "Metallical Parade",
         slug = "metallical_parade",
@@ -271,6 +298,7 @@ local joker_map = {
     XPlayingHeart5 = "j_calories_high",
     XPlayingDiamond3 = "j_marble_rumble",
     XPlayingDiamond7 = "j_never_no_dollars",
+    XPlayingDiamond10 = "j_unlucky_poky",
     XPlayingClub2 = "j_metallical_parade",
     XPlayingClub3 = "j_green_green",
 }
@@ -381,6 +409,9 @@ function SMODS.INIT.HighCardMod()
                         end
                         if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Diamonds") then
                             return xplay("XPlayingDiamond7")
+                        end
+                        if context.full_hand[1]:get_id() == 10 and context.full_hand[1]:is_suit("Diamonds") then
+                            return xplay("XPlayingDiamond10")
                         end
                         if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Clubs") then
                             return xplay("XPlayingClub2")
@@ -595,6 +626,43 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    if config.XPlayingDiamond10 then
+        SMODS.Jokers.j_unlucky_poky.calculate = function(self, context)
+            if context.end_of_round and not self.ability.extra.done then
+                end_xplay("XPlayingDiamond10")
+                self.ability.extra.done = true
+            end
+            if context.before then 
+                for k, v in ipairs(context.scoring_hand) do
+                    v:set_ability(G.P_CENTERS.m_lucky, nil, true)
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            v:juice_up()
+                            return true
+                        end
+                    })) 
+                end
+                for k, v in pairs(G.GAME.probabilities) do 
+                    sendDebugMessage(G.GAME.probabilities[k])
+                    G.GAME.probabilities[k] = v * 1000
+                end
+                return {
+                    message = "Unlucky Poky!",
+                    card = self
+                }
+            end
+            if context.after then 
+                for k, v in pairs(G.GAME.probabilities) do 
+                    sendDebugMessage(G.GAME.probabilities[k])
+                    G.GAME.probabilities[k] = v / 1000
+                end
+            end
+            if SMODS.end_calculate_context(context) then
+                self.ability.extra.done = false
+            end
+        end
+    end
+
     if config.XPlayingClub2 then
         SMODS.Jokers.j_metallical_parade.calculate = function(self, context)
             if context.end_of_round and not self.ability.extra.done then
@@ -765,6 +833,12 @@ function Card:add_to_deck(from_debuff)
         if self.ability.name == 'Calories High' then
             ease_hands_played(self.ability.extra.hand_play - G.GAME.current_round.hands_left)
         end
+        --if self.ability.name == 'Unlucky Poky' then
+        --    for k, v in pairs(G.GAME.probabilities) do 
+        --        sendDebugMessage(G.GAME.probabilities[k])
+        --        G.GAME.probabilities[k] = v * 1000
+        --    end
+        --end
         if self.ability.name == 'Green Green' then
             evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand, always_straight)
         end
@@ -781,6 +855,12 @@ function Card:remove_from_deck(from_debuff)
             G.GAME.blind.loc_debuff_text = ''
             --sendDebugMessage("Debuff Reset via remove!")
         end
+        --if self.ability.name == 'Unlucky Poky' then
+        --    for k, v in pairs(G.GAME.probabilities) do 
+        --        G.GAME.probabilities[k] = v / 1000
+        --        sendDebugMessage(G.GAME.probabilities[k])
+        --    end
+        --end
         if self.ability.name == 'Green Green' then
             evaluate_poker_hand = evaluate_poker_hand_OG
             sendDebugMessage("Straight Effect Wears Off! ")
