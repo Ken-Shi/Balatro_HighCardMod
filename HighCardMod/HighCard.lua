@@ -20,6 +20,8 @@ local config = {
     XPlayingHeart5 = true,
     -- Diamond Family
     XPlayingDiamond7 = true,
+    -- Club Family
+    XPlayingClub3 = true,
 }
 
 -- Initialize deck effect
@@ -105,6 +107,17 @@ local locs = {
             "at end of round. "
         }
     },
+    XPlayingClub3 = {
+        name = "Green Green",
+        text = {
+            "Your poker hand played",
+            "is always considered",
+            "{C:red}only{} as {C:attention}Straight{}.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
 }
 
 -- Create Decks
@@ -143,7 +156,7 @@ local jokers = {
     XPlayingSpadeA = {
         ability_name = "Love and Peace",
         slug = "love_and_peace",
-        ability = { extra = { chips_gain = 200, mult_gain = 20, done = false} },
+        ability = { extra = { chips_gain = 200, mult_gain = 20, discard_cnt = 0, done = false} },
         rarity = 4,
         cost = 0,
         unlocked = true,
@@ -173,12 +186,24 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingClub3= {
+        ability_name = "Green Green",
+        slug = "green_green",
+        ability = { extra = { done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
 }
 local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
     XPlayingSpadeA = "j_love_and_peace",
     XPlayingHeart5 = "j_calories_high",
     XPlayingDiamond7 = "j_never_no_dollars",
+    XPlayingClub3 = "j_green_green",
 }
 
 function SMODS.INIT.HighCardMod()
@@ -278,6 +303,9 @@ function SMODS.INIT.HighCardMod()
                         if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Diamonds") then
                             xplay("XPlayingDiamond7")
                         end
+                        if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Clubs") then
+                            xplay("XPlayingClub3")
+                        end
                     end 
                 end
             end
@@ -322,13 +350,43 @@ function SMODS.INIT.HighCardMod()
                     G.hand:add_to_highlighted(forced_card)
                 end
             end
-
+            --[[
+            if context.discard then 
+                self.ability.extra.discard_cnt = self.ability.extra.discard_cnt + 1
+                sendDebugMessage(self.ability.extra.discard_cnt)
+                sendDebugMessage(#G.hand.highlighted)
+                if self.ability.extra.discard_cnt == #G.hand.highlighted then 
+                    sendDebugMessage("Love-P Discard Match! ")
+                    local any_forced = nil
+                    local any_none_nil = nil
+                    for k, v in ipairs(G.hand.cards) do
+                        if v then 
+                            any_none_nil = true 
+                        end
+                        if v and v.ability.forced_selection then
+                            any_forced = true
+                        end
+                    end
+                    if not any_forced and any_none_nil then 
+                        --G.hand:unhighlight_all()
+                        local forced_card = pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
+                        while any_none_nil and forced_card == nil do
+                            forced_card = pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
+                        end
+                        forced_card.ability.forced_selection = true
+                        G.hand:add_to_highlighted(forced_card)
+                    end
+                    self.ability.extra.discard_cnt = 0
+                end
+            end
+            ]]--
             if context.end_of_round and not self.ability.extra.done then
                 end_xplay("XPlayingSpadeA")
                 self.ability.extra.done = true
             end
             if SMODS.end_calculate_context(context) then
                 self.ability.extra.done = false
+                self.ability.extra.discard_cnt = 0
                 --sendDebugMessage("Love & Peace!")
                 return {
                     message = "Love & Peace!",
@@ -381,6 +439,24 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+
+    if config.XPlayingClub3 then
+        SMODS.Jokers.j_green_green.calculate = function(self, context)
+            if context.end_of_round and not self.ability.extra.done then
+                end_xplay("XPlayingClub3")
+                self.ability.extra.done = true
+            end
+
+            if SMODS.end_calculate_context(context) then
+                self.ability.extra.done = false
+                --return {
+                --    message = "Green Green!",
+                --    card = self
+                --}
+            end
+        end
+    end
+
 end
 
 -- Copied and modifed from LushMod
@@ -506,6 +582,9 @@ function Card:add_to_deck(from_debuff)
         if self.ability.name == 'Calories High' then
             ease_hands_played(self.ability.extra.hand_play - G.GAME.current_round.hands_left)
         end
+        if self.ability.name == 'Green Green' then
+            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand, always_straight)
+        end
 
     end
     add_to_deckref(self, from_debuff)
@@ -519,9 +598,54 @@ function Card:remove_from_deck(from_debuff)
             G.GAME.blind.loc_debuff_text = ''
             --sendDebugMessage("Debuff Reset via remove!")
         end
+        if self.ability.name == 'Green Green' then
+            evaluate_poker_hand = evaluate_poker_hand_OG
+            sendDebugMessage("Straight Effect Wears Off! ")
+        end
     end
     remove_from_deckref(self, from_debuff)
 end
+
+
+-- Shady Business here:
+-- Function to wrap the original function with your additional logic
+function highcard_wraplast(originalFunc, additionalFunc)
+    return function(hand)
+        -- Call the additional function
+        ret = originalFunc(hand)
+        ret = additionalFunc(ret)
+
+        -- Then call the original function with all the original arguments
+        return ret
+    end
+end
+
+function always_straight(ret)
+    --
+    local new_results = {
+        ["Flush Five"] = {},
+        ["Flush House"] = {},
+        ["Five of a Kind"] = {},
+        ["Straight Flush"] = {},
+        ["Four of a Kind"] = {},
+        ["Full House"] = {},
+        ["Flush"] = {},
+        ["Straight"] = ret.top,
+        ["Three of a Kind"] = {},
+        ["Two Pair"] = {},
+        ["Pair"] = {},
+        ["High Card"] = {},
+        top = ret.top
+      }
+    --]]--
+    --new_results = ret
+    --new_results["Straight"] = ret.top
+    if new_results.top == nil then return ret end
+
+    return new_results
+end
+
+evaluate_poker_hand_OG = evaluate_poker_hand
 
 ----------------------------------------------
 ------------MOD CODE END----------------------
