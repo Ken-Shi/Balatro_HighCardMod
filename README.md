@@ -25,7 +25,7 @@ At the end of the round, it will transform back to X-Playing Joker so you can de
 
 # Currently Supported X-Playing Cards
 
-![Neo New Nambu](./HighCardMod/assets/2x/j_neo_new_nambu.png)![Love and Peace](./HighCardMod/assets/2x/j_love_and_peace.png)![Calories High](./HighCardMod/assets/2x/j_calories_high.png)![Marble Rumble](./HighCardMod/assets/2x/j_marble_rumble.png)![Never No Dollars](./HighCardMod/assets/2x/j_never_no_dollars.png)![Metallical Parade](./HighCardMod/assets/2x/j_metallical_parade.png)![Green Green](./HighCardMod/assets/2x/j_green_green.png)
+![Neo New Nambu](./HighCardMod/assets/2x/j_neo_new_nambu.png)![Love and Peace](./HighCardMod/assets/2x/j_love_and_peace.png)![Agent S](./HighCardMod/assets/2x/j_agent_s.png)![Calories High](./HighCardMod/assets/2x/j_calories_high.png)![Marble Rumble](./HighCardMod/assets/2x/j_marble_rumble.png)![Never No Dollars](./HighCardMod/assets/2x/j_never_no_dollars.png)![Metallical Parade](./HighCardMod/assets/2x/j_metallical_parade.png)![Green Green](./HighCardMod/assets/2x/j_green_green.png)
 
 You can discover their amazing abilities in collection tab once you install the mod! More X-Playing Cards and X-hands are WIP! 
 
