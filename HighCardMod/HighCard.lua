@@ -17,6 +17,7 @@ local config = {
     XPlayingSpade2 = true,
     XPlayingSpadeA = true,
     -- Heart Family
+    XPlayingHeart3 = true,
     XPlayingHeart4 = true,
     XPlayingHeart5 = true,
     -- Diamond Family
@@ -83,6 +84,17 @@ local locs = {
         text = {
             "Gain {C:chips}+#1#{} Chips and {C:mult}+#2#{} Mult,",
             "but {C:attention}force a card{} for each hand.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
+    XPlayingHeart3 = {
+        name = "Rockin' Rocks",
+        text = {
+            "Turning your first scoring card ",
+            "into {C:attention}Stone Card{}. Retriggers ",
+            "played {C:attention}Stone Card{} for {C:attention}#1# times{}.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -213,6 +225,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingHeart3 = {
+        ability_name = "Rockin Rocks",
+        slug = "rockin_rocks",
+        ability = { extra = { retrigger_cnt = 2, done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingHeart4 = {
         ability_name = "Agent S",
         slug = "agent_s",
@@ -294,6 +317,7 @@ local jokers = {
 local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
     XPlayingSpadeA = "j_love_and_peace",
+    XPlayingHeart3 = "j_rockin_rocks",
     XPlayingHeart4 = "j_agent_s",
     XPlayingHeart5 = "j_calories_high",
     XPlayingDiamond3 = "j_marble_rumble",
@@ -397,6 +421,9 @@ function SMODS.INIT.HighCardMod()
                         end
                         if context.full_hand[1]:get_id() == 14 and context.full_hand[1]:is_suit("Spades") then
                             return xplay("XPlayingSpadeA")
+                        end
+                        if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Hearts") then
+                            return xplay("XPlayingHeart3")
                         end
                         if context.full_hand[1]:get_id() == 4 and context.full_hand[1]:is_suit("Hearts") then
                             return xplay("XPlayingHeart4")
@@ -511,6 +538,41 @@ function SMODS.INIT.HighCardMod()
                     mult_mod = self.ability.extra.mult_gain,
                     card = self
                 }
+            end
+        end
+    end
+
+    if config.XPlayingHeart3 then
+        SMODS.Jokers.j_rockin_rocks.calculate = function(self, context)
+            if context.end_of_round and not self.ability.extra.done then
+                end_xplay("XPlayingHeart3")
+                self.ability.extra.done = true
+            end
+            if context.before then 
+                context.scoring_hand[1]:set_ability(G.P_CENTERS.m_stone, nil, true)
+                G.E_MANAGER:add_event(Event({
+                        func = function()
+                            context.scoring_hand[1]:juice_up()
+                            return true
+                        end
+                    })) 
+                return {
+                    message = "Rockin' Rocks!",
+                    card = self
+                }
+            end
+            if context.repetition then
+                if context.cardarea == G.play and context.other_card.config.center == G.P_CENTERS.m_stone then
+                    return {
+                        message = "Rockin' Rocks!",
+                        repetitions = self.ability.extra.retrigger_cnt,
+                        card = self
+                    }
+                end
+            end
+
+            if SMODS.end_calculate_context(context) then
+                self.ability.extra.done = false
             end
         end
     end
@@ -733,6 +795,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.max_money, self.ability.extra.chip_mult, }
         elseif self.ability.name == 'Metallical Parade' then
             loc_vars = { self.ability.extra.Xmult }
+        elseif self.ability.name == 'Rockin Rocks' then
+            loc_vars = { self.ability.extra.retrigger_cnt }
         elseif self.ability.name == 'Agent S' then
             loc_vars = { self.ability.extra.retrigger_cnt }
         else
