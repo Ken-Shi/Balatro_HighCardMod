@@ -130,7 +130,8 @@ local locs = {
         text = {
             "Convert {C:attention}suit{} of your",
             "played cards to suit",
-            "of {C:attention}first played card{}.",
+            "of {C:attention}lowest played card{}.",
+            "{C:inactive}(right-most if tied){}.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -652,13 +653,17 @@ function SMODS.INIT.HighCardMod()
                     self.ability.extra.done = true
                 end
                 if context.before then 
-                    local first_card = context.full_hand[1]
+                    local lowest_id = math.floor(get_lowest_value(context.full_hand))
+                    local lowest_card = context.full_hand[1]
+                    for k, v in ipairs(context.full_hand) do
+                        if v:get_id() == lowest_id then lowest_card = v end
+                    end
                     --sendDebugMessage(first_card.base.suit)
                     context.scoring_hand = {}
                     for k, v in ipairs(context.full_hand) do
-                        if k > 1 then
-                            v:change_suit(first_card.base.suit)
-                        end
+                        --if k > 1 then
+                            v:change_suit(lowest_card.base.suit)
+                        --end
                         table.insert(context.scoring_hand, v)
                     end
                     return {
