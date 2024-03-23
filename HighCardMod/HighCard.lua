@@ -911,6 +911,16 @@ function Card:add_to_deck(from_debuff)
                         G.P_CENTER_POOLS['Joker'][k].eternal_compat = jkr.eternal_compat
                     end
                 end
+                local jokers_for_remove = {}
+                for k, rjkr in pairs(G.P_JOKER_RARITY_POOLS[4]) do
+                    if rjkr.name == jkr.ability_name then
+                        jokers_for_remove[#jokers_for_remove + 1] = k
+                    end
+                end
+
+                for _, k in ipairs(jokers_for_remove) do
+                    G.P_JOKER_RARITY_POOLS[4][k] = nil  -- Remove the table
+                end
             end
             --G.GAME.blind.debuff["h_size_ge"] = 1
             --G.GAME.blind.loc_debuff_text = ''
