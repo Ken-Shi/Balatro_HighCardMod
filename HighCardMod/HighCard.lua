@@ -29,6 +29,7 @@ local config = {
     -- Club Family
     XPlayingClub2 = true,
     XPlayingClub3 = true,
+    XPlayingClub5 = true,
 }
 
 -- Initialize deck effect
@@ -205,6 +206,18 @@ local locs = {
             "at end of round. "
         }
     },
+    XPlayingClub5 = {
+        name = "G Round",
+        text = {
+            "When {C:attention}Stone Cards{} are played,",
+            "gain {C:mult}+#1#{} Mult each for this",
+            "round and {C:attention}destroy{} them.",
+            "{C:inactive}(Currently{} {C:mult}+#2#{} {C:inactive}Mult){}",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
 }
 
 -- Create Decks
@@ -361,6 +374,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingClub5= {
+        ability_name = "G Round",
+        slug = "g_round",
+        ability = { extra = { mult_gain = 5, mult_acc = 0, done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
 }
 local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
@@ -375,6 +399,7 @@ local joker_map = {
     XPlayingDiamond10 = "j_unlucky_poky",
     XPlayingClub2 = "j_metallical_parade",
     XPlayingClub3 = "j_green_green",
+    XPlayingClub5 = "j_g_round",
 }
 
 function SMODS.INIT.HighCardMod()
@@ -509,6 +534,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Clubs") then
                                 return xplay("XPlayingClub3")
+                            end
+                            if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Clubs") then
+                                return xplay("XPlayingClub5")
                             end
                         end 
                     end
@@ -889,6 +917,45 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    if config.XPlayingClub5 then
+        SMODS.Jokers.j_g_round.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClub5")
+                    self.ability.extra.done = true
+                end
+
+                if context.destroying_card then 
+                    sendDebugMessage("Destroying card!")
+                    if context.destroying_card.config.center == G.P_CENTERS.m_stone then 
+                        sendDebugMessage("Destroying stone card!")
+                        --card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Stomp!"})
+                        return true
+                    end
+                    return nil
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    sendDebugMessage("Evaluate G Round!")
+                    for k, v in ipairs(context.full_hand) do
+                        if v.config.center == G.P_CENTERS.m_stone then
+                            self.ability.extra.mult_acc = self.ability.extra.mult_acc + self.ability.extra.mult_gain
+                            card_eval_status_text(v, 'extra', nil, nil, nil, {message = "Stomp!", Xmult_mod=1})
+                        end
+                    end
+                    if self.ability.extra.mult_acc ~= 0 then
+                        return {
+                            message = "G Round!",
+                            mult_mod = self.ability.extra.mult_acc,
+                            card = self
+                        }
+                    end
+                end
+            end
+        end
+    end
+
 end
 
 -- Copied and modifed from LushMod
@@ -922,6 +989,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.retrigger_cnt }
         elseif self.ability.name == 'Agent S' then
             loc_vars = { self.ability.extra.retrigger_cnt }
+        elseif self.ability.name == 'G Round' then
+            loc_vars = { self.ability.extra.mult_gain, self.ability.extra.mult_acc }
         else
             customJoker = false
         end
