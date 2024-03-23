@@ -41,6 +41,7 @@ function Back.apply_to_run(arg_56_0)
                 -- Add X-playing Joker
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_xplay', nil)
                 --card:set_eternal(true)
+                card.edition = nil
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 return true
@@ -373,6 +374,7 @@ function SMODS.INIT.HighCardMod()
         G.E_MANAGER:add_event(Event({
             func = function() 
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, joker_map[hand_name], nil)
+                card.edition = nil
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 return true
@@ -404,6 +406,7 @@ function SMODS.INIT.HighCardMod()
             func = function() 
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_xplay", nil)
                 --card:set_eternal(true)
+                card.edition = nil
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 G.GAME.joker_buffer = 0
