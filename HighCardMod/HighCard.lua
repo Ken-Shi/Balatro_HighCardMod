@@ -413,40 +413,42 @@ function SMODS.INIT.HighCardMod()
 
     if config.XPlayingJoker then
         SMODS.Jokers.j_xplay.calculate = function(self, context)
-            if SMODS.end_calculate_context(context) then
-                if G.GAME.current_round.hands_played == 0 then
-                    if context.scoring_name == "High Card" then
-                        if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Spades") then
-                            return xplay("XPlayingSpade2")
-                        end
-                        if context.full_hand[1]:get_id() == 14 and context.full_hand[1]:is_suit("Spades") then
-                            return xplay("XPlayingSpadeA")
-                        end
-                        if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Hearts") then
-                            return xplay("XPlayingHeart3")
-                        end
-                        if context.full_hand[1]:get_id() == 4 and context.full_hand[1]:is_suit("Hearts") then
-                            return xplay("XPlayingHeart4")
-                        end
-                        if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Hearts") then
-                            return xplay("XPlayingHeart5")
-                        end
-                        if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Diamonds") then
-                            return xplay("XPlayingDiamond3")
-                        end
-                        if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Diamonds") then
-                            return xplay("XPlayingDiamond7")
-                        end
-                        if context.full_hand[1]:get_id() == 10 and context.full_hand[1]:is_suit("Diamonds") then
-                            return xplay("XPlayingDiamond10")
-                        end
-                        if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Clubs") then
-                            return xplay("XPlayingClub2")
-                        end
-                        if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Clubs") then
-                            return xplay("XPlayingClub3")
-                        end
-                    end 
+            if not context.blueprint then
+                if SMODS.end_calculate_context(context) then
+                    if G.GAME.current_round.hands_played == 0 then
+                        if context.scoring_name == "High Card" then
+                            if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Spades") then
+                                return xplay("XPlayingSpade2")
+                            end
+                            if context.full_hand[1]:get_id() == 14 and context.full_hand[1]:is_suit("Spades") then
+                                return xplay("XPlayingSpadeA")
+                            end
+                            if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Hearts") then
+                                return xplay("XPlayingHeart3")
+                            end
+                            if context.full_hand[1]:get_id() == 4 and context.full_hand[1]:is_suit("Hearts") then
+                                return xplay("XPlayingHeart4")
+                            end
+                            if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Hearts") then
+                                return xplay("XPlayingHeart5")
+                            end
+                            if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Diamonds") then
+                                return xplay("XPlayingDiamond3")
+                            end
+                            if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Diamonds") then
+                                return xplay("XPlayingDiamond7")
+                            end
+                            if context.full_hand[1]:get_id() == 10 and context.full_hand[1]:is_suit("Diamonds") then
+                                return xplay("XPlayingDiamond10")
+                            end
+                            if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Clubs") then
+                                return xplay("XPlayingClub2")
+                            end
+                            if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Clubs") then
+                                return xplay("XPlayingClub3")
+                            end
+                        end 
+                    end
                 end
             end
         end
@@ -454,156 +456,126 @@ function SMODS.INIT.HighCardMod()
 
     if config.XPlayingSpade2 then
         SMODS.Jokers.j_neo_new_nambu.calculate = function(self, context)
-            --ease_discard(-G.GAME.current_round.discards_left, nil, true)
-            --sendDebugMessage(G.hand.size)
-            --G.hand:change_size(self.ability.extra.hand_size)
-            if context.end_of_round and not self.ability.extra.done then
-                --self.ability.extra.done = true
-                --sendDebugMessage("End of Round!")
-                --G.GAME.blind:set_blind(nil, nil, true)
-                end_xplay("XPlayingSpade2")
-                self.ability.extra.done = true
-                --G.GAME.blind.debuff = {}
-                --sendDebugMessage("Transformed!")
-            end
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
-                ease_hands_played(self.ability.extra.hand_gain)
-                return{
-                    message = "Neo New Nambu!",
-                    card = self
-                }
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpade2")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    ease_hands_played(self.ability.extra.hand_gain)
+                    return{
+                        message = "Neo New Nambu!",
+                        card = self
+                    }
+                end
             end
         end
     end
 
     if config.XPlayingSpadeA then
         SMODS.Jokers.j_love_and_peace.calculate = function(self, context)
-            if context.before then 
-                sendDebugMessage("Love-P")
-                local any_forced = nil
-                for k, v in ipairs(G.hand.cards) do
-                    if v.ability.forced_selection then
-                        any_forced = true
-                    end
-                end
-                if not any_forced then 
-                    G.hand:unhighlight_all()
-                    local forced_card = pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
-                    forced_card.ability.forced_selection = true
-                    G.hand:add_to_highlighted(forced_card)
-                end
-            end
-            --[[
-            if context.discard then 
-                self.ability.extra.discard_cnt = self.ability.extra.discard_cnt + 1
-                sendDebugMessage(self.ability.extra.discard_cnt)
-                sendDebugMessage(#G.hand.highlighted)
-                if self.ability.extra.discard_cnt == #G.hand.highlighted then 
-                    sendDebugMessage("Love-P Discard Match! ")
+            if not context.blueprint then
+                if context.before then 
+                    sendDebugMessage("Love-P")
                     local any_forced = nil
-                    local any_none_nil = nil
                     for k, v in ipairs(G.hand.cards) do
-                        if v then 
-                            any_none_nil = true 
-                        end
-                        if v and v.ability.forced_selection then
+                        if v.ability.forced_selection then
                             any_forced = true
                         end
                     end
-                    if not any_forced and any_none_nil then 
-                        --G.hand:unhighlight_all()
+                    if not any_forced then 
+                        G.hand:unhighlight_all()
                         local forced_card = pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
-                        while any_none_nil and forced_card == nil do
-                            forced_card = pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
-                        end
                         forced_card.ability.forced_selection = true
                         G.hand:add_to_highlighted(forced_card)
                     end
-                    self.ability.extra.discard_cnt = 0
                 end
-            end
-            ]]--
-            if context.end_of_round and not self.ability.extra.done then
-                end_xplay("XPlayingSpadeA")
-                self.ability.extra.done = true
-            end
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
-                self.ability.extra.discard_cnt = 0
-                --sendDebugMessage("Love & Peace!")
-                return {
-                    message = "Love & Peace!",
-                    chip_mod = self.ability.extra.chips_gain,
-                    mult_mod = self.ability.extra.mult_gain,
-                    card = self
-                }
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpadeA")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    self.ability.extra.discard_cnt = 0
+                    --sendDebugMessage("Love & Peace!")
+                    return {
+                        message = "Love & Peace!",
+                        chip_mod = self.ability.extra.chips_gain,
+                        mult_mod = self.ability.extra.mult_gain,
+                        card = self
+                    }
+                end
             end
         end
     end
 
     if config.XPlayingHeart3 then
         SMODS.Jokers.j_rockin_rocks.calculate = function(self, context)
-            if context.end_of_round and not self.ability.extra.done then
-                end_xplay("XPlayingHeart3")
-                self.ability.extra.done = true
-            end
-            if context.before then 
-                context.scoring_hand[1]:set_ability(G.P_CENTERS.m_stone, nil, true)
-                G.E_MANAGER:add_event(Event({
-                        func = function()
-                            context.scoring_hand[1]:juice_up()
-                            return true
-                        end
-                    })) 
-                return {
-                    message = "Rockin' Rocks!",
-                    card = self
-                }
-            end
-            if context.repetition then
-                if context.cardarea == G.play and context.other_card.config.center == G.P_CENTERS.m_stone then
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeart3")
+                    self.ability.extra.done = true
+                end
+                if context.before then 
+                    context.scoring_hand[1]:set_ability(G.P_CENTERS.m_stone, nil, true)
+                    G.E_MANAGER:add_event(Event({
+                            func = function()
+                                context.scoring_hand[1]:juice_up()
+                                return true
+                            end
+                        })) 
                     return {
                         message = "Rockin' Rocks!",
-                        repetitions = self.ability.extra.retrigger_cnt,
                         card = self
                     }
                 end
-            end
+                if context.repetition then
+                    if context.cardarea == G.play and context.other_card.config.center == G.P_CENTERS.m_stone then
+                        return {
+                            message = "Rockin' Rocks!",
+                            repetitions = self.ability.extra.retrigger_cnt,
+                            card = self
+                        }
+                    end
+                end
 
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
             end
         end
     end
 
     if config.XPlayingHeart4 then
         SMODS.Jokers.j_agent_s.calculate = function(self, context)
-            if context.end_of_round and not self.ability.extra.done then
-                end_xplay("XPlayingHeart4")
-                self.ability.extra.done = true
-            end
-            --if context.before then 
-            --    local lowest_card_value = math.floor(get_lowest_value(context.scoring_hand))
-            --    sendDebugMessage(lowest_card_value)
-            --end
-            if context.repetition then
-                --sendDebugMessage("Repetition!")
-                --sendDebugMessage(context.other_card:get_id())
-                --sendDebugMessage(context.cardarea)
-                if context.cardarea == G.play and context.other_card:get_id() == math.floor(get_lowest_value(context.scoring_hand)) and not self.ability.extra.repeated then
-                    sendDebugMessage("Agent S triggered!")
-                    self.ability.extra.repeated = true
-                    return {
-                        message = 'Agent S!',
-                        repetitions = self.ability.extra.retrigger_cnt,
-                        card = self
-                    }
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeart4")
+                    self.ability.extra.done = true
                 end
-            end
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
-                self.ability.extra.repeated = false
+                --if context.before then 
+                --    local lowest_card_value = math.floor(get_lowest_value(context.scoring_hand))
+                --    sendDebugMessage(lowest_card_value)
+                --end
+                if context.repetition then
+                    --sendDebugMessage("Repetition!")
+                    --sendDebugMessage(context.other_card:get_id())
+                    --sendDebugMessage(context.cardarea)
+                    if context.cardarea == G.play and context.other_card:get_id() == math.floor(get_lowest_value(context.scoring_hand)) and not self.ability.extra.repeated then
+                        sendDebugMessage("Agent S triggered!")
+                        self.ability.extra.repeated = true
+                        return {
+                            message = 'Agent S!',
+                            repetitions = self.ability.extra.retrigger_cnt,
+                            card = self
+                        }
+                    end
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    self.ability.extra.repeated = false
+                end
             end
         end
     end
@@ -611,78 +583,84 @@ function SMODS.INIT.HighCardMod()
 
     if config.XPlayingHeart5 then
         SMODS.Jokers.j_calories_high.calculate = function(self, context)
-            if context.end_of_round and not self.ability.extra.done then
-                end_xplay("XPlayingHeart5")
-                self.ability.extra.done = true
-            end
-            if context.discard then
-                self.ability.extra.discard_cnt = self.ability.extra.discard_cnt + 1
-                if self.ability.extra.discard_cnt == #G.hand.highlighted then
-                    ease_discard(self.ability.extra.discard_gain, nil, true)
-                    self.ability.extra.discard_cnt = 0
-                    return {
-                        message = "Calorie's High!",
-                        card = self
-                    }
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeart5")
+                    self.ability.extra.done = true
                 end
+                if context.discard then
+                    self.ability.extra.discard_cnt = self.ability.extra.discard_cnt + 1
+                    if self.ability.extra.discard_cnt == #G.hand.highlighted then
+                        ease_discard(self.ability.extra.discard_gain, nil, true)
+                        self.ability.extra.discard_cnt = 0
+                        return {
+                            message = "Calorie's High!",
+                            card = self
+                        }
+                    end
 
-            end
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
-                self.ability.extra.discard_cnt = 0
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    self.ability.extra.discard_cnt = 0
+                end
             end
         end
     end
 
     if config.XPlayingDiamond3 then
         SMODS.Jokers.j_marble_rumble.calculate = function(self, context)
-            if context.end_of_round and not self.ability.extra.done then
-                end_xplay("XPlayingDiamond3")
-                self.ability.extra.done = true
-            end
-            if context.before then 
-                for k, v in ipairs(context.scoring_hand) do
-                    v:set_ability(G.P_CENTERS.m_glass, nil, true)
-                    G.E_MANAGER:add_event(Event({
-                        func = function()
-                            v:juice_up()
-                            return true
-                        end
-                    })) 
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamond3")
+                    self.ability.extra.done = true
                 end
-                return {
-                    message = "Marble Rumble!",
-                    card = self
-                }
-            end
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
+                if context.before then 
+                    for k, v in ipairs(context.scoring_hand) do
+                        v:set_ability(G.P_CENTERS.m_glass, nil, true)
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                v:juice_up()
+                                return true
+                            end
+                        })) 
+                    end
+                    return {
+                        message = "Marble Rumble!",
+                        card = self
+                    }
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
             end
         end
     end
 
     if config.XPlayingDiamond7 then
         SMODS.Jokers.j_never_no_dollars.calculate = function(self, context)
-            if context.end_of_round and not self.ability.extra.done then
-                end_xplay("XPlayingDiamond7")
-                self.ability.extra.done = true
-            end
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
-                local wallet = math.min(self.ability.extra.max_money, G.GAME.dollars)
-                if wallet > 0 then
-                    ease_dollars(-wallet)
-                    return {
-                        message = "Never No Dollars!",
-                        chip_mod = self.ability.extra.chip_mult * wallet,
-                        mult_mod = wallet,
-                        card = self
-                    }
-                else
-                    return {
-                        message = "No Dollars :(",
-                        card = self
-                    }
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamond7")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    local wallet = math.min(self.ability.extra.max_money, G.GAME.dollars)
+                    if wallet > 0 then
+                        ease_dollars(-wallet)
+                        return {
+                            message = "Never No Dollars!",
+                            chip_mod = self.ability.extra.chip_mult * wallet,
+                            mult_mod = wallet,
+                            card = self
+                        }
+                    else
+                        return {
+                            message = "No Dollars :(",
+                            card = self
+                        }
+                    end
                 end
             end
         end
@@ -690,78 +668,84 @@ function SMODS.INIT.HighCardMod()
 
     if config.XPlayingDiamond10 then
         SMODS.Jokers.j_unlucky_poky.calculate = function(self, context)
-            if context.end_of_round and not self.ability.extra.done then
-                end_xplay("XPlayingDiamond10")
-                self.ability.extra.done = true
-            end
-            if context.before then 
-                for k, v in ipairs(context.scoring_hand) do
-                    v:set_ability(G.P_CENTERS.m_lucky, nil, true)
-                    G.E_MANAGER:add_event(Event({
-                        func = function()
-                            v:juice_up()
-                            return true
-                        end
-                    })) 
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamond10")
+                    self.ability.extra.done = true
                 end
-                for k, v in pairs(G.GAME.probabilities) do 
-                    sendDebugMessage(G.GAME.probabilities[k])
-                    G.GAME.probabilities[k] = v * 1000
+                if context.before then 
+                    for k, v in ipairs(context.scoring_hand) do
+                        v:set_ability(G.P_CENTERS.m_lucky, nil, true)
+                        G.E_MANAGER:add_event(Event({
+                            func = function()
+                                v:juice_up()
+                                return true
+                            end
+                        })) 
+                    end
+                    for k, v in pairs(G.GAME.probabilities) do 
+                        sendDebugMessage(G.GAME.probabilities[k])
+                        G.GAME.probabilities[k] = v * 1000
+                    end
+                    return {
+                        message = "Unlucky Poky!",
+                        card = self
+                    }
                 end
-                return {
-                    message = "Unlucky Poky!",
-                    card = self
-                }
-            end
-            if context.after then 
-                for k, v in pairs(G.GAME.probabilities) do 
-                    sendDebugMessage(G.GAME.probabilities[k])
-                    G.GAME.probabilities[k] = v / 1000
+                if context.after then 
+                    for k, v in pairs(G.GAME.probabilities) do 
+                        sendDebugMessage(G.GAME.probabilities[k])
+                        G.GAME.probabilities[k] = v / 1000
+                    end
                 end
-            end
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
             end
         end
     end
 
     if config.XPlayingClub2 then
         SMODS.Jokers.j_metallical_parade.calculate = function(self, context)
-            if context.end_of_round and not self.ability.extra.done then
-                end_xplay("XPlayingClub2")
-                self.ability.extra.done = true
-            end
-            if context.individual then 
-                if context.cardarea == G.play then
-                    if context.other_card.config.center == G.P_CENTERS.m_steel or context.other_card.config.center == G.P_CENTERS.m_gold then
-                        return {
-                            --extra = {message = "Metallical Parade!", Xmult_mod = self.ability.extra.Xmult},
-                            --message = "Metallical Parade!", 
-                            x_mult = self.ability.extra.Xmult,
-                            card = self
-                        }
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClub2")
+                    self.ability.extra.done = true
+                end
+                if context.individual then 
+                    if context.cardarea == G.play then
+                        if context.other_card.config.center == G.P_CENTERS.m_steel or context.other_card.config.center == G.P_CENTERS.m_gold then
+                            return {
+                                --extra = {message = "Metallical Parade!", Xmult_mod = self.ability.extra.Xmult},
+                                --message = "Metallical Parade!", 
+                                x_mult = self.ability.extra.Xmult,
+                                card = self
+                            }
+                        end
                     end
                 end
-            end
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
             end
         end
     end
 
     if config.XPlayingClub3 then
         SMODS.Jokers.j_green_green.calculate = function(self, context)
-            if context.end_of_round and not self.ability.extra.done then
-                end_xplay("XPlayingClub3")
-                self.ability.extra.done = true
-            end
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClub3")
+                    self.ability.extra.done = true
+                end
 
-            if SMODS.end_calculate_context(context) then
-                self.ability.extra.done = false
-                --return {
-                --    message = "Green Green!",
-                --    card = self
-                --}
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    --return {
+                    --    message = "Green Green!",
+                    --    card = self
+                    --}
+                end
             end
         end
     end
@@ -846,6 +830,17 @@ function Card:add_to_deck(from_debuff)
     if not self.added_to_deck then
         
         if self.ability.name == 'X-Play' then 
+            -- Handle missing compat
+            for idx, jkr in pairs(jokers) do
+                --sendDebugMessage("what")
+                for k, rjkr in ipairs(G.P_CENTER_POOLS['Joker']) do
+                    if rjkr.name == jkr.ability_name then
+                        --if not jkr.blueprint_compat then sendDebugMessage(rjkr.name) end
+                        G.P_CENTER_POOLS['Joker'][k].blueprint_compat = jkr.blueprint_compat
+                        G.P_CENTER_POOLS['Joker'][k].eternal_compat = jkr.eternal_compat
+                    end
+                end
+            end
             --G.GAME.blind.debuff["h_size_ge"] = 1
             --G.GAME.blind.loc_debuff_text = ''
             --sendDebugMessage("Debuff Reset via X-Play!")
