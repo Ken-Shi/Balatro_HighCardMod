@@ -20,7 +20,7 @@ local config = {
     XPlayingHeart3 = true,
     XPlayingHeart4 = true,
     XPlayingHeart5 = true,
-    XPlayingHeart7 = false,
+    XPlayingHeart7 = true,
     -- Diamond Family
     XPlayingDiamond3 = true,
     XPlayingDiamond7 = true,
@@ -42,7 +42,8 @@ function Back.apply_to_run(arg_56_0)
                 -- Add X-playing Joker
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_xplay', nil)
                 --card:set_eternal(true)
-                card:set_edition(nil)
+                card:set_edition(nil, nil, true)
+                --card:juice_up(1, 0.5)
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 return true
@@ -381,6 +382,8 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    --set_edition_replacement(Card, "set_edition", set_edition_robust)
+
     -- Joker calculations
 
     local function xplay(hand_name)
@@ -398,7 +401,8 @@ function SMODS.INIT.HighCardMod()
         G.E_MANAGER:add_event(Event({
             func = function() 
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, joker_map[hand_name], nil)
-                card:set_edition(nil)
+                card:set_edition(nil, nil, true)
+                --card:juice_up(1, 0.5)
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 return true
@@ -430,7 +434,9 @@ function SMODS.INIT.HighCardMod()
             func = function() 
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_xplay", nil)
                 --card:set_eternal(true)
-                card:set_edition(nil)
+                card:set_edition(nil, nil, true)
+                --card:juice_up(1, 0.5)
+                sendDebugMessage("set!")
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 G.GAME.joker_buffer = 0
@@ -647,47 +653,19 @@ function SMODS.INIT.HighCardMod()
                 end
                 if context.before then 
                     local first_card = context.full_hand[1]
-                    sendDebugMessage(first_card.base.suit)
+                    --sendDebugMessage(first_card.base.suit)
+                    context.scoring_hand = {}
                     for k, v in ipairs(context.full_hand) do
                         if k > 1 then
                             v:change_suit(first_card.base.suit)
                         end
+                        table.insert(context.scoring_hand, v)
                     end
-                    sendDebugMessage("Re-evaluate Hand!")
-                    G.E_MANAGER:add_event(Event({
-                        trigger = 'immediate',
-                        func = (function()
-                            check_for_unlock({type = 'hand_contents', cards = G.play.cards})
-
-                            G.E_MANAGER:add_event(Event({
-                                trigger = 'immediate',
-                                func = function()
-                                    G.FUNCS.evaluate_play()
-                                    return true
-                                end
-                            }))
-
-                            G.E_MANAGER:add_event(Event({
-                                trigger = 'after',
-                                delay = 0.1,
-                                func = function()
-                                    check_for_unlock({type = 'play_all_hearts'})
-                                    G.FUNCS.draw_from_play_to_discard()
-                                    G.GAME.hands_played = G.GAME.hands_played + 1
-                                    G.GAME.current_round.hands_played = G.GAME.current_round.hands_played + 1
-                                    return true
-                                end
-                            }))
-                            G.E_MANAGER:add_event(Event({
-                                trigger = 'immediate',
-                                func = function()
-                                    G.STATE_COMPLETE = false
-                                    return true
-                                end
-                            }))
-                            return true
-                        end)
-                    }))
+                    return {
+                        message = "Chameleon!",
+                        card = self
+                    }
+                    
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
@@ -980,6 +958,9 @@ function Card:add_to_deck(from_debuff)
         if self.ability.name == 'Calories High' then
             ease_hands_played(self.ability.extra.hand_play - G.GAME.current_round.hands_left)
         end
+        if self.ability.name == 'Chameleon' then
+            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand, pre_flush)
+        end
         --if self.ability.name == 'Unlucky Poky' then
         --    for k, v in pairs(G.GAME.probabilities) do 
         --        sendDebugMessage(G.GAME.probabilities[k])
@@ -1008,6 +989,10 @@ function Card:remove_from_deck(from_debuff)
         --        sendDebugMessage(G.GAME.probabilities[k])
         --    end
         --end
+        if self.ability.name == 'Chameleon' then
+            evaluate_poker_hand = evaluate_poker_hand_OG
+            sendDebugMessage("Flush Effect Wears Off! ")
+        end
         if self.ability.name == 'Green Green' then
             evaluate_poker_hand = evaluate_poker_hand_OG
             sendDebugMessage("Straight Effect Wears Off! ")
@@ -1034,14 +1019,14 @@ function highcard_wraplast(originalFunc, additionalFunc)
     return function(hand)
         -- Call the additional function
         ret = originalFunc(hand)
-        ret = additionalFunc(ret)
+        ret = additionalFunc(ret, hand)
 
         -- Then call the original function with all the original arguments
         return ret
     end
 end
 
-function always_straight(ret)
+function always_straight(ret, hand)
     --
     local new_results = {
         ["Flush Five"] = {},
@@ -1066,7 +1051,120 @@ function always_straight(ret)
     return new_results
 end
 
+function pre_flush(ret, hand)
+    if ret.top == nil then return ret end
+
+    local new_results = ret
+    if next(ret["Five of a Kind"]) then new_results["Flush Five"] = ret["Five of a Kind"]
+    elseif next(ret["Full House"]) then new_results["Flush House"] = ret["Full House"]
+    elseif next(ret["Straight"]) then new_results["Straight Flush"] = ret["Straight"] end
+    if #hand >= 5 then 
+        local placeholder_tab = {}
+        for _,v in ipairs(hand) do
+            table.insert(placeholder_tab, v)
+        end
+        new_results["Flush"] = {placeholder_tab}
+    end
+    
+    if new_results.top == nil then return ret end
+
+    return new_results
+end
+
 evaluate_poker_hand_OG = evaluate_poker_hand
+
+-- Function to wrap an existing method with your additional logic
+function set_edition_replacement(class, methodName, additionalFunc)
+    local originalMethod = class[methodName]
+
+    class[methodName] = function(self)
+        -- Call the additional function
+        originalMethod(self)
+        --sendDebugMessage('Rendering Reset Triggered!')
+        additionalFunc()
+        --sendDebugMessage('Card Back Injection Triggered!')
+        -- Then call the original method with 'self' and any arguments
+        return 
+    end
+end
+
+-- This is an important replacement that handles a piece of faulty code in OG game
+function Card:set_edition(edition, immediate, silent)
+    self.edition = nil
+    if not edition then return end
+    if edition.holo then
+        if not self.edition then self.edition = {} end
+        self.edition.mult = G.P_CENTERS.e_holo.config.extra
+        self.edition.holo = true
+        self.edition.type = 'holo'
+    elseif edition.foil then
+        if not self.edition then self.edition = {} end
+        self.edition.chips = G.P_CENTERS.e_foil.config.extra
+        self.edition.foil = true
+        self.edition.type = 'foil'
+    elseif edition.polychrome then
+        if not self.edition then self.edition = {} end
+        self.edition.x_mult = G.P_CENTERS.e_polychrome.config.extra
+        self.edition.polychrome = true
+        self.edition.type = 'polychrome'
+    elseif edition.negative then
+        if not self.edition then
+            self.edition = {}
+            if self.added_to_deck then --Need to override if adding negative to an existing joker
+                if self.ability.consumeable then
+                    G.consumeables.config.card_limit = G.consumeables.config.card_limit + 1
+                else
+                    G.jokers.config.card_limit = G.jokers.config.card_limit + 1
+                end
+            end
+        end
+        self.edition.negative = true
+        self.edition.type = 'negative'
+    end
+
+    if self.area and self.area == G.jokers then 
+        if self.edition then
+            if not G.P_CENTERS['e_'..(self.edition.type)].discovered then 
+                discover_card(G.P_CENTERS['e_'..(self.edition.type)])
+            end
+        else
+            if not G.P_CENTERS['e_base'].discovered then 
+                discover_card(G.P_CENTERS['e_base'])
+            end
+        end
+    end
+
+    if self.edition and not silent then
+        G.CONTROLLER.locks.edition = true
+        G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = not immediate and 0.2 or 0,
+            blockable = not immediate,
+            func = function()
+                self:juice_up(1, 0.5)
+                if self.edition and self.edition.foil then play_sound('foil1', 1.2, 0.4) end
+                if self.edition and self.edition.holo then play_sound('holo1', 1.2*1.58, 0.4) end
+                if self.edition and self.edition.polychrome then play_sound('polychrome1', 1.2, 0.7) end
+                if self.edition and self.edition.negative then play_sound('negative', 1.5, 0.4) end
+               return true
+            end
+          }))
+          G.E_MANAGER:add_event(Event({
+            trigger = 'after',
+            delay = 0.1,
+            func = function()
+                G.CONTROLLER.locks.edition = false
+               return true
+            end
+          }))
+    end
+
+    if G.jokers and self.area == G.jokers then 
+        check_for_unlock({type = 'modify_jokers'})
+    end
+
+    self:set_cost()
+end
 
 ----------------------------------------------
 ------------MOD CODE END----------------------
