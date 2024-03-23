@@ -15,6 +15,7 @@ local config = {
     XPlayingJoker = true,
     -- Spade Family
     XPlayingSpade2 = true,
+    XPlayingSpade9 = true,
     XPlayingSpadeA = true,
     -- Heart Family
     XPlayingHeart3 = true,
@@ -77,6 +78,16 @@ local locs = {
             "but you must play {C:attention}#3# cards{}",
             "{C:attention}per hand{}, {C:attention}lose all discards{}",
             "and set hand size to {C:attention}#2#{}.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
+    XPlayingSpade9 = {
+        name = "Bokka",
+        text = {
+            "Remove {C:attention}debuff{}",
+            "from played cards.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -229,6 +240,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingSpade9 = {
+        ability_name = "Bokka",
+        slug = "bokka",
+        ability = { extra = { done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingSpadeA = {
         ability_name = "Love and Peace",
         slug = "love_and_peace",
@@ -342,6 +364,7 @@ local jokers = {
 }
 local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
+    XPlayingSpade9 = "j_bokka",
     XPlayingSpadeA = "j_love_and_peace",
     XPlayingHeart3 = "j_rockin_rocks",
     XPlayingHeart4 = "j_agent_s",
@@ -454,6 +477,9 @@ function SMODS.INIT.HighCardMod()
                             if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Spades") then
                                 return xplay("XPlayingSpade2")
                             end
+                            if context.full_hand[1]:get_id() == 9 and context.full_hand[1]:is_suit("Spades") then
+                                return xplay("XPlayingSpade9")
+                            end
                             if context.full_hand[1]:get_id() == 14 and context.full_hand[1]:is_suit("Spades") then
                                 return xplay("XPlayingSpadeA")
                             end
@@ -510,6 +536,47 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    if config.XPlayingSpade9 then
+        SMODS.Jokers.j_bokka.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpade9")
+                    self.ability.extra.done = true
+                end
+
+                if context.before then 
+                    local protected = false
+                    for k, v in ipairs(context.full_hand) do
+                        if v.debuff then
+                            --v:set_debuff(false)
+                            protected = true
+                        end
+                    end
+
+                    if protected then 
+                        G.E_MANAGER:add_event(Event({
+                        func = function() 
+                            for k, v in ipairs(context.full_hand) do
+                                if v.debuff then
+                                    v:set_debuff(false)
+                                end
+                            end
+                            return true
+                        end}))
+                        return {
+                            message = "Bokka!",
+                            card = self
+                        } 
+                    end
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
+
     if config.XPlayingSpadeA then
         SMODS.Jokers.j_love_and_peace.calculate = function(self, context)
             if not context.blueprint then
@@ -556,6 +623,7 @@ function SMODS.INIT.HighCardMod()
                 end
                 if context.before then 
                     context.scoring_hand[1]:set_ability(G.P_CENTERS.m_stone, nil, true)
+                    --context.scoring_hand[1]:set_ability(G.P_CENTERS.m_stone, nil, true) 
                     G.E_MANAGER:add_event(Event({
                             func = function()
                                 context.scoring_hand[1]:juice_up()
