@@ -20,6 +20,7 @@ local config = {
     XPlayingHeart3 = true,
     XPlayingHeart4 = true,
     XPlayingHeart5 = true,
+    XPlayingHeart7 = false,
     -- Diamond Family
     XPlayingDiamond3 = true,
     XPlayingDiamond7 = true,
@@ -41,7 +42,7 @@ function Back.apply_to_run(arg_56_0)
                 -- Add X-playing Joker
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_xplay', nil)
                 --card:set_eternal(true)
-                card.edition = nil
+                card:set_edition(nil)
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 return true
@@ -118,6 +119,17 @@ local locs = {
             "Gain {C:red}+#1#{} Discard upon ",
             "card(s) discarded, but ",
             "you only play {C:attention}#2# hand{}.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
+    XPlayingHeart7 = {
+        name = "Chameleon",
+        text = {
+            "Convert {C:attention}suit{} of your",
+            "played cards to suit",
+            "of {C:attention}first played card{}.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -259,6 +271,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingHeart7 = {
+        ability_name = "Chameleon",
+        slug = "chameleon",
+        ability = { extra = { done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingDiamond3= {
         ability_name = "Marble Rumble",
         slug = "marble_rumble",
@@ -321,6 +344,7 @@ local joker_map = {
     XPlayingHeart3 = "j_rockin_rocks",
     XPlayingHeart4 = "j_agent_s",
     XPlayingHeart5 = "j_calories_high",
+    XPlayingHeart7 = "j_chameleon",
     XPlayingDiamond3 = "j_marble_rumble",
     XPlayingDiamond7 = "j_never_no_dollars",
     XPlayingDiamond10 = "j_unlucky_poky",
@@ -374,7 +398,7 @@ function SMODS.INIT.HighCardMod()
         G.E_MANAGER:add_event(Event({
             func = function() 
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, joker_map[hand_name], nil)
-                card.edition = nil
+                card:set_edition(nil)
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 return true
@@ -406,7 +430,7 @@ function SMODS.INIT.HighCardMod()
             func = function() 
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_xplay", nil)
                 --card:set_eternal(true)
-                card.edition = nil
+                card:set_edition(nil)
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 G.GAME.joker_buffer = 0
@@ -434,6 +458,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Hearts") then
                                 return xplay("XPlayingHeart5")
+                            end
+                            if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Hearts") then
+                                return xplay("XPlayingHeart7")
                             end
                             if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Diamonds") then
                                 return xplay("XPlayingDiamond3")
@@ -606,6 +633,64 @@ function SMODS.INIT.HighCardMod()
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
                     self.ability.extra.discard_cnt = 0
+                end
+            end
+        end
+    end
+
+    if config.XPlayingHeart7 then
+        SMODS.Jokers.j_chameleon.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeart7")
+                    self.ability.extra.done = true
+                end
+                if context.before then 
+                    local first_card = context.full_hand[1]
+                    sendDebugMessage(first_card.base.suit)
+                    for k, v in ipairs(context.full_hand) do
+                        if k > 1 then
+                            v:change_suit(first_card.base.suit)
+                        end
+                    end
+                    sendDebugMessage("Re-evaluate Hand!")
+                    G.E_MANAGER:add_event(Event({
+                        trigger = 'immediate',
+                        func = (function()
+                            check_for_unlock({type = 'hand_contents', cards = G.play.cards})
+
+                            G.E_MANAGER:add_event(Event({
+                                trigger = 'immediate',
+                                func = function()
+                                    G.FUNCS.evaluate_play()
+                                    return true
+                                end
+                            }))
+
+                            G.E_MANAGER:add_event(Event({
+                                trigger = 'after',
+                                delay = 0.1,
+                                func = function()
+                                    check_for_unlock({type = 'play_all_hearts'})
+                                    G.FUNCS.draw_from_play_to_discard()
+                                    G.GAME.hands_played = G.GAME.hands_played + 1
+                                    G.GAME.current_round.hands_played = G.GAME.current_round.hands_played + 1
+                                    return true
+                                end
+                            }))
+                            G.E_MANAGER:add_event(Event({
+                                trigger = 'immediate',
+                                func = function()
+                                    G.STATE_COMPLETE = false
+                                    return true
+                                end
+                            }))
+                            return true
+                        end)
+                    }))
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
                 end
             end
         end
