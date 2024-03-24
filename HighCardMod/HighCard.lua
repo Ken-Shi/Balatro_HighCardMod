@@ -176,10 +176,10 @@ local locs = {
             --"All {C:green,E:1,S:1.1}probabilities{} ",
             --"become {C:green,E:1,S:1.1}deterministic{}",
             --"(i.e. they always trigger)",
-            "Turn your {C:attention}scoring hand{}",
-            "into {C:attention}Lucky Card{}",
-            "and become {C:green,E:1,S:1.1}extra-lucky{}",
-            "during the scoring stage.",
+            "Turn your {C:attention}scoring hand{} into",
+            "{C:attention}Lucky Cards{} and become {C:green,E:1,S:1.1}extra-lucky{}",
+            "during the scoring stage, but",
+            "{C:red}lose all of them afterwards{}.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -485,7 +485,7 @@ function SMODS.INIT.HighCardMod()
                 --card:set_eternal(true)
                 card:set_edition(nil, nil, true)
                 --card:juice_up(1, 0.5)
-                sendDebugMessage("set!")
+                --sendDebugMessage("set!")
                 card:add_to_deck()
                 G.jokers:emplace(card)
                 G.GAME.joker_buffer = 0
@@ -784,13 +784,15 @@ function SMODS.INIT.HighCardMod()
                 end
                 if context.before then 
                     for k, v in ipairs(context.scoring_hand) do
-                        v:set_ability(G.P_CENTERS.m_glass, nil, true)
-                        G.E_MANAGER:add_event(Event({
-                            func = function()
-                                v:juice_up()
-                                return true
-                            end
-                        })) 
+                        if v.config.center ~= G.P_CENTERS.m_stone then
+                            v:set_ability(G.P_CENTERS.m_glass, nil, true)
+                            G.E_MANAGER:add_event(Event({
+                                func = function()
+                                    v:juice_up()
+                                    return true
+                                end
+                            })) 
+                        end
                     end
                     return {
                         message = "Marble Rumble!",
@@ -842,13 +844,15 @@ function SMODS.INIT.HighCardMod()
                 end
                 if context.before then 
                     for k, v in ipairs(context.scoring_hand) do
-                        v:set_ability(G.P_CENTERS.m_lucky, nil, true)
-                        G.E_MANAGER:add_event(Event({
-                            func = function()
-                                v:juice_up()
-                                return true
-                            end
-                        })) 
+                        if v.config.center ~= G.P_CENTERS.m_stone then
+                            v:set_ability(G.P_CENTERS.m_lucky, nil, true)
+                            G.E_MANAGER:add_event(Event({
+                                func = function()
+                                    v:juice_up()
+                                    return true
+                                end
+                            })) 
+                        end
                     end
                     for k, v in pairs(G.GAME.probabilities) do 
                         sendDebugMessage(G.GAME.probabilities[k])
@@ -858,6 +862,12 @@ function SMODS.INIT.HighCardMod()
                         message = "Unlucky Poky!",
                         card = self
                     }
+                end
+                if context.destroying_card then 
+                    if context.destroying_card.config.center == G.P_CENTERS.m_lucky then
+                        return true
+                    end
+                    return nil
                 end
                 if context.after then 
                     for k, v in pairs(G.GAME.probabilities) do 
@@ -926,9 +936,9 @@ function SMODS.INIT.HighCardMod()
                 end
 
                 if context.destroying_card then 
-                    sendDebugMessage("Destroying card!")
+                    --sendDebugMessage("Destroying card!")
                     if context.destroying_card.config.center == G.P_CENTERS.m_stone then 
-                        sendDebugMessage("Destroying stone card!")
+                        --sendDebugMessage("Destroying stone card!")
                         --card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Stomp!"})
                         return true
                     end
@@ -937,7 +947,7 @@ function SMODS.INIT.HighCardMod()
 
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
-                    sendDebugMessage("Evaluate G Round!")
+                    --sendDebugMessage("Evaluate G Round!")
                     for k, v in ipairs(context.full_hand) do
                         if v.config.center == G.P_CENTERS.m_stone then
                             self.ability.extra.mult_acc = self.ability.extra.mult_acc + self.ability.extra.mult_gain
