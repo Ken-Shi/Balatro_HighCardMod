@@ -23,6 +23,7 @@ local config = {
     XPlayingHeart5 = true,
     XPlayingHeart7 = true,
     -- Diamond Family
+    XPlayingDiamond2 = true,
     XPlayingDiamond3 = true,
     XPlayingDiamond7 = true,
     XPlayingDiamond10 = true,
@@ -144,6 +145,17 @@ local locs = {
             "played cards to suit",
             "of {C:attention}lowest played card{}.",
             "{C:inactive}(right-most if tied){}.",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
+    XPlayingDiamond2 = {
+        name = "Love Connection",
+        text = {
+            "Your poker hand played",
+            "is always considered to",
+            "have contained a {C:attention}Pair{}.",
             "Transform back to",
             "{C:attention}X-Playing Joker{}",
             "at end of round. "
@@ -319,6 +331,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingDiamond2= {
+        ability_name = "Love Connection",
+        slug = "love_connection",
+        ability = { extra = { done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingDiamond3= {
         ability_name = "Marble Rumble",
         slug = "marble_rumble",
@@ -394,6 +417,7 @@ local joker_map = {
     XPlayingHeart4 = "j_agent_s",
     XPlayingHeart5 = "j_calories_high",
     XPlayingHeart7 = "j_chameleon",
+    XPlayingDiamond2 = "j_love_connection",
     XPlayingDiamond3 = "j_marble_rumble",
     XPlayingDiamond7 = "j_never_no_dollars",
     XPlayingDiamond10 = "j_unlucky_poky",
@@ -519,6 +543,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Hearts") then
                                 return xplay("XPlayingHeart7")
+                            end
+                            if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Diamonds") then
+                                return xplay("XPlayingDiamond2")
                             end
                             if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Diamonds") then
                                 return xplay("XPlayingDiamond3")
@@ -768,6 +795,21 @@ function SMODS.INIT.HighCardMod()
                     }
                     
                 end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
+
+    if config.XPlayingDiamond2 then
+        SMODS.Jokers.j_love_connection.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamond2")
+                    self.ability.extra.done = true
+                end
+
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
                 end
@@ -1117,6 +1159,9 @@ function Card:add_to_deck(from_debuff)
                 G.hand:add_to_highlighted(forced_card)
             end
         end
+        if self.ability.name == 'Love Connection' then
+            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand, always_pair)
+        end
         if self.ability.name == 'Calories High' then
             ease_hands_played(self.ability.extra.hand_play - G.GAME.current_round.hands_left)
         end
@@ -1154,6 +1199,10 @@ function Card:remove_from_deck(from_debuff)
         if self.ability.name == 'Chameleon' then
             evaluate_poker_hand = evaluate_poker_hand_OG
             sendDebugMessage("Flush Effect Wears Off! ")
+        end
+        if self.ability.name == 'Love Connection' then
+            evaluate_poker_hand = evaluate_poker_hand_OG
+            sendDebugMessage("Pair Effect Wears Off! ")
         end
         if self.ability.name == 'Green Green' then
             evaluate_poker_hand = evaluate_poker_hand_OG
@@ -1227,6 +1276,17 @@ function pre_flush(ret, hand)
         end
         new_results["Flush"] = {placeholder_tab}
     end
+    
+    if new_results.top == nil then return ret end
+
+    return new_results
+end
+
+function always_pair(ret, hand)
+    if ret.top == nil then return ret end
+
+    local new_results = ret
+    if not next(new_results["Pair"]) then new_results["Pair"] = ret.top end
     
     if new_results.top == nil then return ret end
 
