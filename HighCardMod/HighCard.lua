@@ -81,9 +81,11 @@ local locs = {
             "but you must play {C:attention}#3# cards{}",
             "{C:attention}per hand{}, {C:attention}lose all discards{}",
             "and set hand size to {C:attention}#2#{}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingSpade9 = {
@@ -91,9 +93,11 @@ local locs = {
         text = {
             "Remove {C:attention}debuff{}",
             "from played cards.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingSpadeA = {
@@ -101,9 +105,11 @@ local locs = {
         text = {
             "Gain {C:chips}+#1#{} Chips and {C:mult}+#2#{} Mult,",
             "but {C:attention}force a card{} for each hand.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingHeart3 = {
@@ -112,9 +118,11 @@ local locs = {
             "Turning your first scoring card ",
             "into {C:attention}Stone Card{}. Retriggers ",
             "played {C:attention}Stone Card{} for {C:attention}#1# times{}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingHeart4 = {
@@ -123,9 +131,11 @@ local locs = {
             "Retrigger the lowest",
             "played card used in",
             "scoring for {C:attention}#1# times{}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingHeart5 = {
@@ -134,9 +144,11 @@ local locs = {
             "Gain {C:red}+#1#{} Discard upon ",
             "card(s) discarded, but ",
             "you only play {C:attention}#2# hand{}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingHeart7 = {
@@ -146,9 +158,11 @@ local locs = {
             "played cards to suit",
             "of {C:attention}lowest played card{}.",
             "{C:inactive}(right-most if tied){}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. ""
         }
     },
     XPlayingDiamond2 = {
@@ -157,9 +171,11 @@ local locs = {
             "Your poker hand played",
             "is always considered to",
             "have contained a {C:attention}Pair{}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. ""
         }
     },
     XPlayingDiamond3 = {
@@ -167,9 +183,11 @@ local locs = {
         text = {
             "Turn your {C:attention}scoring hand{}",
             "into {C:attention}Glass Card{}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingDiamond7 = {
@@ -178,9 +196,11 @@ local locs = {
             "Spend up to {C:attention}#1#{} dollars,",
             "add that amount to {C:mult}Mult{}",
             "and {X:chips,C:white}X#2#{} that amount to {C:chips}Chips{}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingDiamond10 = {
@@ -193,9 +213,11 @@ local locs = {
             "{C:attention}Lucky Cards{} and become {C:green,E:1,S:1.1}extra-lucky{}",
             "during the scoring stage, but",
             "{C:red}lose all of them afterwards{}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingClub2 = {
@@ -203,9 +225,11 @@ local locs = {
         text = {
             "{X:mult,C:white}X#1#{} per {C:attention}Steel Card{} or",
             "{C:attention}Gold Card{} played when scored.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. ""
         }
     },
     XPlayingClub3 = {
@@ -214,9 +238,11 @@ local locs = {
             "Your poker hand played",
             "is always considered",
             "{C:red}only{} as {C:attention}Straight{}.",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingClub5 = {
@@ -226,9 +252,11 @@ local locs = {
             "gain {C:mult}+#1#{} Mult each for this",
             "round and {C:attention}destroy{} them.",
             "{C:inactive}(Currently{} {C:mult}+#2#{} {C:inactive}Mult){}",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
     XPlayingClubJ = {
@@ -239,9 +267,11 @@ local locs = {
             "form your most played hand. ",
             "{C:inactive}(Now Looking for{} {C:attention}#1#{}{C:inactive}...){}",
             --"{C:inactive}(Only if it is possible){}",
-            "Transform back to",
-            "{C:attention}X-Playing Joker{}",
-            "at end of round. "
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
         }
     },
 }
