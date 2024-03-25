@@ -31,6 +31,7 @@ local config = {
     XPlayingClub2 = true,
     XPlayingClub3 = true,
     XPlayingClub5 = true,
+    XPlayingClubJ = true,
 }
 
 -- Initialize deck effect
@@ -230,6 +231,19 @@ local locs = {
             "at end of round. "
         }
     },
+    XPlayingClubJ = {
+        name = "Coming Home",
+        text = {
+            "After playing hand or discard,",
+            "you always draw cards that",
+            "form your most played hand. ",
+            "{C:inactive}(Now Looking for{} {C:attention}#1#{}{C:inactive}...){}",
+            --"{C:inactive}(Only if it is possible){}",
+            "Transform back to",
+            "{C:attention}X-Playing Joker{}",
+            "at end of round. "
+        }
+    },
 }
 
 -- Create Decks
@@ -408,6 +422,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingClubJ= {
+        ability_name = "Coming Home",
+        slug = "coming_home",
+        ability = { extra = { best_hand = "High Card", done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
 }
 local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
@@ -424,6 +449,7 @@ local joker_map = {
     XPlayingClub2 = "j_metallical_parade",
     XPlayingClub3 = "j_green_green",
     XPlayingClub5 = "j_g_round",
+    XPlayingClubJ = "j_coming_home",
 }
 
 function SMODS.INIT.HighCardMod()
@@ -564,6 +590,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Clubs") then
                                 return xplay("XPlayingClub5")
+                            end
+                            if context.full_hand[1]:get_id() == 11 and context.full_hand[1]:is_suit("Clubs") then
+                                return xplay("XPlayingClubJ")
                             end
                         end 
                     end
@@ -1008,6 +1037,50 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    if config.XPlayingClubJ then
+        SMODS.Jokers.j_coming_home.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClubJ")
+                    self.ability.extra.done = true
+                end
+                if context.pre_discard then
+                    --self.ability.extra.discard_cnt = self.ability.extra.discard_cnt + 1
+                    --if self.ability.extra.discard_cnt == #G.hand.highlighted then
+                    self.ability.extra.best_hand = string_level_unflush(hand_most_played())
+                    sendDebugMessage("Coming Home Discard Draw!")
+                    --delay(0.3)
+                    local draw_result = coming_home_draws()
+                    self.ability.extra.discard_cnt = 0
+                    if draw_result then 
+                        return {
+                            message = "Coming Home!",
+                            card = self
+                        }
+                    end
+                    --end
+                end
+                if context.after then
+                    self.ability.extra.best_hand = string_level_unflush(hand_most_played())
+                    sendDebugMessage("Coming Home Hand Draw!")
+                    local draw_result = coming_home_draws()
+                    if draw_result then 
+                        return {
+                            message = "Coming Home!",
+                            card = self
+                        }
+                    end
+                end
+
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    self.ability.extra.best_hand = string_level_unflush(hand_most_played())
+                end
+            end
+        end
+    end
+
 end
 
 -- Copied and modifed from LushMod
@@ -1043,6 +1116,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.retrigger_cnt }
         elseif self.ability.name == 'G Round' then
             loc_vars = { self.ability.extra.mult_gain, self.ability.extra.mult_acc }
+        elseif self.ability.name == 'Coming Home' then
+            loc_vars = { self.ability.extra.best_hand }
         else
             customJoker = false
         end
@@ -1177,6 +1252,9 @@ function Card:add_to_deck(from_debuff)
         if self.ability.name == 'Green Green' then
             evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand, always_straight)
         end
+        if self.ability.name == 'Coming Home' then 
+            self.ability.extra.best_hand = string_level_unflush(hand_most_played())
+        end
 
     end
     add_to_deckref(self, from_debuff)
@@ -1293,7 +1371,801 @@ function always_pair(ret, hand)
     return new_results
 end
 
+function string_level_unflush(hand_name)
+    if hand_name == "Flush Five" then return "Five of a Kind" 
+    elseif hand_name == "Flush House" then return "Full House"
+    elseif hand_name == "Royal Flush" then return "Straight Flush"
+    else end
+    return hand_name
+end
+
+function hand_most_played()
+    local most_played_hand = nil
+    local most_played_times = 0
+    for k, v in pairs(G.GAME.hands) do
+        if v.played >= most_played_times then
+            most_played_hand = k
+            most_played_times = v.played
+        end
+    end
+    return most_played_hand
+end
+
+function coming_home_draws()
+    local most_played_hand = hand_most_played()
+    sendDebugMessage("Looking to draw: "..most_played_hand)
+    local draw_outcome = false
+    if most_played_hand == "Five of a Kind" then
+        draw_outcome, _ = draw_for_X_times(5, true)
+    elseif most_played_hand == "Straight Flush" then
+        draw_outcome, _ = draw_for_straight_flush(true)
+    elseif most_played_hand == "Four of a Kind" then
+        draw_outcome, _ = draw_for_X_times(4, true)
+    elseif most_played_hand == "Full House" then
+        draw_outcome, _ = draw_for_full_house(true)
+    elseif most_played_hand == "Flush" then
+        draw_outcome, _ = draw_for_flush(true)
+    elseif most_played_hand == "Straight" then
+        draw_outcome, _ = draw_for_straight(true)
+    elseif most_played_hand == "Three of a Kind" then
+        draw_outcome, _ = draw_for_X_times(3, true)
+    elseif most_played_hand == "Two Pair" then
+        draw_outcome, _ = draw_for_two_pairs(true)
+    elseif most_played_hand == "Pair" then 
+        draw_outcome, _ = draw_for_X_times(2, true)
+    elseif most_played_hand == "High Card" then
+    else end
+    return draw_outcome
+end
+
+function draw_for_X_times(xtimes, draw_or_not)
+    local drawflag = draw_or_not
+    if draw_or_not then else drawflag = true end
+    local hand_space = math.min(#G.deck.cards, G.hand.config.card_limit - #G.hand.cards + #G.hand.highlighted)
+    local possible_numbers = {}
+    local possible_draws = {}
+    local possible_draw_cnt = 0
+    local draws_needed = {}
+    -- Check for hand availibility
+    for k, v in ipairs(G.hand.cards) do
+        if v.highlighted then
+        else
+            local card_id = v:get_id()
+            if possible_numbers[card_id] then 
+                possible_numbers[card_id] = possible_numbers[card_id] + 1
+                draws_needed[card_id] = draws_needed[card_id] - 1
+            else 
+                possible_numbers[card_id] = 1 
+                possible_draws[card_id] = {}
+                draws_needed[card_id] = xtimes - 1
+            end
+        end
+    end
+    -- Check deck for possibility
+    for k, v in ipairs(G.deck.cards) do
+        local card_id = v:get_id()
+        if possible_numbers[card_id] then
+            possible_numbers[card_id] = possible_numbers[card_id] + 1
+            table.insert(possible_draws[card_id], v)
+        else 
+            possible_numbers[card_id] = 1 
+            possible_draws[card_id] = {}
+            table.insert(possible_draws[card_id], v)
+            draws_needed[card_id] = xtimes
+        end
+    end
+
+    --sendDebugMessage("Deck Depth: "..#G.deck.cards)
+    --sendDebugMessage("Hand limit: "..G.hand.config.card_limit)
+    --sendDebugMessage("Hand hold: "..#G.hand.cards)
+    --sendDebugMessage("Hand highlighted: "..#G.hand.highlighted)
+    --sendDebugMessage("Hand Space: "..hand_space)
+    
+
+    local draw_possible = false
+    local draw_cnt = 0
+    -- Check for feasibility (whether a hand is possible at all)
+    -- Check for satisfiability (whether the remaining hand is enough to draw it)
+    -- If draw is possible, draw
+    for k, _ in pairs(possible_numbers) do
+        if possible_numbers[k] >= xtimes and draws_needed[k] <= hand_space then 
+            draw_possible = true
+            possible_draw_cnt = possible_draw_cnt + 1
+            if drawflag and draw_cnt < hand_space then
+                for i, v in ipairs(possible_draws[k]) do
+                    sendDebugMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
+                    draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, v)
+                    draw_cnt = draw_cnt + 1
+                    if draw_cnt >= hand_space then break end
+                end
+            end
+            --if draw_cnt >= hand_space then break end
+        end
+        if draw_cnt > 0 then break end
+    end
+    return draw_possible, possible_draw_cnt
+end
+
+function draw_for_two_pairs(draw_or_not)
+    local drawflag = draw_or_not
+    if draw_or_not then else drawflag = true end
+    local hand_space = math.min(#G.deck.cards, G.hand.config.card_limit - #G.hand.cards + #G.hand.highlighted)
+    local possible_numbers = {}
+    local possible_draws = {}
+    local possible_draw_cnt = 0
+    local draws_needed = {}
+    local ready_pair = 0
+    local half_ready_pair = 0
+    local half_ready_pair_record = {}
+
+    --local contains_2, number_of_2 = draw_for_X_times(2, false)
+    -- Check for hand availibility
+    for k, v in ipairs(G.hand.cards) do
+        if v.highlighted then
+        else
+            local card_id = v:get_id()
+            if possible_numbers[card_id] then 
+                possible_numbers[card_id] = possible_numbers[card_id] + 1
+                draws_needed[card_id] = draws_needed[card_id] - 1
+            else 
+                possible_numbers[card_id] = 1 
+                possible_draws[card_id] = {}
+                draws_needed[card_id] = 1
+            end
+        end
+    end
+    for k, v in pairs(draws_needed) do
+        if v <= 0 then 
+            ready_pair = ready_pair + 1 
+        end
+        if v == 1 then 
+            half_ready_pair = half_ready_pair + 1 
+            half_ready_pair_record[k] = true
+        end
+    end
+
+    -- Check deck for possibility
+    for k, v in ipairs(G.deck.cards) do
+        local card_id = v:get_id()
+        if possible_numbers[card_id] then
+            possible_numbers[card_id] = possible_numbers[card_id] + 1
+            table.insert(possible_draws[card_id], v)
+        else 
+            possible_numbers[card_id] = 1 
+            possible_draws[card_id] = {}
+            table.insert(possible_draws[card_id], v)
+            draws_needed[card_id] = 2
+        end
+    end
+
+    local draw_possible = false
+    local draw_cnt = 0
+    if ready_pair < 2 then 
+        local required_draws = 4 - math.min(half_ready_pair, 2 - ready_pair) - ready_pair * 2
+        possible_draw_cnt = possible_draw_cnt + 1
+        sendDebugMessage("Half Ready Pair: "..half_ready_pair)
+        sendDebugMessage("Ready Pair: "..ready_pair)
+        sendDebugMessage("Required Draw: "..required_draws)
+        if drawflag and required_draws <= hand_space then 
+            for k, _ in pairs(possible_numbers) do
+                if half_ready_pair_record[k] then
+                    local draw_idx = pseudorandom(pseudoseed('seed'),1,#possible_draws[k])
+                    local drawn_card = possible_draws[k][draw_idx]
+                    sendDebugMessage("Draw Triggered! "..drawn_card.base.suit.." "..drawn_card:get_id())
+                    draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, drawn_card)
+                    draw_cnt = draw_cnt + 1
+                    if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                end
+                if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+            end
+            for k, _ in pairs(possible_numbers) do
+                if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                if half_ready_pair_record[k] or draw_cnt >= hand_space then
+                else
+                    for i, v in ipairs(possible_draws[k]) do
+                        sendDebugMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
+                        draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, v)
+                        draw_cnt = draw_cnt + 1
+                        if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                    end
+                end
+            end
+        end
+    end
+    return draw_possible, possible_draw_cnt
+end
+
+function draw_for_full_house(draw_or_not)
+    local drawflag = draw_or_not
+    if draw_or_not then else drawflag = true end
+    local hand_space = math.min(#G.deck.cards, G.hand.config.card_limit - #G.hand.cards + #G.hand.highlighted)
+    local possible_numbers = {}
+    local possible_draws = {}
+    local possible_draw_cnt = 0
+    local draws_needed = {}
+    local ready_pair = 0
+    local ready_pair_record = {}
+    local ready_toak = 0
+    local ready_toak_record = {}
+    local half_ready_pair = 0
+    local half_ready_pair_record = {}
+    local toak_reserve = nil
+    local pair_reserve = nil
+
+    --local contains_2, number_of_2 = draw_for_X_times(2, false)
+    -- Check for hand availibility
+    for k, v in ipairs(G.hand.cards) do
+        if v.highlighted then
+        else
+            local card_id = v:get_id()
+            if possible_numbers[card_id] then 
+                possible_numbers[card_id] = possible_numbers[card_id] + 1
+                draws_needed[card_id] = draws_needed[card_id] - 1
+            else 
+                possible_numbers[card_id] = 1 
+                possible_draws[card_id] = {}
+                draws_needed[card_id] = 2
+            end
+        end
+    end
+    for k, v in pairs(draws_needed) do
+        if v <= 0 then 
+            ready_toak = ready_toak + 1
+            ready_toak_record[k] = true
+        end
+        if v == 1 then 
+            ready_pair = ready_pair + 1 
+            ready_pair_record[k] = true
+        end
+        if v == 2 then 
+            half_ready_pair = half_ready_pair + 1 
+            half_ready_pair_record[k] = true
+        end
+    end
+
+    -- Check deck for possibility
+    for k, v in ipairs(G.deck.cards) do
+        local card_id = v:get_id()
+        if possible_numbers[card_id] then
+            possible_numbers[card_id] = possible_numbers[card_id] + 1
+            table.insert(possible_draws[card_id], v)
+        else 
+            possible_numbers[card_id] = 1 
+            possible_draws[card_id] = {}
+            table.insert(possible_draws[card_id], v)
+            draws_needed[card_id] = 3
+        end
+    end
+
+    local draw_possible = false
+    local draw_cnt = 0
+    if ready_toak >= 2 then
+    elseif ready_pair >= 1 and ready_toak >= 1 then
+    else
+        local required_draws = 5
+        local hard_decision = nil
+        if ready_toak >= 1 then 
+            required_draws = required_draws - 3
+            if half_ready_pair >= 1 then required_draws = required_draws - 1 end
+        elseif ready_pair >= 2 then required_draws = 1
+        elseif ready_pair == 1 then 
+            required_draws = required_draws - 2
+            hard_decision = true
+            if half_ready_pair >= 1 then required_draws = required_draws - 1 end
+        else
+            required_draws = required_draws - math.min(half_ready_pair, 2)
+        end
+        possible_draw_cnt = possible_draw_cnt + 1
+        sendDebugMessage("Half Ready Pair: "..half_ready_pair)
+        sendDebugMessage("Ready Pair: "..ready_pair)
+        sendDebugMessage("Ready TOAK: "..ready_toak)
+        sendDebugMessage("Required Draw: "..required_draws)
+        if drawflag and required_draws <= hand_space then 
+            -- try to draw a pair if toak exist
+            if ready_toak >= 1 then
+                for k, _ in pairs(possible_numbers) do
+                    if ready_toak_record[k] then
+                    elseif half_ready_pair_record[k] and possible_draws[k] and next(possible_draws[k]) then
+                        local draw_idx = pseudorandom(pseudoseed('seed'),1,#possible_draws[k])
+                        local drawn_card = possible_draws[k][draw_idx]
+                        sendDebugMessage("Draw Triggered! "..drawn_card.base.suit.." "..drawn_card:get_id())
+                        draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, drawn_card)
+                        draw_cnt = draw_cnt + 1
+                        if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                    end
+                    if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                end
+                for k, _ in pairs(possible_numbers) do
+                    if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                    if ready_toak_record[k] then
+                    elseif half_ready_pair_record[k] or draw_cnt >= hand_space then
+                    elseif possible_draws[k] and next(possible_draws[k]) then
+                        for i, v in ipairs(possible_draws[k]) do
+                            sendDebugMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
+                            draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, v)
+                            draw_cnt = draw_cnt + 1
+                            if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                        end
+                    end
+                end
+            -- try to edit add to the pair or draw a toak
+            elseif ready_pair >= 1 then
+                for k, _ in pairs(possible_numbers) do
+                    -- if it is a pair and you can still draw it, make it toak
+                    if ready_pair_record[k] and possible_draws[k] and next(possible_draws[k]) then
+                        local draw_idx = pseudorandom(pseudoseed('seed'),1,#possible_draws[k])
+                        local drawn_card = possible_draws[k][draw_idx]
+                        sendDebugMessage("Draw Triggered! "..drawn_card.base.suit.." "..drawn_card:get_id())
+                        draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, drawn_card)
+                        draw_cnt = draw_cnt + 1
+                        if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                        -- if two pairs
+                        for k2, _ in pairs(possible_numbers) do
+                            if k ~= k2 and ready_pair_record[k2] and possible_draws[k2] and next(possible_draws[k2]) then
+                                local draw_idx2 = pseudorandom(pseudoseed('seed'),1,#possible_draws[k2])
+                                local drawn_card2 = possible_draws[k2][draw_idx]
+                                sendDebugMessage("Draw Triggered! "..drawn_card2.base.suit.." "..drawn_card2:get_id())
+                                draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, drawn_card2)
+                                draw_cnt = draw_cnt + 1
+                                if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                            end
+                        end
+                        -- if only one pairs but a bunch of half_pairs
+                        for k2, _ in pairs(possible_numbers) do
+                            if half_ready_pair_record[k2] and possible_draws[k2] and next(possible_draws[k2]) then
+                                local draw_idx2 = pseudorandom(pseudoseed('seed'),1,#possible_draws[k2])
+                                local drawn_card2 = possible_draws[k2][draw_idx]
+                                sendDebugMessage("Draw Triggered! "..drawn_card2.base.suit.." "..drawn_card2:get_id())
+                                draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, drawn_card2)
+                                draw_cnt = draw_cnt + 1
+                                if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                            end
+                        end
+                        -- if no half pairs
+                        for k2, _ in pairs(possible_numbers) do
+                            if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                            if half_ready_pair_record[k2] or draw_cnt >= hand_space then
+                            elseif possible_draws[k2] and next(possible_draws[k2]) then
+                                for i, v in ipairs(possible_draws[k2]) do
+                                    sendDebugMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
+                                    draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, v)
+                                    draw_cnt = draw_cnt + 1
+                                    if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                                end
+                            end
+                        end
+                    -- if it is a pair and you can't draw more of it, use it as pair
+                    elseif ready_pair_record[k] then 
+                        for k2, _ in pairs(possible_numbers) do
+                            if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                            if k == k2 then
+                            elseif possible_draws[k2] and next(possible_draws[k2]) then
+                                local needed_draw = half_ready_pair_record[k] and 2 or 3
+                                if #possible_draws[k2] >= needed_draw then
+                                    for i, v in ipairs(possible_draws[k2]) do
+                                        sendDebugMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
+                                        draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, v)
+                                        draw_cnt = draw_cnt + 1
+                                        if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                end
+            else 
+                -- need to draw a full pair first
+                local trio_complete = nil
+                for k, _ in pairs(possible_numbers) do
+                    if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                    if half_ready_pair_record[k] and possible_draws[k] and #possible_draws[k] >= 2 then
+                        trio_complete = k
+                        local inner_cnt = 0
+                        for i, v in ipairs(possible_draws[k]) do
+                            if inner_cnt >= 2 then break end
+                            inner_cnt = inner_cnt + 1
+                            sendDebugMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
+                            draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, v)
+                            draw_cnt = draw_cnt + 1
+                            if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                        end
+                    end
+                end
+                if trio_complete == nil then 
+                    for k, _ in pairs(possible_numbers) do
+                        if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                        if possible_draws[k] and #possible_draws[k] >= 3 then
+                            trio_complete = k
+                            local inner_cnt = 0
+                            for i, v in ipairs(possible_draws[k]) do
+                                if inner_cnt >= 3 then break end
+                                inner_cnt = inner_cnt + 1
+                                sendDebugMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
+                                draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, v)
+                                draw_cnt = draw_cnt + 1
+                                if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                            end
+                        end
+                    end
+                end
+                if trio_complete then 
+                    local pair_complete = nil
+                    for k, _ in pairs(possible_numbers) do
+                        if possible_draws[k] and next(possible_draws[k]) and half_ready_pair_record[k] and k ~= trio_complete then
+                            pair_complete = k
+                            local draw_idx = pseudorandom(pseudoseed('seed'),1,#possible_draws[k])
+                            sendDebugMessage(draw_idx)
+                            local drawn_card = possible_draws[k][draw_idx]
+                            sendDebugMessage("Draw Triggered! "..drawn_card.base.suit.." "..drawn_card:get_id())
+                            draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, drawn_card)
+                            draw_cnt = draw_cnt + 1
+                            if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                        end
+                        if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                    end
+                    if pair_complete == nil then
+                        required_draws = required_draws + 1
+                        for k, _ in pairs(possible_numbers) do
+                            if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                            if possible_draws[k] and #possible_draws[k] >= 2 then
+                                pair_complete = k
+                                for i, v in ipairs(possible_draws[k]) do
+                                    sendDebugMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
+                                    draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, v)
+                                    draw_cnt = draw_cnt + 1
+                                    if draw_cnt >= required_draws or draw_cnt >= hand_space then break end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return draw_possible, possible_draw_cnt
+end
+
+function draw_for_flush(draw_or_not)
+    local drawflag = draw_or_not
+    if draw_or_not then else drawflag = true end
+    local hand_space = math.min(#G.deck.cards, G.hand.config.card_limit - #G.hand.cards + #G.hand.highlighted)
+    local possible_numbers = {}
+    local possible_draws = {}
+    local possible_draw_cnt = 0
+    local draws_needed = {}
+
+    local four_fingers = next(find_joker('Four Fingers'))
+    local xtimes = 5 - (four_fingers and 1 or 0)
+
+    -- Check for hand availibility
+    for k, v in ipairs(G.hand.cards) do
+        if v.highlighted then
+        else
+            local card_suit = v.base.suit
+            if possible_numbers[card_suit] then 
+                possible_numbers[card_suit] = possible_numbers[card_suit] + 1
+                draws_needed[card_suit] = draws_needed[card_suit] - 1
+            else 
+                possible_numbers[card_suit] = 1 
+                possible_draws[card_suit] = {}
+                draws_needed[card_suit] = xtimes - 1
+            end
+        end
+    end
+    -- Check deck for possibility
+    for k, v in ipairs(G.deck.cards) do
+        local card_suit = v.base.suit
+        if possible_numbers[card_suit] then
+            possible_numbers[card_suit] = possible_numbers[card_suit] + 1
+            table.insert(possible_draws[card_suit], v)
+        else 
+            possible_numbers[card_suit] = 1 
+            possible_draws[card_suit] = {}
+            table.insert(possible_draws[card_suit], v)
+            draws_needed[card_suit] = xtimes
+        end
+    end
+    --sendDebugMessage("Hand hold: "..#G.hand.cards)
+    --sendDebugMessage("Hand highlighted: "..#G.hand.highlighted)
+    --sendDebugMessage("Hand Space: "..hand_space)
+    
+    local draw_possible = false
+    local draw_cnt = 0
+    -- Check for feasibility (whether a hand is possible at all)
+    -- Check for satisfiability (whether the remaining hand is enough to draw it)
+    -- If draw is possible, draw
+    for k, _ in pairs(possible_numbers) do
+        if possible_numbers[k] >= xtimes and draws_needed[k] <= hand_space then 
+            draw_possible = true
+            possible_draw_cnt = possible_draw_cnt + 1
+            if drawflag and draw_cnt < hand_space then
+                for i, v in ipairs(possible_draws[k]) do
+                    sendDebugMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
+                    draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, v)
+                    draw_cnt = draw_cnt + 1
+                    if draw_cnt >= hand_space then break end
+                end
+            end
+            --if draw_cnt >= hand_space then break end
+        end
+        if draw_cnt > 0 then break end
+    end
+    return draw_possible, possible_draw_cnt
+end
+
+function draw_for_straight(draw_or_not)
+    local drawflag = draw_or_not
+    if draw_or_not then else drawflag = true end
+    local hand_space = math.min(#G.deck.cards, G.hand.config.card_limit - #G.hand.cards + #G.hand.highlighted)
+    local available_values = {}
+    local available_values_hand = {}
+    local possible_draws = {}
+    local possible_draw_cnt = 0
+
+    local four_fingers = next(find_joker('Four Fingers'))
+    local shortcut = next(find_joker('Shortcut'))
+    local xtimes = 5 - (four_fingers and 1 or 0)
+    local gap = 5 - (shortcut and 2 or 1)
+
+    -- Register what is in hand
+    for k, v in ipairs(G.hand.cards) do
+        if v.highlighted then
+        else
+            local card_id = v:get_id()
+            local card_missing = true
+            for _, v in ipairs(available_values) do
+                if v == card_id then card_missing = false end
+            end
+            if card_missing then 
+                table.insert(available_values, card_id) 
+                table.insert(available_values_hand, card_id) 
+            end
+        end
+    end
+    table.sort(available_values)
+    table.sort(available_values_hand)
+    -- Register what is in deck
+    for k, v in ipairs(G.deck.cards) do
+        local card_id = v:get_id()
+        if possible_draws[card_id] then 
+            table.insert(possible_draws[card_id], v)
+        else
+            possible_draws[card_id] = {}
+            table.insert(possible_draws[card_id], v)
+        end
+        local card_missing = true
+        for _, v in ipairs(available_values) do
+            if v == card_id then card_missing = false end
+        end
+        if card_missing then 
+            table.insert(available_values, card_id) 
+        end
+    end
+    table.sort(available_values)
+    for _, v in ipairs(available_values) do 
+        if v == 14 then
+            table.insert(available_values, v, 1)
+            break 
+        end
+    end
+
+    --sendDebugMessage("Hand hold: "..#G.hand.cards)
+    --sendDebugMessage("Hand highlighted: "..#G.hand.highlighted)
+    --sendDebugMessage("Hand Space: "..hand_space)
+
+    local draw_possible = false
+    local draw_cnt = 0
+    -- Check for feasibility (whether a hand is possible at all)
+    -- Check for satisfiability (whether the remaining hand is enough to draw it)
+    -- If draw is possible, draw
+    for k, v in ipairs(available_values) do
+        if #available_values - k < xtimes - 1 then 
+        else 
+            local straight_possible = true
+            local current_value = v
+            if k == 1 and current_value == 14 then current_value = 1 end
+            for i = 1, xtimes - 1 do 
+                if available_values[k + i] and available_values[k + i] - current_value == 1 then 
+                    current_value = available_values[k + i]
+                else 
+                    straight_possible = false
+                    break
+                end
+            end
+            if straight_possible then 
+                local cards_needed = xtimes
+                for i = 0, xtimes - 1 do
+                    if available_values_hand then
+                        for j, v2 in ipairs(available_values_hand) do
+                            if available_values[k + i] and available_values[k + i] == v2 then 
+                                cards_needed = cards_needed - 1
+                            end
+                        end
+                    end
+                end
+                -- Draw possible if enough space is at hand
+                if cards_needed <= hand_space then
+                    for i = 0, xtimes - 1 do
+                        need_to_draw = true
+                        if available_values_hand then
+                            for j, v2 in ipairs(available_values_hand) do
+                                if available_values[k + i] and available_values[k + i] == v2 then 
+                                    need_to_draw = false
+                                    break
+                                end
+                            end
+                        end
+                        if need_to_draw and draw_cnt < hand_space then 
+                            possible_draw_cnt = possible_draw_cnt + 1
+                            if drawflag and possible_draws[available_values[k + i]] then 
+                                local draw_idx = pseudorandom(pseudoseed('seed'),1,#possible_draws[available_values[k + i]])
+                                local drawn_card = possible_draws[available_values[k + i]][draw_idx]
+                                sendDebugMessage("Draw Triggered! "..drawn_card.base.suit.." "..drawn_card:get_id())
+                                draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, drawn_card)
+                                draw_cnt = draw_cnt + 1
+                                if draw_cnt >= hand_space then break end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        if draw_cnt > 0 then break end
+    end
+    return draw_possible, possible_draw_cnt
+end
+
+function draw_for_straight_flush(draw_or_not)
+    local drawflag = draw_or_not
+    if draw_or_not then else drawflag = true end
+    local hand_space = math.min(#G.deck.cards, G.hand.config.card_limit - #G.hand.cards + #G.hand.highlighted)
+    local available_values = {}
+    local available_values_hand = {}
+    local possible_draws = {}
+    local possible_draw_cnt = 0
+
+    local four_fingers = next(find_joker('Four Fingers'))
+    local shortcut = next(find_joker('Shortcut'))
+    local xtimes = 5 - (four_fingers and 1 or 0)
+    local gap = 5 - (shortcut and 2 or 1)
+
+    -- Register what is in hand
+    for k, v in ipairs(G.hand.cards) do
+        if v.highlighted then
+        else
+            local card_id = v:get_id()
+            local card_suit = v.base.suit
+            if available_values[card_suit] then 
+                local card_missing = true
+                for _, v in ipairs(available_values[card_suit]) do
+                    if v == card_id then card_missing = false end
+                end
+                if card_missing then
+                    table.insert(available_values[card_suit], card_id)
+                    table.insert(available_values_hand[card_suit], card_id)
+                end
+            else
+                available_values[card_suit] = {}
+                available_values_hand[card_suit] = {}
+                table.insert(available_values[card_suit], card_id)
+                table.insert(available_values_hand[card_suit], card_id)
+            end
+        end
+    end
+    for k, v in pairs(available_values) do
+        table.sort(available_values[k])
+    end
+    for k, v in pairs(available_values_hand) do
+        table.sort(available_values_hand[k])
+    end
+    -- Register what is in deck
+    for k, v in ipairs(G.deck.cards) do
+        local card_id = v:get_id()
+        local card_suit = v.base.suit
+        if possible_draws[card_suit] then 
+        else possible_draws[card_suit] = {} end
+        if possible_draws[card_suit][card_id] then 
+            table.insert(possible_draws[card_suit][card_id], v)
+        else
+            possible_draws[card_suit][card_id] = {}
+            table.insert(possible_draws[card_suit][card_id], v)
+        end
+        if available_values[card_suit] then 
+            local card_missing = true
+            for _, v in ipairs(available_values[card_suit]) do
+                if v == card_id then card_missing = false end
+            end
+            if card_missing then
+                table.insert(available_values[card_suit], card_id)
+            end
+        else
+            available_values[card_suit] = {}
+            table.insert(available_values[card_suit], card_id)
+        end
+    end
+    for k, _ in pairs(available_values) do
+        table.sort(available_values[k])
+        for _, v in ipairs(available_values[k]) do 
+            if v == 14 then
+                table.insert(available_values[k], v, 1)
+                break 
+            end
+        end
+    end
+    
+
+    --sendDebugMessage("Hand hold: "..#G.hand.cards)
+    --sendDebugMessage("Hand highlighted: "..#G.hand.highlighted)
+    --sendDebugMessage("Hand Space: "..hand_space)
+
+    local draw_possible = false
+    local draw_cnt = 0
+    -- Check for feasibility (whether a hand is possible at all)
+    -- Check for satisfiability (whether the remaining hand is enough to draw it)
+    -- If draw is possible, draw
+    for suit, _ in pairs(available_values) do
+        for k, v in ipairs(available_values[suit]) do
+            if #available_values[suit] - k < xtimes - 1 then 
+            else 
+                local straight_possible = true
+                local current_value = v
+                if k == 1 and current_value == 14 then current_value = 1 end
+                for i = 1, xtimes - 1 do 
+                    if available_values[suit][k + i] and available_values[suit][k + i] - current_value == 1 then 
+                        current_value = available_values[suit][k + i]
+                    else 
+                        straight_possible = false
+                        break
+                    end
+                end
+                if straight_possible then 
+                    local cards_needed = xtimes
+                    for i = 0, xtimes - 1 do
+                        if available_values_hand[suit] then
+                            for j, v2 in ipairs(available_values_hand[suit]) do
+                                if available_values[suit][k + i] and available_values[suit][k + i] == v2 then 
+                                    cards_needed = cards_needed - 1
+                                end
+                            end
+                        end
+                    end
+                    -- Draw possible if enough space is at hand
+                    if cards_needed <= hand_space then
+                        for i = 0, xtimes - 1 do
+                            need_to_draw = true
+                            if available_values_hand[suit] then
+                                for j, v2 in ipairs(available_values_hand[suit]) do
+                                    if available_values[suit][k + i] and available_values[suit][k + i] == v2 then 
+                                        need_to_draw = false
+                                        break
+                                    end
+                                end
+                            end
+                            if need_to_draw and draw_cnt < hand_space then 
+                                possible_draw_cnt = possible_draw_cnt + 1
+                                if drawflag and possible_draws[suit] and possible_draws[suit][available_values[suit][k + i]] then 
+                                    local draw_idx = pseudorandom(pseudoseed('seed'),1,#possible_draws[suit][available_values[suit][k + i]])
+                                    local drawn_card = possible_draws[suit][available_values[suit][k + i]][draw_idx]
+                                    sendDebugMessage("Draw Triggered! "..drawn_card.base.suit.." "..drawn_card:get_id())
+                                    draw_card(G.deck,G.hand, draw_cnt*100/hand_space,'up', true, drawn_card)
+                                    draw_cnt = draw_cnt + 1
+                                    if draw_cnt >= hand_space then break end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            if draw_cnt > 0 then break end
+        end
+        if draw_cnt > 0 then break end
+    end
+    return draw_possible, possible_draw_cnt
+end
+
 evaluate_poker_hand_OG = evaluate_poker_hand
+draw_card_OG = draw_card
 
 -- Function to wrap an existing method with your additional logic
 function set_edition_replacement(class, methodName, additionalFunc)
