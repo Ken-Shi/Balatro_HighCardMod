@@ -209,12 +209,19 @@ local locs = {
             --"All {C:green,E:1,S:1.1}probabilities{} ",
             --"become {C:green,E:1,S:1.1}deterministic{}",
             --"(i.e. they always trigger)",
-            "Turn your {C:attention}scoring hand{} into",
-            "{C:attention}Lucky Cards{} and become {C:green,E:1,S:1.1}extra-lucky{}",
-            "during the scoring stage, but",
-            "{C:red}lose all of them afterwards{}.",
+
+            "All {C:green,E:1,S:1.1}probabilities{} become",
+            "{C:green,E:1,S:1.1}deterministic{} (always trigger)",
+            "during the scoring stage.",
+
+            --"Turn your {C:attention}scoring hand{} into",
+            --"{C:attention}Lucky Cards{} and become {C:green,E:1,S:1.1}extra-lucky{}",
+            --"during the scoring stage, but",
+            --"{C:red}lose all of them afterwards{}.",
+
             "When round ends, transform",
             "back to {C:attention}X-Playing Joker{}."
+            
             --"Transform back to",
             --"{C:attention}X-Playing Joker{}",
             --"at end of round. "
@@ -944,6 +951,7 @@ function SMODS.INIT.HighCardMod()
                     self.ability.extra.done = true
                 end
                 if context.before then 
+                    --[[
                     for k, v in ipairs(context.scoring_hand) do
                         if v.config.center ~= G.P_CENTERS.m_stone then
                             v:set_ability(G.P_CENTERS.m_lucky, nil, true)
@@ -955,6 +963,7 @@ function SMODS.INIT.HighCardMod()
                             })) 
                         end
                     end
+                    ]]--
                     for k, v in pairs(G.GAME.probabilities) do 
                         sendDebugMessage(G.GAME.probabilities[k])
                         G.GAME.probabilities[k] = v * 1000
@@ -964,12 +973,15 @@ function SMODS.INIT.HighCardMod()
                         card = self
                     }
                 end
+                --[[
                 if context.destroying_card then 
                     if context.destroying_card.config.center == G.P_CENTERS.m_lucky then
                         return true
                     end
                     return nil
                 end
+                ]]--
+                
                 if context.after then 
                     for k, v in pairs(G.GAME.probabilities) do 
                         sendDebugMessage(G.GAME.probabilities[k])
