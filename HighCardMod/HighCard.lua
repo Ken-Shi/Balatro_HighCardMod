@@ -156,8 +156,8 @@ local locs = {
         text = {
             "Convert {C:attention}suit{} of your",
             "played cards to suit",
-            "of {C:attention}lowest played card{}.",
-            "{C:inactive}(right-most if tied){}.",
+            "of {C:attention}a random played card{}.",
+            --"{C:inactive}(right-most if tied){}.",
             "When round ends, transform",
             "back to {C:attention}X-Playing Joker{}."
             --"Transform back to",
@@ -842,23 +842,37 @@ function SMODS.INIT.HighCardMod()
                     self.ability.extra.done = true
                 end
                 if context.before then 
-                    local lowest_id = math.floor(get_lowest_value(context.full_hand))
-                    local lowest_card = context.full_hand[1]
+                    local all_played_suits = {}
+                    local existing_suit = false
                     for k, v in ipairs(context.full_hand) do
-                        if v:get_id() == lowest_id then lowest_card = v end
+                        if v.config.center ~= G.P_CENTERS.m_stone then 
+                            existing_suit = false
+                            for _, v2 in ipairs(all_played_suits) do
+                                if v2 == v.base.suit then existing_suit = true end
+                            end
+                            if not existing_suit then table.insert(all_played_suits, v.base.suit) end
+                        end
                     end
-                    --sendDebugMessage(first_card.base.suit)
-                    context.scoring_hand = {}
-                    for k, v in ipairs(context.full_hand) do
-                        --if k > 1 then
-                            v:change_suit(lowest_card.base.suit)
+                    if next(all_played_suits) then
+                        local chosen_suit = all_played_suits[pseudorandom(pseudoseed('seed'), 1, #all_played_suits)]
+                        --local lowest_id = math.floor(get_lowest_value(context.full_hand))
+                        --local lowest_card = context.full_hand[1]
+                        --for k, v in ipairs(context.full_hand) do
+                        --    if v:get_id() == lowest_id then lowest_card = v end
                         --end
-                        table.insert(context.scoring_hand, v)
+                        --sendDebugMessage(first_card.base.suit)
+                        context.scoring_hand = {}
+                        for k, v in ipairs(context.full_hand) do
+                            --if k > 1 then
+                                v:change_suit(chosen_suit)
+                            --end
+                            table.insert(context.scoring_hand, v)
+                        end
+                        return {
+                            message = "Chameleon!",
+                            card = self
+                        }
                     end
-                    return {
-                        message = "Chameleon!",
-                        card = self
-                    }
                     
                 end
                 if SMODS.end_calculate_context(context) then
@@ -1391,10 +1405,12 @@ function pre_flush(ret, hand)
     elseif next(ret["Straight"]) then new_results["Straight Flush"] = ret["Straight"] end
     if #hand >= 5 then 
         local placeholder_tab = {}
+        local has_stone = 0
         for _,v in ipairs(hand) do
+            if v.config.center == G.P_CENTERS.m_stone then has_stone = has_stone + 1 end
             table.insert(placeholder_tab, v)
         end
-        new_results["Flush"] = {placeholder_tab}
+        if #hand - has_stone >= 5 then new_results["Flush"] = {placeholder_tab} end
     end
     
     if new_results.top == nil then return ret end
