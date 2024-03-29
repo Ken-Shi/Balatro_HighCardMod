@@ -16,6 +16,7 @@ local config = {
     -- Spade Family
     XPlayingSpade2 = true,
     XPlayingSpade7 = true,
+    XPlayingSpade8 = true,
     XPlayingSpade9 = true,
     XPlayingSpadeA = true,
     -- Heart Family
@@ -97,6 +98,20 @@ local locs = {
             "cards before scoring, but ",
             "{C:attention}remove all enhancements{} from ",
             "scoring cards afterwards.",
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
+        }
+    },
+    XPlayingSpade8 = {
+        name = "All Kaboom",
+        text = {
+            "Destroy the {C:attention}first scoring card{}",
+            "and all other scoring cards ",
+            "that are {C:attention}of the same suit{}. ",
+            "each destruction gives {C:mult}+#1#{} Mult. ",
             "When round ends, transform",
             "back to {C:attention}X-Playing Joker{}."
             --"Transform back to",
@@ -356,6 +371,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingSpade8 = {
+        ability_name = "All Kaboom",
+        slug = "all_kaboom",
+        ability = { extra = { kaboom_mult = 5, mult_cnt = 0, kaboom_suit = nil, done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingSpade9 = {
         ability_name = "Bokka",
         slug = "bokka",
@@ -525,6 +551,7 @@ local jokers = {
 local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
     XPlayingSpade7 = "j_interceptor",
+    XPlayingSpade7 = "j_all_kaboom",
     XPlayingSpade9 = "j_bokka",
     XPlayingSpadeA = "j_love_and_peace",
     XPlayingHeart3 = "j_rockin_rocks",
@@ -645,6 +672,9 @@ function SMODS.INIT.HighCardMod()
                             if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Spades") then
                                 return xplay("XPlayingSpade7")
                             end
+                            if context.full_hand[1]:get_id() == 8 and context.full_hand[1]:is_suit("Spades") then
+                                return xplay("XPlayingSpade8")
+                            end
                             if context.full_hand[1]:get_id() == 9 and context.full_hand[1]:is_suit("Spades") then
                                 return xplay("XPlayingSpade9")
                             end
@@ -763,6 +793,51 @@ function SMODS.INIT.HighCardMod()
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
+                end
+            end
+        end
+    end
+
+    if config.XPlayingSpade8 then
+        SMODS.Jokers.j_all_kaboom.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpade8")
+                    self.ability.extra.done = true
+                end
+
+                if context.before then 
+                    --sendDebugMessage("Checking Suit")
+                    self.ability.extra.kaboom_suit = context.scoring_hand[1].base.suit
+                    --sendDebugMessage(self.ability.extra.kaboom_suit)
+                    self.ability.extra.mult_cnt = 0
+                end
+
+                if context.destroying_card then 
+                    --sendDebugMessage("Destroying card!")
+                    if context.destroying_card.base.suit == self.ability.extra.kaboom_suit then 
+                        self.ability.extra.mult_cnt = self.ability.extra.mult_cnt + self.ability.extra.kaboom_mult
+                        return true
+                    end
+                    return nil
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    --sendDebugMessage("Evaluate G Round!")
+                    for k, v in ipairs(context.scoring_hand) do
+                        if v.base.suit == self.ability.extra.kaboom_suit then
+                            self.ability.extra.mult_cnt = self.ability.extra.mult_cnt + self.ability.extra.kaboom_mult
+                            card_eval_status_text(v, 'extra', nil, nil, nil, {message = "Place Bomb..", Xmult_mod=1})
+                        end
+                    end
+                    if self.ability.extra.mult_cnt ~= 0 then
+                        return {
+                            message = "All Kaboom!",
+                            mult_mod = self.ability.extra.mult_cnt,
+                            card = self
+                        }
+                    end
                 end
             end
         end
@@ -1301,6 +1376,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.placeholder }
         elseif self.ability.name == 'Neo New Nambu' then
             loc_vars = { self.ability.extra.hand_gain, self.ability.extra.hand_size, self.ability.extra.hand_ge }
+        elseif self.ability.name == 'All Kaboom' then
+            loc_vars = { self.ability.extra.kaboom_mult}
         elseif self.ability.name == 'Love and Peace' then
             loc_vars = { self.ability.extra.chips_gain, self.ability.extra.mult_gain}
         elseif self.ability.name == 'Calories High' then
