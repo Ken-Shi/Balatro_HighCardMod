@@ -15,6 +15,7 @@ local config = {
     XPlayingJoker = true,
     -- Spade Family
     XPlayingSpade2 = true,
+    XPlayingSpade7 = true,
     XPlayingSpade9 = true,
     XPlayingSpadeA = true,
     -- Heart Family
@@ -82,6 +83,20 @@ local locs = {
             "but you must play {C:attention}#3# cards{}",
             "{C:attention}per hand{}, {C:attention}lose all discards{}",
             "and set hand size to {C:attention}#2#{}.",
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
+        }
+    },
+    XPlayingSpade7 = {
+        name = "Interceptor",
+        text = {
+            "Randomly {C:attention}enhance{} every scoring",
+            "cards before scoring, but ",
+            "{C:attention}remove all enhancements{} from ",
+            "scoring cards afterwards.",
             "When round ends, transform",
             "back to {C:attention}X-Playing Joker{}."
             --"Transform back to",
@@ -330,6 +345,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingSpade7 = {
+        ability_name = "Interceptor",
+        slug = "interceptor",
+        ability = { extra = { done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingSpade9 = {
         ability_name = "Bokka",
         slug = "bokka",
@@ -498,6 +524,7 @@ local jokers = {
 }
 local joker_map = {
     XPlayingSpade2 = "j_neo_new_nambu",
+    XPlayingSpade7 = "j_interceptor",
     XPlayingSpade9 = "j_bokka",
     XPlayingSpadeA = "j_love_and_peace",
     XPlayingHeart3 = "j_rockin_rocks",
@@ -615,6 +642,9 @@ function SMODS.INIT.HighCardMod()
                             if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Spades") then
                                 return xplay("XPlayingSpade2")
                             end
+                            if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Spades") then
+                                return xplay("XPlayingSpade7")
+                            end
                             if context.full_hand[1]:get_id() == 9 and context.full_hand[1]:is_suit("Spades") then
                                 return xplay("XPlayingSpade9")
                             end
@@ -681,6 +711,58 @@ function SMODS.INIT.HighCardMod()
                         message = "Neo New Nambu!",
                         card = self
                     }
+                end
+            end
+        end
+    end
+
+    if config.XPlayingSpade7 then
+        SMODS.Jokers.j_interceptor.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpade7")
+                    self.ability.extra.done = true
+                end
+                if context.before then 
+                    local enhance_options = {G.P_CENTERS.m_bonus, G.P_CENTERS.m_mult, G.P_CENTERS.m_wild, G.P_CENTERS.m_glass, G.P_CENTERS.m_steel, G.P_CENTERS.m_gold, G.P_CENTERS.m_lucky}
+                    for k, v in ipairs(context.scoring_hand) do
+                        if v.config.center == G.P_CENTERS.m_stone then
+                        elseif v.config.center ~= G.P_CENTERS.m_stone and not v.debuff then
+                            local selected_enhancement = enhance_options[pseudorandom(pseudoseed('seed'), 1, #enhance_options)]
+                            v:set_ability(selected_enhancement, nil, true)
+                            G.E_MANAGER:add_event(Event({
+                                func = function()
+                                    v:juice_up()
+                                    return true
+                                end
+                            })) 
+                        end
+                    end
+                    return{
+                        message = "Interceptor On!",
+                        card = self
+                    }
+                end
+                if context.after then 
+                    for k, v in ipairs(context.scoring_hand) do
+                        if v.config.center ~= G.P_CENTERS.m_stone and not v.debuff and not v.vampired then 
+                            v:set_ability(G.P_CENTERS.c_base, nil, true)
+                            G.E_MANAGER:add_event(Event({
+                                func = function()
+                                    v:juice_up()
+                                    v.vampired = nil
+                                    return true
+                                end
+                            })) 
+                        end
+                    end
+                    return{
+                        message = "Interceptor Off!",
+                        card = self
+                    }
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
                 end
             end
         end
