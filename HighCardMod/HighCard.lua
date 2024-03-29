@@ -25,6 +25,7 @@ local config = {
     -- Diamond Family
     XPlayingDiamond2 = true,
     XPlayingDiamond3 = true,
+    XPlayingDiamond6 = true,
     XPlayingDiamond7 = true,
     XPlayingDiamond10 = true,
     -- Club Family
@@ -183,6 +184,19 @@ local locs = {
         text = {
             "Turn your {C:attention}scoring hand{}",
             "into {C:attention}Glass Card{}.",
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
+        }
+    },
+    XPlayingDiamond6 = {
+        name = "13 Stairs",
+        text = {
+            "If you have scored {C:red}exactly{}",
+            "{C:red}#1#{} cards this round, ",
+            "{C:attention}-#2# Ante{}. {C:inactive}({}{C:red}#3#{} {C:inactive}cards scored){}",
             "When round ends, transform",
             "back to {C:attention}X-Playing Joker{}."
             --"Transform back to",
@@ -404,6 +418,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingDiamond6= {
+        ability_name = "13 Stairs",
+        slug = "13_stairs",
+        ability = { extra = { stairs = 13, ante_mod = 1, scored_cards = 1, done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingDiamond7= {
         ability_name = "Never No Dollars",
         slug = "never_no_dollars",
@@ -481,6 +506,7 @@ local joker_map = {
     XPlayingHeart7 = "j_chameleon",
     XPlayingDiamond2 = "j_love_connection",
     XPlayingDiamond3 = "j_marble_rumble",
+    XPlayingDiamond6 = "j_13_stairs",
     XPlayingDiamond7 = "j_never_no_dollars",
     XPlayingDiamond10 = "j_unlucky_poky",
     XPlayingClub2 = "j_metallical_parade",
@@ -612,6 +638,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Diamonds") then
                                 return xplay("XPlayingDiamond3")
+                            end
+                            if context.full_hand[1]:get_id() == 6 and context.full_hand[1]:is_suit("Diamonds") then
+                                return xplay("XPlayingDiamond6")
                             end
                             if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Diamonds") then
                                 return xplay("XPlayingDiamond7")
@@ -928,6 +957,38 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    if config.XPlayingDiamond6 then
+        SMODS.Jokers.j_13_stairs.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    local downstairs = false
+                    --sendDebugMessage(self.ability.extra.scored_cards)
+                    if self.ability.extra.scored_cards == self.ability.extra.stairs then
+                        ease_ante(-self.ability.extra.ante_mod)
+                        G.GAME.round_resets.blind_ante = G.GAME.round_resets.blind_ante or G.GAME.round_resets.ante
+                        G.GAME.round_resets.blind_ante = G.GAME.round_resets.blind_ante-self.ability.extra.ante_mod
+                        downstairs = true
+                    end
+                    end_xplay("XPlayingDiamond6")
+                    self.ability.extra.done = true
+                    if downstairs then return {
+                        message = "13 Stairs!",
+                        card = self
+                    }end
+                end
+
+                if context.after then 
+                    self.ability.extra.scored_cards = self.ability.extra.scored_cards + #context.scoring_hand
+                    --sendDebugMessage(self.ability.extra.scored_cards)
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
+
     if config.XPlayingDiamond7 then
         SMODS.Jokers.j_never_no_dollars.calculate = function(self, context)
             if not context.blueprint then
@@ -1170,6 +1231,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.retrigger_cnt }
         elseif self.ability.name == 'Agent S' then
             loc_vars = { self.ability.extra.retrigger_cnt }
+        elseif self.ability.name == '13 Stairs' then
+            loc_vars = { self.ability.extra.stairs, self.ability.extra.ante_mod, self.ability.extra.scored_cards }
         elseif self.ability.name == 'G Round' then
             loc_vars = { self.ability.extra.mult_gain, self.ability.extra.mult_acc }
         elseif self.ability.name == 'Coming Home' then
