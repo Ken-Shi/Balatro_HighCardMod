@@ -48,7 +48,7 @@ function Back.apply_to_run(arg_56_0)
         G.E_MANAGER:add_event(Event({
             func = function()
                 -- Add X-playing Joker
-                local card = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_xplay', nil)
+                local card = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_hcm_xplay', nil)
                 --card:set_eternal(true)
                 card:set_edition(nil, nil, true)
                 --card:juice_up(1, 0.5)
@@ -356,7 +356,7 @@ local decks = {
 local jokers = {
     XPlayingJoker = {
         ability_name = "X-Play",
-        slug = "xplay",
+        slug = "hcm_xplay",
         ability = { extra = { placeholder = 1.0 } },
         rarity = 4,
         cost = 0,
@@ -367,7 +367,7 @@ local jokers = {
     },
     XPlayingSpade2 = {
         ability_name = "Neo New Nambu",
-        slug = "neo_new_nambu",
+        slug = "hcm_neo_new_nambu",
         ability = { extra = { hand_gain = 1, hand_size = 6, hand_ge = 5, done = false} },
         rarity = 4,
         cost = 0,
@@ -378,7 +378,7 @@ local jokers = {
     },
     XPlayingSpade7 = {
         ability_name = "Interceptor",
-        slug = "interceptor",
+        slug = "hcm_interceptor",
         ability = { extra = { done = false} },
         rarity = 4,
         cost = 0,
@@ -389,7 +389,7 @@ local jokers = {
     },
     XPlayingSpade8 = {
         ability_name = "All Kaboom",
-        slug = "all_kaboom",
+        slug = "hcm_all_kaboom",
         ability = { extra = { kaboom_mult = 5, mult_cnt = 0, kaboom_suit = nil, done = false} },
         rarity = 4,
         cost = 0,
@@ -400,7 +400,7 @@ local jokers = {
     },
     XPlayingSpade9 = {
         ability_name = "Bokka",
-        slug = "bokka",
+        slug = "hcm_bokka",
         ability = { extra = { done = false} },
         rarity = 4,
         cost = 0,
@@ -411,7 +411,7 @@ local jokers = {
     },
     XPlayingSpadeA = {
         ability_name = "Love and Peace",
-        slug = "love_and_peace",
+        slug = "hcm_love_and_peace",
         ability = { extra = { chips_gain = 200, mult_gain = 20, discard_cnt = 0, done = false} },
         rarity = 4,
         cost = 0,
@@ -422,7 +422,7 @@ local jokers = {
     },
     XPlayingHeart3 = {
         ability_name = "Rockin Rocks",
-        slug = "rockin_rocks",
+        slug = "hcm_rockin_rocks",
         ability = { extra = { retrigger_cnt = 2, done = false} },
         rarity = 4,
         cost = 0,
@@ -433,7 +433,7 @@ local jokers = {
     },
     XPlayingHeart4 = {
         ability_name = "Agent S",
-        slug = "agent_s",
+        slug = "hcm_agent_s",
         ability = { extra = { retrigger_cnt = 4, repeated = false, done = false} },
         rarity = 4,
         cost = 0,
@@ -444,7 +444,7 @@ local jokers = {
     },
     XPlayingHeart5 = {
         ability_name = "Calories High",
-        slug = "calories_high",
+        slug = "hcm_calories_high",
         ability = { extra = { discard_gain = 1, hand_play = 1, discard_cnt = 0, done = false} },
         rarity = 4,
         cost = 0,
@@ -455,7 +455,7 @@ local jokers = {
     },
     XPlayingHeart7 = {
         ability_name = "Chameleon",
-        slug = "chameleon",
+        slug = "hcm_chameleon",
         ability = { extra = { done = false} },
         rarity = 4,
         cost = 0,
@@ -466,7 +466,7 @@ local jokers = {
     },
     XPlayingHeartA = {
         ability_name = "Faceless",
-        slug = "faceless",
+        slug = "hcm_faceless",
         ability = { extra = { cards_limit = 4, fake_card = nil, insert_pos = 0, delete_pos = 0, done = false} },
         rarity = 4,
         cost = 0,
@@ -477,7 +477,7 @@ local jokers = {
     },
     XPlayingDiamond2= {
         ability_name = "Love Connection",
-        slug = "love_connection",
+        slug = "hcm_love_connection",
         ability = { extra = { done = false} },
         rarity = 4,
         cost = 0,
@@ -488,7 +488,7 @@ local jokers = {
     },
     XPlayingDiamond3= {
         ability_name = "Marble Rumble",
-        slug = "marble_rumble",
+        slug = "hcm_marble_rumble",
         ability = { extra = { done = false} },
         rarity = 4,
         cost = 0,
@@ -499,7 +499,7 @@ local jokers = {
     },
     XPlayingDiamond6= {
         ability_name = "13 Stairs",
-        slug = "13_stairs",
+        slug = "hcm_13_stairs",
         ability = { extra = { stairs = 13, ante_mod = 1, scored_cards = 1, done = false} },
         rarity = 4,
         cost = 0,
@@ -510,7 +510,7 @@ local jokers = {
     },
     XPlayingDiamond7= {
         ability_name = "Never No Dollars",
-        slug = "never_no_dollars",
+        slug = "hcm_never_no_dollars",
         ability = { extra = { max_money = 20, chip_mult = 10, done = false} },
         rarity = 4,
         cost = 0,
@@ -521,7 +521,7 @@ local jokers = {
     },
     XPlayingDiamond10= {
         ability_name = "Unlucky Poky",
-        slug = "unlucky_poky",
+        slug = "hcm_unlucky_poky",
         ability = { extra = { done = false} },
         rarity = 4,
         cost = 0,
@@ -532,7 +532,7 @@ local jokers = {
     },
     XPlayingClub2= {
         ability_name = "Metallical Parade",
-        slug = "metallical_parade",
+        slug = "hcm_metallical_parade",
         ability = { extra = { Xmult = 1.5, done = false} },
         rarity = 4,
         cost = 0,
@@ -543,7 +543,7 @@ local jokers = {
     },
     XPlayingClub3= {
         ability_name = "Green Green",
-        slug = "green_green",
+        slug = "hcm_green_green",
         ability = { extra = { done = false} },
         rarity = 4,
         cost = 0,
@@ -554,7 +554,7 @@ local jokers = {
     },
     XPlayingClub5= {
         ability_name = "G Round",
-        slug = "g_round",
+        slug = "hcm_g_round",
         ability = { extra = { mult_gain = 5, mult_acc = 0, done = false} },
         rarity = 4,
         cost = 0,
@@ -565,7 +565,7 @@ local jokers = {
     },
     XPlayingClubJ= {
         ability_name = "Coming Home",
-        slug = "coming_home",
+        slug = "hcm_coming_home",
         ability = { extra = { best_hand = "High Card", done = false} },
         rarity = 4,
         cost = 0,
@@ -576,25 +576,25 @@ local jokers = {
     },
 }
 local joker_map = {
-    XPlayingSpade2 = "j_neo_new_nambu",
-    XPlayingSpade7 = "j_interceptor",
-    XPlayingSpade7 = "j_all_kaboom",
-    XPlayingSpade9 = "j_bokka",
-    XPlayingSpadeA = "j_love_and_peace",
-    XPlayingHeart3 = "j_rockin_rocks",
-    XPlayingHeart4 = "j_agent_s",
-    XPlayingHeart5 = "j_calories_high",
-    XPlayingHeart7 = "j_chameleon",
-    XPlayingHeartA = "j_faceless",
-    XPlayingDiamond2 = "j_love_connection",
-    XPlayingDiamond3 = "j_marble_rumble",
-    XPlayingDiamond6 = "j_13_stairs",
-    XPlayingDiamond7 = "j_never_no_dollars",
-    XPlayingDiamond10 = "j_unlucky_poky",
-    XPlayingClub2 = "j_metallical_parade",
-    XPlayingClub3 = "j_green_green",
-    XPlayingClub5 = "j_g_round",
-    XPlayingClubJ = "j_coming_home",
+    XPlayingSpade2 = "j_hcm_neo_new_nambu",
+    XPlayingSpade7 = "j_hcm_interceptor",
+    XPlayingSpade7 = "j_hcm_all_kaboom",
+    XPlayingSpade9 = "j_hcm_bokka",
+    XPlayingSpadeA = "j_hcm_love_and_peace",
+    XPlayingHeart3 = "j_hcm_rockin_rocks",
+    XPlayingHeart4 = "j_hcm_agent_s",
+    XPlayingHeart5 = "j_hcm_calories_high",
+    XPlayingHeart7 = "j_hcm_chameleon",
+    XPlayingHeartA = "j_hcm_faceless",
+    XPlayingDiamond2 = "j_hcm_love_connection",
+    XPlayingDiamond3 = "j_hcm_marble_rumble",
+    XPlayingDiamond6 = "j_hcm_13_stairs",
+    XPlayingDiamond7 = "j_hcm_never_no_dollars",
+    XPlayingDiamond10 = "j_hcm_unlucky_poky",
+    XPlayingClub2 = "j_hcm_metallical_parade",
+    XPlayingClub3 = "j_hcm_green_green",
+    XPlayingClub5 = "j_hcm_g_round",
+    XPlayingClubJ = "j_hcm_coming_home",
 }
 
 function SMODS.INIT.HighCardMod()
@@ -676,7 +676,7 @@ function SMODS.INIT.HighCardMod()
             trigger = 'before',
             delay = 0.0,
             func = function() 
-                local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_xplay", nil)
+                local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_hcm_xplay", nil)
                 --card:set_eternal(true)
                 card:set_edition(nil, nil, true)
                 --card:juice_up(1, 0.5)
@@ -689,7 +689,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingJoker then
-        SMODS.Jokers.j_xplay.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_xplay.calculate = function(self, context)
             if not context.blueprint then
                 if SMODS.end_calculate_context(context) then
                     if G.GAME.current_round.hands_played == 0 then
@@ -759,7 +759,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingSpade2 then
-        SMODS.Jokers.j_neo_new_nambu.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_neo_new_nambu.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingSpade2")
@@ -778,7 +778,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingSpade7 then
-        SMODS.Jokers.j_interceptor.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_interceptor.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingSpade7")
@@ -830,7 +830,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingSpade8 then
-        SMODS.Jokers.j_all_kaboom.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_all_kaboom.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingSpade8")
@@ -875,7 +875,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingSpade9 then
-        SMODS.Jokers.j_bokka.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_bokka.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingSpade9")
@@ -916,7 +916,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingSpadeA then
-        SMODS.Jokers.j_love_and_peace.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_love_and_peace.calculate = function(self, context)
             if not context.blueprint then
                 if context.before then 
                     sendDebugMessage("Love-P")
@@ -953,7 +953,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingHeart3 then
-        SMODS.Jokers.j_rockin_rocks.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_rockin_rocks.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingHeart3")
@@ -991,7 +991,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingHeart4 then
-        SMODS.Jokers.j_agent_s.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_agent_s.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingHeart4")
@@ -1025,7 +1025,7 @@ function SMODS.INIT.HighCardMod()
 
 
     if config.XPlayingHeart5 then
-        SMODS.Jokers.j_calories_high.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_calories_high.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingHeart5")
@@ -1052,7 +1052,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingHeart7 then
-        SMODS.Jokers.j_chameleon.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_chameleon.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingHeart7")
@@ -1100,7 +1100,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingHeartA then
-        SMODS.Jokers.j_faceless.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_faceless.calculate = function(self, context)
             if not context.blueprint then
 
                 if context.end_of_round and not self.ability.extra.done then
@@ -1157,7 +1157,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingDiamond2 then
-        SMODS.Jokers.j_love_connection.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_love_connection.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingDiamond2")
@@ -1172,7 +1172,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingDiamond3 then
-        SMODS.Jokers.j_marble_rumble.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_marble_rumble.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingDiamond3")
@@ -1203,7 +1203,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingDiamond6 then
-        SMODS.Jokers.j_13_stairs.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_13_stairs.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     local downstairs = false
@@ -1235,7 +1235,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingDiamond7 then
-        SMODS.Jokers.j_never_no_dollars.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_never_no_dollars.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingDiamond7")
@@ -1264,7 +1264,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingDiamond10 then
-        SMODS.Jokers.j_unlucky_poky.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_unlucky_poky.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingDiamond10")
@@ -1316,7 +1316,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingClub2 then
-        SMODS.Jokers.j_metallical_parade.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_metallical_parade.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingClub2")
@@ -1342,7 +1342,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingClub3 then
-        SMODS.Jokers.j_green_green.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_green_green.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingClub3")
@@ -1361,7 +1361,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingClub5 then
-        SMODS.Jokers.j_g_round.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_g_round.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingClub5")
@@ -1400,7 +1400,7 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingClubJ then
-        SMODS.Jokers.j_coming_home.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_coming_home.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingClubJ")
