@@ -24,6 +24,7 @@ local config = {
     XPlayingHeart4 = true,
     XPlayingHeart5 = true,
     XPlayingHeart7 = true,
+    XPlayingHeartA = true,
     -- Diamond Family
     XPlayingDiamond2 = true,
     XPlayingDiamond3 = true,
@@ -188,6 +189,21 @@ local locs = {
             "Convert {C:attention}suit{} of your",
             "played cards to suit",
             "of {C:attention}a random played card{}.",
+            --"{C:inactive}(right-most if tied){}.",
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. ""
+        }
+    },
+    XPlayingHeartA = {
+        name = "Faceless",
+        text = {
+            "If you play {C:attention}#1#{} or less cards, ",
+            "this will act like a",
+            "{C:attention}playing card{} that forms",
+            "a {C:attention}higher poker hand{}.",
             --"{C:inactive}(right-most if tied){}.",
             "When round ends, transform",
             "back to {C:attention}X-Playing Joker{}."
@@ -448,6 +464,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingHeartA = {
+        ability_name = "Faceless",
+        slug = "faceless",
+        ability = { extra = { cards_limit = 4, fake_card = nil, insert_pos = 0, delete_pos = 0, done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingDiamond2= {
         ability_name = "Love Connection",
         slug = "love_connection",
@@ -558,6 +585,7 @@ local joker_map = {
     XPlayingHeart4 = "j_agent_s",
     XPlayingHeart5 = "j_calories_high",
     XPlayingHeart7 = "j_chameleon",
+    XPlayingHeartA = "j_faceless",
     XPlayingDiamond2 = "j_love_connection",
     XPlayingDiamond3 = "j_marble_rumble",
     XPlayingDiamond6 = "j_13_stairs",
@@ -692,6 +720,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 7 and context.full_hand[1]:is_suit("Hearts") then
                                 return xplay("XPlayingHeart7")
+                            end
+                            if context.full_hand[1]:get_id() == 14 and context.full_hand[1]:is_suit("Hearts") then
+                                return xplay("XPlayingHeartA")
                             end
                             if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Diamonds") then
                                 return xplay("XPlayingDiamond2")
@@ -1068,6 +1099,63 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    if config.XPlayingHeartA then
+        SMODS.Jokers.j_faceless.calculate = function(self, context)
+            if not context.blueprint then
+
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeartA")
+                    self.ability.extra.done = true
+                end
+                if context.before then 
+                    sendDebugMessage("reset!")
+                    sendDebugMessage(#context.scoring_hand)
+                    self.ability.extra.insert_pos = 0
+                    self.ability.extra.delete_pos = #context.scoring_hand
+                    --G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                    --local _card = copy_card(context.full_hand[1], nil, nil, G.playing_cards)
+                    --table.insert(G.play.cards, _card)
+                    --highlight_card(_card,(#G.play.cards-0.999)/5,'up')
+                    --G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+                    --self.ability.extra.fake_card = copy_card(context.full_hand[1], nil, nil)
+                    --self.ability.extra.fake_card.fake = true
+                    --table.insert(G.play.cards, self.ability.extra.fake_card)
+                    --highlight_card(self.ability.extra.fake_card,(#G.play.cards-0.999)/5,'up')
+                    --[[
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            table.insert(G.play.cards, _card)
+                            _card:start_materialize()
+                            return true
+                        end
+                    })) 
+                    ]]--
+                    if faceless_trigger then
+                        return {
+                            message = "Faceless!",
+                            card = self
+                        }
+                    end
+                end
+                if context.destroying_card then 
+                    sendDebugMessage("Destroying card!")
+                    if not faceless_trigger then return nil end
+                    self.ability.extra.insert_pos = self.ability.extra.insert_pos + 1
+                    if self.ability.extra.insert_pos == self.ability.extra.delete_pos then 
+                        --sendDebugMessage("Destroying stone card!")
+                        --card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Stomp!"})
+                        return true
+                    end
+                    return nil
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
+
     if config.XPlayingDiamond2 then
         SMODS.Jokers.j_love_connection.calculate = function(self, context)
             if not context.blueprint then
@@ -1390,6 +1478,8 @@ function Card.generate_UIBox_ability_table(self)
             loc_vars = { self.ability.extra.retrigger_cnt }
         elseif self.ability.name == 'Agent S' then
             loc_vars = { self.ability.extra.retrigger_cnt }
+        elseif self.ability.name == 'Faceless' then
+            loc_vars = { self.ability.extra.cards_limit }
         elseif self.ability.name == '13 Stairs' then
             loc_vars = { self.ability.extra.stairs, self.ability.extra.ante_mod, self.ability.extra.scored_cards }
         elseif self.ability.name == 'G Round' then
@@ -1519,7 +1609,11 @@ function Card:add_to_deck(from_debuff)
             ease_hands_played(self.ability.extra.hand_play - G.GAME.current_round.hands_left)
         end
         if self.ability.name == 'Chameleon' then
-            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand, pre_flush)
+            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, pre_flush)
+        end
+        if self.ability.name == 'Faceless' then
+            G.FUNCS.play_cards_from_highlighted = highcard_wrapfirst(play_cards_from_highlighted_OG, faceless_generate)
+            --G.FUNCS.evaluate_play = highcard_wrapfirst(evaluate_play_OG, faceless_generate)
         end
         --if self.ability.name == 'Unlucky Poky' then
         --    for k, v in pairs(G.GAME.probabilities) do 
@@ -1528,7 +1622,7 @@ function Card:add_to_deck(from_debuff)
         --    end
         --end
         if self.ability.name == 'Green Green' then
-            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand, always_straight)
+            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, always_straight)
         end
         if self.ability.name == 'Coming Home' then 
             self.ability.extra.best_hand = string_level_unflush(hand_most_played())
@@ -1555,6 +1649,11 @@ function Card:remove_from_deck(from_debuff)
         if self.ability.name == 'Chameleon' then
             evaluate_poker_hand = evaluate_poker_hand_OG
             sendDebugMessage("Flush Effect Wears Off! ")
+        end
+        if self.ability.name == 'Faceless' then
+            G.FUNCS.evaluate_play = evaluate_play_OG
+            G.FUNCS.play_cards_from_highlighted = play_cards_from_highlighted_OG
+            sendDebugMessage("Faceless Effect Wears Off! ")
         end
         if self.ability.name == 'Love Connection' then
             evaluate_poker_hand = evaluate_poker_hand_OG
@@ -1593,6 +1692,17 @@ function highcard_wraplast(originalFunc, additionalFunc)
     end
 end
 
+function highcard_wrapfirst(originalFunc, additionalFunc)
+    return function()
+        -- Call the additional function
+        ret = additionalFunc()
+        ret = originalFunc()
+
+        -- Then call the original function with all the original arguments
+        return ret
+    end
+end
+
 function always_straight(ret, hand)
     --
     local new_results = {
@@ -1617,6 +1727,386 @@ function always_straight(ret, hand)
 
     return new_results
 end
+
+function faceless_generate()
+
+    faceless_trigger = false
+    --local target_cards = G.play.cards
+    local target_cards = G.hand.highlighted
+
+    if #target_cards > 4 then return false end 
+    
+    sendDebugMessage("Faceless Generation Process!")
+    local target_rank = nil
+    local target_suit = nil
+
+    local four_fingers = next(find_joker('Four Fingers'))
+    local shortcut = next(find_joker('Shortcut'))
+
+    local potential_straight_cnt = 5 - (four_fingers and 2 or 1)
+    local potential_straight_gap = shortcut and 2 or 1
+
+    local flag_same_suit = false
+    local potential_straight = true
+    local all_stone = true
+
+    local contained_suit = {}
+    local contained_ranks = {}
+    local dominating_suit_appearance = 0
+    local dominating_suit = target_cards[1].base.suit
+    local contains_ace = false
+    for _,v in ipairs(target_cards) do
+        if contained_suit[v.base.suit] then contained_suit[v.base.suit] = contained_suit[v.base.suit] + 1
+        else contained_suit[v.base.suit] = 1 end
+        if v.config.center ~= G.P_CENTERS.m_stone then all_stone = false end
+        table.insert(contained_ranks, v:get_id())
+        if v:get_id() == 14 then contains_ace = true end
+    end
+
+    if all_stone then return false end
+    faceless_trigger = true
+
+    if contains_ace then table.insert(contained_ranks, 1) end
+    table.sort(contained_ranks)
+
+    -- Check Suit
+    for k, v in pairs(contained_suit) do
+        if v > dominating_suit_appearance then 
+            dominating_suit_appearance = v
+            dominating_suit = k
+        end
+    end
+    if (four_fingers and dominating_suit_appearance >= 3) or dominating_suit_appearance >= 4 then 
+        flag_same_suit = true 
+    end
+
+    -- Check Straight
+    local current_rank = 0
+    local imaginary_card = straightable(target_cards)
+
+    -- Check Frequency
+    local most_frequent_rank = 0
+    local most_frequency = 0
+    local current_frequency = 0
+    current_rank = contained_ranks[1]
+    for k,v in ipairs(contained_ranks) do
+        if v == current_rank then 
+            current_frequency = current_frequency + 1
+            --Important: tie! 
+            if current_frequency > most_frequency then 
+                most_frequency = current_frequency
+                most_frequent_rank = current_rank
+            end
+        else 
+            current_rank = v
+            current_frequency = 1
+        end
+    end
+    if most_frequent_rank == 1 then most_frequent_rank = 14 end
+
+    local text,disp_text,poker_hands,scoring_hand,non_loc_disp_text = G.FUNCS.get_poker_hand_info(target_cards)
+
+    sendDebugMessage("Most Popular: "..most_frequent_rank.." of "..dominating_suit)
+    if imaginary_card then sendDebugMessage("imaginary_card: "..imaginary_card) end
+
+    if next(poker_hands["Five of a Kind"]) or next(poker_hands["Flush Five"]) or next(poker_hands["Flush House"]) or next(poker_hands["Straight Flush"]) then
+        sendDebugMessage("High 5 Cards")
+    elseif next(poker_hands["Four of a Kind"]) then
+        sendDebugMessage("Four of a Kind")
+        target_rank = most_frequent_rank
+        target_suit = dominating_suit
+    elseif next(poker_hands["Three of a Kind"]) then 
+        sendDebugMessage("Three of a Kind")
+        if #target_cards == 4 and dominating_suit_appearance == 4 then 
+            sendDebugMessage("Dealing with 4")
+            for k,v in ipairs(contained_ranks) do 
+                if v ~= most_frequent_rank then 
+                    target_rank = v == 1 and 14 or v
+                    target_suit = dominating_suit
+                end
+            end
+        else 
+            sendDebugMessage("Dealing with 3")
+            target_rank = most_frequent_rank
+            target_suit = dominating_suit
+        end
+    elseif next(poker_hands["Full House"]) or next(poker_hands["Straight"]) or next(poker_hands["Flush"]) then
+        sendDebugMessage("Low 5 Cards")
+    elseif next(poker_hands["Two Pair"]) then
+        sendDebugMessage("Two Pairs")
+        target_rank = most_frequent_rank
+        target_suit = dominating_suit
+    elseif next(poker_hands["Pair"]) or next(poker_hands["High Card"]) then
+        sendDebugMessage("Pair or High Card")
+        if imaginary_card then 
+            target_rank = imaginary_card
+            target_suit = dominating_suit
+        else
+            target_rank = most_frequent_rank
+            target_suit = dominating_suit
+        end
+    else
+        sendDebugMessage("None!")
+    end
+    sendDebugMessage("Inserting " .. target_rank .." of ".. target_suit)
+    G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+    --local fake_card = create_card("Base", G.pack_cards, nil, nil, nil, true, nil, 'sta')
+    --local fake_card = Card(G.deck.T.x, G.deck.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['H_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+    --local fake_card = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, front, G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+    --local fake_card = copy_card(G.play.cards[1], nil, nil, G.playing_card)
+
+    local fake_card = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['H_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+
+    --target_rank = tonumber(target_rank)
+    local card_encode = string.sub(target_suit, 1, 1)..'_'
+
+    local card_suffix = target_rank < 10 and tostring(target_rank) or
+                        target_rank == 10 and 'T' or target_rank == 11 and 'J' or
+                        target_rank == 12 and 'Q' or target_rank == 13 and 'K' or
+                        target_rank == 14 and 'A'
+    card_encode = card_encode .. card_suffix
+
+    fake_card:set_base(G.P_CARDS[card_encode])
+    --new_card:set_ability(other.config.center)
+    --new_card.ability.type = other.ability.type
+    --new_card:set_base(other.config.card)
+    --for k, v in pairs(other.ability) do
+    --    if type(v) == 'table' then 
+    --        new_card.ability[k] = copy_table(v)
+    --    else
+    --        new_card.ability[k] = v
+    --    end
+    --end
+    --fake_card:set_edition(nil, nil, true)
+    --fake_card:set_seal(nil, true)
+
+    --table.insert(G.play.cards, fake_card)
+    fake_card:add_to_deck()
+    G.deck.config.card_limit = G.deck.config.card_limit + 1
+    table.insert(G.playing_cards, fake_card)
+    G.hand:emplace(fake_card)
+    fake_card.states.visible = nil
+
+    G.E_MANAGER:add_event(Event({
+        func = function()
+            fake_card:start_materialize()
+            return true
+        end
+    })) 
+    --table.insert(G.play.cards, fake_card)
+    table.insert(G.hand.highlighted, fake_card)
+    --highlight_card(fake_card,(#G.play.cards-0.999)/5,'up')
+end
+
+function straightable(hand)
+    local four_fingers = next(find_joker('Four Fingers'))
+    local shortcut = next(find_joker('Shortcut'))
+
+    local potential_straight_cnt = 5 - (four_fingers and 2 or 1)
+    local potential_straight_gap = shortcut and 2 or 1
+
+    local contained_ranks = {}
+    local contains_ace = false
+    for _,v in ipairs(hand) do
+        table.insert(contained_ranks, v:get_id())
+        if v:get_id() == 14 then contains_ace = true end
+    end
+
+    if contains_ace then table.insert(contained_ranks, 1) end
+    table.sort(contained_ranks)
+
+    local best_chain = 0
+    local chain_cnt = 0
+    local insert_card = 0
+    local best_chain_start = 0
+    local best_chain_end = 0
+    for k,v in ipairs(contained_ranks) do
+        local imaginary_card = 0
+        local current_card = v
+        chain_cnt = 1
+        --sendDebugMessage("Checking "..v.." as start!")
+        for i = k + 1, #contained_ranks do
+            --sendDebugMessage("Current: "..current_card..", Next:"..contained_ranks[i])
+            if contained_ranks[i] - current_card <= potential_straight_gap and contained_ranks[i] - current_card > 0 then 
+                chain_cnt = chain_cnt + 1
+                --sendDebugMessage("regular step!")
+            elseif contained_ranks[i] == curent_card then --sendDebugMessage("same step!")
+            elseif contained_ranks[i] - current_card <= potential_straight_gap * 2 then 
+                --sendDebugMessage("Gap!")
+                if imaginary_card ~= 0 then 
+                    --sendDebugMessage("Gapping a second time! break! ")
+                    best_chain_start = 0
+                    break 
+                end
+                imaginary_card = current_card + potential_straight_gap
+                chain_cnt = chain_cnt + 2
+            else
+                --sendDebugMessage("Huge Gap! Out!")
+                break
+            end 
+            if chain_cnt > best_chain then 
+                best_chain = chain_cnt 
+                insert_card = imaginary_card
+                best_chain_start = v
+                best_chain_end = contained_ranks[i]
+                --sendDebugMessage("update chain to from "..best_chain_start.." to "..best_chain_end .. ", chain cnt = "..chain_cnt)
+            end
+            current_card = contained_ranks[i]       
+        end
+    end
+    --sendDebugMessage("Trying Straight! best chain: "..best_chain..", start from "..best_chain_start.." and end at "..best_chain_end)
+
+    if best_chain > potential_straight_cnt then 
+        return insert_card
+    elseif best_chain == potential_straight_cnt and insert_card == 0 then 
+        if best_chain_end + 1 < 15 then return best_chain_end + 1
+        elseif best_chain_start - 1 > 1 then return best_chain_start - 1
+        else end
+    else return nil end
+end
+--[[
+function faceless_shift(ret, hand)
+    if ret.top == nil or #hand > 4 then return ret end
+
+    local four_fingers = next(find_joker('Four Fingers'))
+    local shortcut = next(find_joker('Shortcut'))
+
+    local potential_straight_cnt = 5 - (four_fingers and 2 or 1)
+    local potential_straight_gap = shortcut and 2 or 1
+
+    local current_suit = hand[1].base.suit
+    local current_ranks = {}
+    local flag_same_suit = true
+    local potential_straight = true
+    for _,v in ipairs(hand) do
+        if v.base.suit ~= current_suit then flag_same_suit = false end
+        table.insert(current_ranks, v:get_id())
+        if v:get_id() == 14 then table.insert(current_ranks, 1) end
+    end
+    table.sort(current_ranks)
+    local longest_chain = 0
+    local current_chain = 0
+    local current_rank = 0
+    for k,v in ipairs(current_ranks) do
+        if k == 1 then 
+            current_chain = current_chain + 1
+            current_rank = v
+        else
+            if v - current_rank <= potential_straight_gap and v - current_rank > 0 then
+                current_chain = current_chain + 1
+            else current_chain = 1 end
+            current_rank = v
+        end
+        if current_chain > longest_chain then longest_chain = current_chain end
+    end
+    if longest_chain < potential_straight_cnt then potential_straight = false end
+
+    local new_results = ret
+    if next(ret["Four of a Kind"]) then 
+        if flag_same_suit then new_results["Flush Five"] = ret["Four of a Kind"] end
+        new_results["Five of a Kind"] = ret["Four of a Kind"]
+    elseif next(ret["Three of a Kind"]) then 
+        if #hand == 4 then 
+            if flag_same_suit then new_results["Flush House"] = ret["Three of a Kind"] end
+        end
+        new_results["Four of a Kind"] = ret["Three of a Kind"]
+    elseif next(ret["Two Pair"]) then 
+        if flag_same_suit then new_results["Flush House"] = ret["Two Pair"] end
+        new_results["Full House"] = ret["Two Pair"] 
+    elseif next(ret["Pair"]) then 
+        if flag_same_suit and potential_straight and not next(new_results["Straight Flush"]) then
+            new_results["Straight Flush"] = {}
+            local temp_hand = {}
+            local temp_ranks = {}
+            for _,v in ipairs(hand) do
+                local flag_remove = false
+                if next(temp_ranks) then
+                    
+                    for _,v2 in ipairs(temp_ranks) do
+                        if v == v2 then flag_remove = true end
+                    end
+                end
+                if not flag_remove then 
+                    table.insert(temp_hand, v)
+                end
+            end
+            table.insert(new_results["Straight Flush"], temp_hand)
+        elseif flag_same_suit and not next(new_results["Flush"]) then 
+            new_results["Flush"] = {}
+            local temp_hand = {}
+            for _,v in ipairs(hand) do
+                table.insert(temp_hand, v)
+            end
+            table.insert(new_results["Flush"], temp_hand)
+        elseif potential_straight and not next(new_results["Straight"]) then
+            new_results["Straight"] = {}
+            local temp_hand = {}
+            local temp_ranks = {}
+            for _,v in ipairs(hand) do
+                local flag_remove = false
+                if next(temp_ranks) then
+                    for _,v2 in ipairs(temp_ranks) do
+                        if v == v2 then flag_remove = true end
+                    end
+                end
+                if not flag_remove then 
+                    table.insert(temp_hand, v)
+                end
+            end
+            table.insert(new_results["Straight"], temp_hand)
+        elseif not flag_same_suit and not potential_straight then 
+            new_results["Three of a Kind"] = ret["Pair"]
+        end
+    elseif next(ret["High Card"]) then
+        if flag_same_suit and potential_straight and not next(new_results["Straight Flush"]) then
+            new_results["Straight Flush"] = {}
+            local temp_hand = {}
+            local temp_ranks = {}
+            for _,v in ipairs(hand) do
+                local flag_remove = false
+                if next(temp_ranks) then
+                    
+                    for _,v2 in ipairs(temp_ranks) do
+                        if v == v2 then flag_remove = true end
+                    end
+                end
+                if not flag_remove then 
+                    table.insert(temp_hand, v)
+                end
+            end
+            table.insert(new_results["Straight Flush"], temp_hand)
+        elseif flag_same_suit and not next(new_results["Flush"]) then 
+            new_results["Flush"] = {}
+            local temp_hand = {}
+            for _,v in ipairs(hand) do
+                table.insert(temp_hand, v)
+            end
+            table.insert(new_results["Flush"], temp_hand)
+        elseif potential_straight and not next(new_results["Straight"]) then
+            new_results["Straight"] = {}
+            local temp_hand = {}
+            for _,v in ipairs(hand) do
+                table.insert(temp_hand, v)
+            end
+            table.insert(new_results["Straight"], temp_hand)
+        else
+        end
+    end
+    if #hand >= 5 then 
+        local placeholder_tab = {}
+        local has_stone = 0
+        for _,v in ipairs(hand) do
+            if v.config.center == G.P_CENTERS.m_stone then has_stone = has_stone + 1 end
+            table.insert(placeholder_tab, v)
+        end
+        if #hand - has_stone >= 5 then new_results["Flush"] = {placeholder_tab} end
+    end
+    
+    if new_results.top == nil then return ret end
+
+    return new_results
+end
+]]--
 
 function pre_flush(ret, hand)
     if ret.top == nil then return ret end
@@ -2446,6 +2936,9 @@ end
 
 evaluate_poker_hand_OG = evaluate_poker_hand
 draw_card_OG = draw_card
+evaluate_play_OG = G.FUNCS.evaluate_play
+play_cards_from_highlighted_OG = G.FUNCS.play_cards_from_highlighted
+faceless_trigger = true
 
 -- Function to wrap an existing method with your additional logic
 function set_edition_replacement(class, methodName, additionalFunc)
