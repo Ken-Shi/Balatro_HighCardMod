@@ -689,6 +689,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingJoker then
+        function SMODS.Jokers.j_hcm_xplay.loc_def(card)
+            return { card.ability.extra.placeholder }
+        end
         SMODS.Jokers.j_hcm_xplay.calculate = function(self, context)
             if not context.blueprint then
                 if SMODS.end_calculate_context(context) then
@@ -759,6 +762,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingSpade2 then
+        function SMODS.Jokers.j_hcm_neo_new_nambu.loc_def(card)
+            return { card.ability.extra.hand_gain, card.ability.extra.hand_size, card.ability.extra.hand_ge }
+        end
         SMODS.Jokers.j_hcm_neo_new_nambu.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -830,6 +836,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingSpade8 then
+        function SMODS.Jokers.j_hcm_all_kaboom.loc_def(card)
+            return { card.ability.extra.kaboom_mult }
+        end
         SMODS.Jokers.j_hcm_all_kaboom.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -916,6 +925,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingSpadeA then
+        function SMODS.Jokers.j_hcm_love_and_peace.loc_def(card)
+            return { card.ability.extra.chips_gain, card.ability.extra.mult_gain }
+        end
         SMODS.Jokers.j_hcm_love_and_peace.calculate = function(self, context)
             if not context.blueprint then
                 if context.before then 
@@ -953,6 +965,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingHeart3 then
+        function SMODS.Jokers.j_hcm_rockin_rocks.loc_def(card)
+            return { card.ability.extra.retrigger_cnt }
+        end
         SMODS.Jokers.j_hcm_rockin_rocks.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -991,6 +1006,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingHeart4 then
+        function SMODS.Jokers.j_hcm_agent_s.loc_def(card)
+            return { card.ability.extra.retrigger_cnt }
+        end
         SMODS.Jokers.j_hcm_agent_s.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1025,6 +1043,9 @@ function SMODS.INIT.HighCardMod()
 
 
     if config.XPlayingHeart5 then
+        function SMODS.Jokers.j_hcm_calories_high.loc_def(card)
+            return { card.ability.extra.discard_gain, card.ability.extra.hand_play }
+        end
         SMODS.Jokers.j_hcm_calories_high.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1100,6 +1121,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingHeartA then
+        function SMODS.Jokers.j_hcm_faceless.loc_def(card)
+            return { card.ability.extra.cards_limit }
+        end
         SMODS.Jokers.j_hcm_faceless.calculate = function(self, context)
             if not context.blueprint then
 
@@ -1203,6 +1227,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingDiamond6 then
+        function SMODS.Jokers.j_hcm_13_stairs.loc_def(card)
+            return { card.ability.extra.stairs, card.ability.extra.ante_mod, card.ability.extra.scored_cards }
+        end
         SMODS.Jokers.j_hcm_13_stairs.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1235,6 +1262,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingDiamond7 then
+        function SMODS.Jokers.j_hcm_never_no_dollars.loc_def(card)
+            return { card.ability.extra.max_money, card.ability.extra.chip_mult }
+        end
         SMODS.Jokers.j_hcm_never_no_dollars.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1316,6 +1346,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingClub2 then
+        function SMODS.Jokers.j_hcm_metallical_parade.loc_def(card)
+            return { card.ability.extra.Xmult }
+        end
         SMODS.Jokers.j_hcm_metallical_parade.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1361,6 +1394,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingClub5 then
+        function SMODS.Jokers.j_hcm_g_round.loc_def(card)
+            return { card.ability.extra.mult_gain, card.ability.extra.mult_acc }
+        end
         SMODS.Jokers.j_hcm_g_round.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1400,6 +1436,9 @@ function SMODS.INIT.HighCardMod()
     end
 
     if config.XPlayingClubJ then
+        function SMODS.Jokers.j_hcm_coming_home.loc_def(card)
+            return { card.ability.extra.best_hand }
+        end
         SMODS.Jokers.j_hcm_coming_home.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1443,89 +1482,6 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
-end
-
--- Copied and modifed from LushMod
-local generate_UIBox_ability_tableref = Card.generate_UIBox_ability_table
-function Card.generate_UIBox_ability_table(self)
-    local card_type, hide_desc = self.ability.set or "None", nil
-    local loc_vars = nil
-    local main_start, main_end = nil, nil
-    local no_badge = nil
-
-    if self.config.center.unlocked == false and not self.bypass_lock then    -- For everyting that is locked
-    elseif card_type == 'Undiscovered' and not self.bypass_discovery_ui then -- Any Joker or tarot/planet/voucher that is not yet discovered
-    elseif self.debuff then
-    elseif card_type == 'Default' or card_type == 'Enhanced' then
-    elseif self.ability.set == 'Joker' then
-        local customJoker = true
-
-        if self.ability.name == 'X-Play' then
-            loc_vars = { self.ability.extra.placeholder }
-        elseif self.ability.name == 'Neo New Nambu' then
-            loc_vars = { self.ability.extra.hand_gain, self.ability.extra.hand_size, self.ability.extra.hand_ge }
-        elseif self.ability.name == 'All Kaboom' then
-            loc_vars = { self.ability.extra.kaboom_mult}
-        elseif self.ability.name == 'Love and Peace' then
-            loc_vars = { self.ability.extra.chips_gain, self.ability.extra.mult_gain}
-        elseif self.ability.name == 'Calories High' then
-            loc_vars = { self.ability.extra.discard_gain, self.ability.extra.hand_play, }
-        elseif self.ability.name == 'Never No Dollars' then
-            loc_vars = { self.ability.extra.max_money, self.ability.extra.chip_mult, }
-        elseif self.ability.name == 'Metallical Parade' then
-            loc_vars = { self.ability.extra.Xmult }
-        elseif self.ability.name == 'Rockin Rocks' then
-            loc_vars = { self.ability.extra.retrigger_cnt }
-        elseif self.ability.name == 'Agent S' then
-            loc_vars = { self.ability.extra.retrigger_cnt }
-        elseif self.ability.name == 'Faceless' then
-            loc_vars = { self.ability.extra.cards_limit }
-        elseif self.ability.name == '13 Stairs' then
-            loc_vars = { self.ability.extra.stairs, self.ability.extra.ante_mod, self.ability.extra.scored_cards }
-        elseif self.ability.name == 'G Round' then
-            loc_vars = { self.ability.extra.mult_gain, self.ability.extra.mult_acc }
-        elseif self.ability.name == 'Coming Home' then
-            loc_vars = { self.ability.extra.best_hand }
-        else
-            customJoker = false
-        end
-
-        if customJoker then
-            local badges = {}
-            if (card_type ~= 'Locked' and card_type ~= 'Undiscovered' and card_type ~= 'Default') or self.debuff then
-                badges.card_type = card_type
-            end
-            if self.ability.set == 'Joker' and self.bypass_discovery_ui and (not no_badge) then
-                badges.force_rarity = true
-            end
-            if self.edition then
-                if self.edition.type == 'negative' and self.ability.consumeable then
-                    badges[#badges + 1] = 'negative_consumable'
-                else
-                    badges[#badges + 1] = (self.edition.type == 'holo' and 'holographic' or self.edition.type)
-                end
-            end
-            if self.seal then
-                badges[#badges + 1] = string.lower(self.seal) .. '_seal'
-            end
-            if self.ability.eternal then
-                badges[#badges + 1] = 'eternal'
-            end
-            if self.pinned then
-                badges[#badges + 1] = 'pinned_left'
-            end
-
-            if self.sticker then
-                loc_vars = loc_vars or {};
-                loc_vars.sticker = self.sticker
-            end
-
-            return generate_card_ui(self.config.center, nil, loc_vars, card_type, badges, hide_desc, main_start,
-                main_end)
-        end
-    end
-
-    return generate_UIBox_ability_tableref(self)
 end
 
 local add_to_deckref = Card.add_to_deck
