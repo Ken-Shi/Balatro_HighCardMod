@@ -17,7 +17,7 @@ Quick Install for step 2 and 3: download the two zip files and unzip them in Ste
 
 Once you install the mod, you will see a new deck called *X-Playing Deck*, this deck will have all 52 regular poker cards and a legendary joker at the beginning of the run:
 
-![X-Playing Joker](./HighCardMod/assets/2x/j_xplay.png)![X-Playing Deck](./HighCardMod/assets/2x/b_xplaying.png)
+![X-Playing Joker](./HighCardMod/assets/2x/j_hmc_xplay.png)![X-Playing Deck](./HighCardMod/assets/2x/b_xplaying.png)
 
 This joker will **transform** into a X-Playing Card joker once you play your first hand of the round. Whichever hand you played, it will transfer (the corresponding High Card or X-Hand). 
 
@@ -25,7 +25,7 @@ At the end of the round, it will transform back to X-Playing Joker so you can de
 
 # Currently Supported X-Playing Cards
 
-![Neo New Nambu](./HighCardMod/assets/2x/j_neo_new_nambu.png)![Interceptor](./HighCardMod/assets/2x/j_interceptor.png)![All Kaboom](./HighCardMod/assets/2x/j_all_kaboom.png)![Bokka](./HighCardMod/assets/2x/j_bokka.png)![Love and Peace](./HighCardMod/assets/2x/j_love_and_peace.png)![Rockin Rocks](./HighCardMod/assets/2x/j_rockin_rocks.png)![Agent S](./HighCardMod/assets/2x/j_agent_s.png)![Calories High](./HighCardMod/assets/2x/j_calories_high.png)![Chameleon](./HighCardMod/assets/2x/j_chameleon.png)![Faceless](./HighCardMod/assets/2x/j_faceless.png)![Love Connection](./HighCardMod/assets/2x/j_love_connection.png)![Marble Rumble](./HighCardMod/assets/2x/j_marble_rumble.png)![13 Stairs](./HighCardMod/assets/2x/j_13_stairs.png)![Never No Dollars](./HighCardMod/assets/2x/j_never_no_dollars.png)![Unlucky Poky](./HighCardMod/assets/2x/j_unlucky_poky.png)![Metallical Parade](./HighCardMod/assets/2x/j_metallical_parade.png)![Green Green](./HighCardMod/assets/2x/j_green_green.png)![G round](./HighCardMod/assets/2x/j_g_round.png)![Coming Home](./HighCardMod/assets/2x/j_coming_home.png)
+![Neo New Nambu](./HighCardMod/assets/2x/j_hmc_neo_new_nambu.png)![Interceptor](./HighCardMod/assets/2x/j_hmc_interceptor.png)![All Kaboom](./HighCardMod/assets/2x/j_hmc_all_kaboom.png)![Bokka](./HighCardMod/assets/2x/j_hmc_bokka.png)![Love and Peace](./HighCardMod/assets/2x/j_hmc_love_and_peace.png)![Rockin Rocks](./HighCardMod/assets/2x/j_hmc_rockin_rocks.png)![Agent S](./HighCardMod/assets/2x/j_hmc_agent_s.png)![Calories High](./HighCardMod/assets/2x/j_hmc_calories_high.png)![Chameleon](./HighCardMod/assets/2x/j_hmc_chameleon.png)![Faceless](./HighCardMod/assets/2x/j_hmc_faceless.png)![Love Connection](./HighCardMod/assets/2x/j_hmc_love_connection.png)![Marble Rumble](./HighCardMod/assets/2x/j_hmc_marble_rumble.png)![13 Stairs](./HighCardMod/assets/2x/j_hmc_13_stairs.png)![Never No Dollars](./HighCardMod/assets/2x/j_hmc_never_no_dollars.png)![Unlucky Poky](./HighCardMod/assets/2x/j_hmc_unlucky_poky.png)![Metallical Parade](./HighCardMod/assets/2x/j_hmc_metallical_parade.png)![Green Green](./HighCardMod/assets/2x/j_hmc_green_green.png)![G round](./HighCardMod/assets/2x/j_hmc_g_round.png)![Coming Home](./HighCardMod/assets/2x/j_hmc_coming_home.png)
 
 You can discover their amazing abilities in collection tab once you install the mod! More X-Playing Cards and X-hands are WIP! 
 
