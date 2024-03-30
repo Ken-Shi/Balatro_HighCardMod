@@ -5,7 +5,7 @@ A Balatro mod that introduces X-Play Mechanics to the game along with 1 deck and
 </div>
 
 # Installation
-1. Please install [Steamodded](https://github.com/Steamopollys/Steamodded) via its instructions. This is used by most of the Balatro mods.
+1. Please install [Steamodded](https://github.com/Steamopollys/Steamodded) via its instructions (Currently support 0.9.3+). This is used by most of the Balatro mods.
 
 Quick Install for step 2 and 3: download the two zip files and unzip them in Steamodded's Mods folder. You should get two folders: `CardBackInjection` and `HighCardMod`;
 
