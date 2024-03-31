@@ -485,7 +485,7 @@ local jokers = {
         eternal_compat = false
     },
     XPlayingHeartA = {
-        ability_name = "Faceless",
+        ability_name = "Faceless HCM",
         slug = "hcm_faceless",
         ability = { extra = { cards_limit = 4, fake_card = nil, insert_pos = 0, delete_pos = 0, done = false} },
         rarity = 4,
@@ -612,7 +612,7 @@ local jokers = {
 local joker_map = {
     XPlayingSpade2 = "j_hcm_neo_new_nambu",
     XPlayingSpade7 = "j_hcm_interceptor",
-    XPlayingSpade7 = "j_hcm_all_kaboom",
+    XPlayingSpade8 = "j_hcm_all_kaboom",
     XPlayingSpade9 = "j_hcm_bokka",
     XPlayingSpadeA = "j_hcm_love_and_peace",
     XPlayingHeart3 = "j_hcm_rockin_rocks",
@@ -1760,7 +1760,7 @@ function Card:add_to_deck(from_debuff)
         if self.ability.name == 'Chameleon' then
             evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, pre_flush)
         end
-        if self.ability.name == 'Faceless' then
+        if self.ability.name == 'Faceless HCM' then
             G.FUNCS.play_cards_from_highlighted = highcard_wrapfirst(play_cards_from_highlighted_OG, faceless_generate)
             --G.FUNCS.evaluate_play = highcard_wrapfirst(evaluate_play_OG, faceless_generate)
         end
@@ -1802,7 +1802,7 @@ function Card:remove_from_deck(from_debuff)
             evaluate_poker_hand = evaluate_poker_hand_OG
             sendDebugMessage("Flush Effect Wears Off! ")
         end
-        if self.ability.name == 'Faceless' then
+        if self.ability.name == 'Faceless HCM' then
             G.FUNCS.evaluate_play = evaluate_play_OG
             G.FUNCS.play_cards_from_highlighted = play_cards_from_highlighted_OG
             sendDebugMessage("Faceless Effect Wears Off! ")
