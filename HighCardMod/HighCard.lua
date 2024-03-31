@@ -36,6 +36,7 @@ local config = {
     XPlayingClub3 = true,
     XPlayingClub5 = true,
     XPlayingClubJ = true,
+    XPlayingClubK = true,
 }
 
 -- Initialize deck effect
@@ -341,6 +342,25 @@ local locs = {
             --"at end of round. "
         }
     },
+    XPlayingClubK = {
+        name = "Reaper's Hand",
+        text = {
+            "After playing a hand, destroy",
+            "all scoring cards and gain their",
+            "{C:chips}chips{}, {C:mult}mult{} and {C:attention}enhancement{}.",
+            "{C:inactive}({}{C:chips}+#1#{} chips, {C:mult}+#2#{} mult, {X:mult,C:white}X#3#{} mult",
+            --"{X:mult,C:white}X#3#{} mult and {C:attention}+#4#{} gold cards{C:inactive}){}", 
+            "and {C:attention}+#4#{} gold at end of round{C:inactive}){}",
+            --"{C:inactive}also give{} {C:attention}+#4#{} gold per hand played, ",
+            --"retriggers {C:red}reaping{} {C:attention}#5#{} times, {C:attention}+#6#{} {C:planet}Planet{} ",
+            --"cards and {C:attention}+#7#{} gold at end of round{C:inactive}){}",
+            --"{C:inactive}(Only if it is possible){}",
+            "This X-Playing card is {C:attention}eternal{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
+        }
+    },
 }
 
 -- Create Decks
@@ -574,6 +594,20 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingClubK= {
+        ability_name = "Reapers Hand",
+        slug = "hcm_reapers_hand",
+        ability = { extra = { chips_gain = 0, mult_gain = 0, xmult_gain = 1,
+                            steel_cnt = 0, gold_cnt = 0, lucky_cnt = 0,
+                            glass_cnt = 0, gseal = 0, rseal = 0, bseal = 0,
+                    done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = true
+    },
 }
 local joker_map = {
     XPlayingSpade2 = "j_hcm_neo_new_nambu",
@@ -595,6 +629,7 @@ local joker_map = {
     XPlayingClub3 = "j_hcm_green_green",
     XPlayingClub5 = "j_hcm_g_round",
     XPlayingClubJ = "j_hcm_coming_home",
+    XPlayingClubK = "j_hcm_reapers_hand",
 }
 
 function SMODS.INIT.HighCardMod()
@@ -646,6 +681,10 @@ function SMODS.INIT.HighCardMod()
             func = function() 
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, joker_map[hand_name], nil)
                 card:set_edition(nil, nil, true)
+                if joker_map[hand_name] == "j_hcm_reapers_hand" then 
+                    --sendDebugMessage("Set Eternal! ")
+                    card:set_eternal(true) 
+                end
                 --card:juice_up(1, 0.5)
                 card:add_to_deck()
                 G.jokers:emplace(card)
@@ -753,6 +792,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 11 and context.full_hand[1]:is_suit("Clubs") then
                                 return xplay("XPlayingClubJ")
+                            end
+                            if context.full_hand[1]:get_id() == 13 and context.full_hand[1]:is_suit("Clubs") then
+                                return xplay("XPlayingClubK")
                             end
                         end 
                     end
@@ -1482,6 +1524,157 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    if config.XPlayingClubK then
+        function SMODS.Jokers.j_hcm_reapers_hand.loc_def(card)
+            return { card.ability.extra.chips_gain, card.ability.extra.mult_gain, card.ability.extra.xmult_gain, 
+                     card.ability.extra.gold_cnt * 3}
+                    --card.ability.extra.gseal * 3, card.ability.extra.rseal, card.ability.extra.bseal, card.ability.extra.gold_cnt * 3 }
+        end
+        SMODS.Jokers.j_hcm_reapers_hand.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    --end_xplay("XPlayingClubK")
+                    self.ability.extra.done = true
+                    --[[
+                    if self.ability.extra.bseal > 0 then 
+                        for i = 1, self.ability.extra.bseal do
+                            if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+                                G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+                                G.E_MANAGER:add_event(Event({
+                                    trigger = 'before',
+                                    delay = 0.0,
+                                    func = (function()
+                                            local card = create_card('Planet',G.consumeables, nil, nil, nil, nil, nil, '8ba')
+                                            card:add_to_deck()
+                                            G.consumeables:emplace(card)
+                                            G.GAME.consumeable_buffer = 0
+                                        return true
+                                    end)}))
+                            end
+                        end
+                    end
+                    ]]--
+                    
+                    if self.ability.extra.gold_cnt > 0 then 
+                        for i = 1, self.ability.extra.gold_cnt do
+                            ease_dollars(3)
+                            delay(0.3)
+                        end
+                    end
+                end
+
+                if context.destroying_card then 
+                    local trigger_cnt = 1
+                    if context.destroying_card.seal and context.destroying_card.seal == 'Red' then trigger_cnt = 2 end
+                    --local trigger_cnt = self.ability.extra.rseal + 1
+                    for i = 1, trigger_cnt do
+                        self.ability.extra.chips_gain = self.ability.extra.chips_gain + context.destroying_card.base.nominal
+
+                        -- Check enhancement
+                        if context.destroying_card.config.center == G.P_CENTERS.m_stone then 
+                            self.ability.extra.chips_gain = self.ability.extra.chips_gain + 50
+                        elseif context.destroying_card.config.center == G.P_CENTERS.m_bonus then
+                            self.ability.extra.chips_gain = self.ability.extra.chips_gain + 30
+                        elseif context.destroying_card.config.center == G.P_CENTERS.m_mult then
+                            self.ability.extra.mult_gain = self.ability.extra.mult_gain + 4
+                        elseif context.destroying_card.config.center == G.P_CENTERS.m_glass then
+                            self.ability.extra.glass_cnt = self.ability.extra.glass_cnt + 1
+                            self.ability.extra.xmult_gain = self.ability.extra.xmult_gain * 2
+                        elseif context.destroying_card.config.center == G.P_CENTERS.m_steel then
+                            self.ability.extra.xmult_gain = self.ability.extra.xmult_gain * 1.5
+                        elseif context.destroying_card.config.center == G.P_CENTERS.m_gold then
+                            self.ability.extra.gold_cnt = self.ability.extra.gold_cnt + 1 
+                        elseif context.destroying_card.config.center == G.P_CENTERS.m_lucky then
+                            self.ability.extra.lucky_cnt = self.ability.extra.lucky_cnt + 1 
+                        end
+                        -- Check editions
+                        if context.destroying_card.edition then
+                            if context.destroying_card.edition.holo then 
+                                self.ability.extra.mult_gain = self.ability.extra.mult_gain + 10
+                            elseif context.destroying_card.edition.foil then 
+                                self.ability.extra.chips_gain = self.ability.extra.chips_gain + 50
+                            elseif context.destroying_card.edition.polychrome then
+                                self.ability.extra.xmult_gain = self.ability.extra.xmult_gain * 1.5
+                            end
+                        end
+                        -- Check seal
+                        if context.destroying_card.seal then 
+                            if context.destroying_card.seal == 'Gold' then 
+                                self.ability.extra.gseal = self.ability.extra.gseal + 1
+                            elseif context.destroying_card.seal == 'Red' then 
+                                self.ability.extra.rseal = self.ability.extra.rseal + 1
+                            elseif context.destroying_card.seal == 'Blue' then
+                                self.ability.extra.bseal = self.ability.extra.bseal + 1
+                            end
+                        end
+                    end
+                    return true
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    --local trigger_cnt = self.ability.extra.rseal + 1
+                    --for i = 1, trigger_cnt do
+                        --if i > 1 then card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Again!"}) end
+                        for k, v in ipairs(context.scoring_hand) do
+                            card_eval_status_text(v, 'extra', nil, nil, nil, {message = "Reap!", Xmult_mod=1})
+                        end
+                    --end
+                    local lucky_multi = 0
+                    if self.ability.extra.lucky_cnt > 0 then
+                        for i = 1, self.ability.extra.lucky_cnt do
+                            if pseudorandom('lucky_mult') < G.GAME.probabilities.normal / 5 then
+                                card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Lucky Mult!", Xmult_mod=1})
+                                lucky_multi = lucky_multi + 1
+                            end
+                            if pseudorandom('lucky_money') < G.GAME.probabilities.normal / 15 then
+                                card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Lucky Dollars!", Xmult_mod=1})
+                                ease_dollars(20)
+                                delay(0.3)
+                            end
+                        end
+                    end
+                    G.E_MANAGER:add_event(Event({
+                                    delay = 0.0,
+                                    func = (function()
+                                            --[[
+                                            if self.ability.extra.gseal > 0 then
+                                                for i = 1, self.ability.extra.gseal do
+                                                    ease_dollars(3)
+                                                    delay(0.3)
+                                                end
+                                            end
+                                            ]]--
+                                            sendDebugMessage("Glass Card Remaining: ", self.ability.extra.glass_cnt)
+                                            if self.ability.extra.glass_cnt > 0 then
+                                                local glass_shattered = 0
+                                                for i = 1, self.ability.extra.glass_cnt do
+                                                    if pseudorandom('glass') < G.GAME.probabilities.normal / 4 then
+                                                        card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Shattered!"})
+                                                        glass_shattered = glass_shattered + 1
+                                                    end
+                                                end
+                                                while glass_shattered > 0 do
+                                                    self.ability.extra.xmult_gain = self.ability.extra.xmult_gain / 2
+                                                    self.ability.extra.glass_cnt = self.ability.extra.glass_cnt - 1
+                                                    glass_shattered = glass_shattered - 1
+                                                end
+                                            end
+                                        return true
+                                    end)}))
+                    --card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Stomp!"})
+                    return {
+                        message = "Reaper's Hand!",
+                        chip_mod = self.ability.extra.chips_gain,
+                        mult_mod = self.ability.extra.mult_gain + lucky_multi * 20,
+                        Xmult_mod = self.ability.extra.xmult_gain,
+                        card = self
+                    }
+                end
+            end
+        end
+    end
+
 end
 
 local add_to_deckref = Card.add_to_deck
@@ -1582,6 +1775,9 @@ function Card:add_to_deck(from_debuff)
         end
         if self.ability.name == 'Coming Home' then 
             self.ability.extra.best_hand = string_level_unflush(hand_most_played())
+        end
+        if self.ability.name == 'Reapers Hand' then 
+            self:set_eternal(true) 
         end
 
     end
