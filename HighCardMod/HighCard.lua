@@ -32,6 +32,7 @@ local config = {
     XPlayingDiamond6 = true,
     XPlayingDiamond7 = true,
     XPlayingDiamond10 = true,
+    XPlayingDiamondJ = true,
     -- Club Family
     XPlayingClub2 = true,
     XPlayingClub3 = true,
@@ -153,7 +154,7 @@ local locs = {
             "Cards can be considered",
             "{C:attention}1 rank lower{} if that helps",
             "forming a better poker hand. ",
-            "When that happens, every"
+            "When that happens, every",
             "played cards will score.",
             "When round ends, transform",
             "back to {C:attention}X-Playing Joker{}."
@@ -296,6 +297,22 @@ local locs = {
             --"{C:attention}Lucky Cards{} and become {C:green,E:1,S:1.1}extra-lucky{}",
             --"during the scoring stage, but",
             --"{C:red}lose all of them afterwards{}.",
+
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
+        }
+    },
+    XPlayingDiamondJ = {
+        name = "Out of Five",
+        text = {
+            "Your {C:attention}High Card{} become",
+            "your {C:attention}most played hand{}",
+            "that is not High Card.",
+            "{C:inactive}(Now it's{} {C:attention}#1#{}{C:inactive}...){}",
 
             "When round ends, transform",
             "back to {C:attention}X-Playing Joker{}."
@@ -591,6 +608,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingDiamondJ= {
+        ability_name = "Out of Five",
+        slug = "hcm_out_of_five",
+        ability = { extra = { best_hand = "Nothing else", msg_on = false, done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingClub2= {
         ability_name = "Metallical Parade",
         slug = "hcm_metallical_parade",
@@ -678,6 +706,7 @@ local joker_map = {
     XPlayingDiamond6 = "j_hcm_13_stairs",
     XPlayingDiamond7 = "j_hcm_never_no_dollars",
     XPlayingDiamond10 = "j_hcm_unlucky_poky",
+    XPlayingDiamondJ = "j_hcm_out_of_five",
     XPlayingClub2 = "j_hcm_metallical_parade",
     XPlayingClub3 = "j_hcm_green_green",
     XPlayingClub5 = "j_hcm_g_round",
@@ -837,6 +866,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 10 and context.full_hand[1]:is_suit("Diamonds") then
                                 return xplay("XPlayingDiamond10")
+                            end
+                            if context.full_hand[1]:get_id() == 11 and context.full_hand[1]:is_suit("Diamonds") then
+                                return xplay("XPlayingDiamondJ")
                             end
                             if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Clubs") then
                                 return xplay("XPlayingClub2")
@@ -1447,6 +1479,45 @@ function SMODS.INIT.HighCardMod()
         end
     end
 
+    if config.XPlayingDiamondJ then
+        function SMODS.Jokers.j_hcm_out_of_five.loc_def(card)
+            return { card.ability.extra.best_hand }
+        end
+        SMODS.Jokers.j_hcm_out_of_five.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamondJ")
+                    self.ability.extra.done = true
+                end
+
+                if context.before then
+                    self.ability.extra.msg_on = false 
+                    local supposed_hand = evaluate_poker_hand_OG(context.full_hand)
+                    local changed_hand = evaluate_poker_hand(context.full_hand)
+                    if supposed_hand == "High Card" and changed_hand ~= "High Card" then
+                        self.ability.extra.msg_on = true 
+                    end
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    self.ability.extra.best_hand = hand_most_played_wo_hc()
+                    if self.ability.extra.best_hand == nil then self.ability.extra.best_hand = "Nothing else" 
+                    else
+                        local supposed_hand = evaluate_poker_hand_OG(G.play.cards)
+                        local changed_hand = evaluate_poker_hand(G.play.cards)
+                        if self.ability.extra.msg_on then
+                            return {
+                                message = "Out of Five!",
+                                card = self
+                            }
+                        end
+                    end
+                end
+            end
+        end
+    end
+
     if config.XPlayingClub2 then
         function SMODS.Jokers.j_hcm_metallical_parade.loc_def(card)
             return { card.ability.extra.Xmult }
@@ -1851,9 +1922,6 @@ function Card:add_to_deck(from_debuff)
                 G.hand:add_to_highlighted(forced_card)
             end
         end
-        if self.ability.name == 'Love Connection' then
-            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, always_pair)
-        end
         if self.ability.name == 'Jelly Crawler' then
             evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, jelly_render)
         end
@@ -1866,6 +1934,12 @@ function Card:add_to_deck(from_debuff)
         if self.ability.name == 'Faceless HCM' then
             G.FUNCS.play_cards_from_highlighted = highcard_wrapfirst(play_cards_from_highlighted_OG, faceless_generate)
             --G.FUNCS.evaluate_play = highcard_wrapfirst(evaluate_play_OG, faceless_generate)
+        end
+        if self.ability.name == 'Love Connection' then
+            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, always_pair)
+        end
+        if self.ability.name == 'Out of Five' then
+            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, highcard_to_higher)
         end
         --if self.ability.name == 'Unlucky Poky' then
         --    for k, v in pairs(G.GAME.probabilities) do 
@@ -1917,6 +1991,10 @@ function Card:remove_from_deck(from_debuff)
         if self.ability.name == 'Love Connection' then
             evaluate_poker_hand = evaluate_poker_hand_OG
             sendDebugMessage("Pair Effect Wears Off! ")
+        end
+        if self.ability.name == 'Out of Five' then
+            evaluate_poker_hand = evaluate_poker_hand_OG
+            sendDebugMessage("Zenon Effect Wears Off! ")
         end
         if self.ability.name == 'Green Green' then
             evaluate_poker_hand = evaluate_poker_hand_OG
@@ -2600,6 +2678,32 @@ function always_pair(ret, hand)
     return new_results
 end
 
+function highcard_to_higher(ret, hand)
+    if ret.top == nil then return ret end
+
+    local replacement = hand_most_played_wo_hc()
+    if replacement == nil then return ret end
+
+    local new_results = ret
+    if next(ret["Flush Five"]) then 
+    elseif next(ret["Flush House"]) then 
+    elseif next(ret["Five of a Kind"]) then
+    elseif next(ret["Straight Flush"]) then 
+    elseif next(ret["Four of a Kind"]) then  
+    elseif next(ret["Full House"]) then 
+    elseif next(ret["Flush"]) then  
+    elseif next(ret["Straight"]) then
+    elseif next(ret["Three of a Kind"]) then 
+    elseif next(ret["Two Pair"]) then 
+    elseif next(ret["Pair"]) then
+    elseif next(ret["High Card"]) then
+        new_results[replacement] = ret["High Card"]
+    end   
+    
+    if new_results.top == nil then return ret end
+    return new_results
+end
+
 function string_level_unflush(hand_name)
     if hand_name == "Flush Five" then return "Five of a Kind" 
     elseif hand_name == "Flush House" then return "Full House"
@@ -2613,6 +2717,20 @@ function hand_most_played()
     local most_played_times = 0
     for k, v in pairs(G.GAME.hands) do
         if v.played >= most_played_times then
+            most_played_hand = k
+            most_played_times = v.played
+        end
+    end
+    return most_played_hand
+end
+
+function hand_most_played_wo_hc()
+    --local potential_nil = false
+    --if hand_most_played() == "High Card" then potential_nil = true end
+    local most_played_hand = nil
+    local most_played_times = 0
+    for k, v in pairs(G.GAME.hands) do
+        if k ~= "High Card" and v.played >= most_played_times and v.played > 0 then
             most_played_hand = k
             most_played_times = v.played
         end
