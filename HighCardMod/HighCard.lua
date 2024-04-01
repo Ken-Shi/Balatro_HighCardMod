@@ -35,6 +35,7 @@ local config = {
     XPlayingClub2 = true,
     XPlayingClub3 = true,
     XPlayingClub5 = true,
+    XPlayingClub8 = true,
     XPlayingClubJ = true,
     XPlayingClubK = true,
 }
@@ -327,6 +328,19 @@ local locs = {
             --"at end of round. "
         }
     },
+    XPlayingClub8 = {
+        name = "Sinking Shadow",
+        text = {
+            "Cards that are played but",
+            "did not score add their",
+            "{C:attention}base{} {C:chips}chips{} to {C:mult}mult{} instead.",
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
+        }
+    },
     XPlayingClubJ = {
         name = "Coming Home",
         text = {
@@ -583,6 +597,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingClub8= {
+        ability_name = "Sinking Shadow",
+        slug = "hcm_sinking_shadow",
+        ability = { extra = { mult_gain = 0, done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingClubJ= {
         ability_name = "Coming Home",
         slug = "hcm_coming_home",
@@ -628,6 +653,7 @@ local joker_map = {
     XPlayingClub2 = "j_hcm_metallical_parade",
     XPlayingClub3 = "j_hcm_green_green",
     XPlayingClub5 = "j_hcm_g_round",
+    XPlayingClub8 = "j_hcm_sinking_shadow",
     XPlayingClubJ = "j_hcm_coming_home",
     XPlayingClubK = "j_hcm_reapers_hand",
 }
@@ -789,6 +815,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 5 and context.full_hand[1]:is_suit("Clubs") then
                                 return xplay("XPlayingClub5")
+                            end
+                            if context.full_hand[1]:get_id() == 8 and context.full_hand[1]:is_suit("Clubs") then
+                                return xplay("XPlayingClub8")
                             end
                             if context.full_hand[1]:get_id() == 11 and context.full_hand[1]:is_suit("Clubs") then
                                 return xplay("XPlayingClubJ")
@@ -1469,6 +1498,46 @@ function SMODS.INIT.HighCardMod()
                         return {
                             message = "G Round!",
                             mult_mod = self.ability.extra.mult_acc,
+                            card = self
+                        }
+                    end
+                end
+            end
+        end
+    end
+
+    if config.XPlayingClub8 then
+        SMODS.Jokers.j_hcm_sinking_shadow.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClub8")
+                    self.ability.extra.done = true
+                end
+
+                if context.before then 
+                    self.ability.extra.mult_gain = 0
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    --sendDebugMessage("Evaluate G Round!")
+                    for k, v in ipairs(context.full_hand) do
+                        if v.config.center == G.P_CENTERS.m_stone then
+                        else
+                            local unscored = true
+                            for k2, v2 in ipairs(context.scoring_hand) do
+                                if v == v2 then unscored = false end
+                            end
+                            if unscored then 
+                                self.ability.extra.mult_gain = self.ability.extra.mult_gain + v.base.nominal
+                                card_eval_status_text(v, 'extra', nil, nil, nil, {message = "Shadow..", Xmult_mod=1})
+                            end
+                        end
+                    end
+                    if self.ability.extra.mult_acc ~= 0 then
+                        return {
+                            message = "Sinking Shadow!",
+                            mult_mod = self.ability.extra.mult_gain,
                             card = self
                         }
                     end
