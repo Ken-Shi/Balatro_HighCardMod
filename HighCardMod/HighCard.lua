@@ -20,6 +20,7 @@ local config = {
     XPlayingSpade9 = true,
     XPlayingSpadeA = true,
     -- Heart Family
+    XPlayingHeart2 = true, 
     XPlayingHeart3 = true,
     XPlayingHeart4 = true,
     XPlayingHeart5 = true,
@@ -139,6 +140,21 @@ local locs = {
         text = {
             "Gain {C:chips}+#1#{} Chips and {C:mult}+#2#{} Mult,",
             "but {C:attention}force a card{} for each hand.",
+            "When round ends, transform",
+            "back to {C:attention}X-Playing Joker{}."
+            --"Transform back to",
+            --"{C:attention}X-Playing Joker{}",
+            --"at end of round. "
+        }
+    },
+    XPlayingHeart2 = {
+        name = "Jelly Crawler",
+        text = {
+            "Cards can be considered",
+            "{C:attention}1 rank lower{} if that helps",
+            "forming a better poker hand. ",
+            "When that happens, every"
+            "played cards will score.",
             "When round ends, transform",
             "back to {C:attention}X-Playing Joker{}."
             --"Transform back to",
@@ -454,6 +470,17 @@ local jokers = {
         blueprint_compat = false,
         eternal_compat = false
     },
+    XPlayingHeart2 = {
+        ability_name = "Jelly Crawler",
+        slug = "hcm_jelly_crawler",
+        ability = { extra = { done = false} },
+        rarity = 4,
+        cost = 0,
+        unlocked = true,
+        discovered = true,
+        blueprint_compat = false,
+        eternal_compat = false
+    },
     XPlayingHeart3 = {
         ability_name = "Rockin Rocks",
         slug = "hcm_rockin_rocks",
@@ -640,6 +667,7 @@ local joker_map = {
     XPlayingSpade8 = "j_hcm_all_kaboom",
     XPlayingSpade9 = "j_hcm_bokka",
     XPlayingSpadeA = "j_hcm_love_and_peace",
+    XPlayingHeart2 = "j_hcm_jelly_crawler",
     XPlayingHeart3 = "j_hcm_rockin_rocks",
     XPlayingHeart4 = "j_hcm_agent_s",
     XPlayingHeart5 = "j_hcm_calories_high",
@@ -776,6 +804,9 @@ function SMODS.INIT.HighCardMod()
                             end
                             if context.full_hand[1]:get_id() == 14 and context.full_hand[1]:is_suit("Spades") then
                                 return xplay("XPlayingSpadeA")
+                            end
+                            if context.full_hand[1]:get_id() == 2 and context.full_hand[1]:is_suit("Hearts") then
+                                return xplay("XPlayingHeart2")
                             end
                             if context.full_hand[1]:get_id() == 3 and context.full_hand[1]:is_suit("Hearts") then
                                 return xplay("XPlayingHeart3")
@@ -1821,7 +1852,10 @@ function Card:add_to_deck(from_debuff)
             end
         end
         if self.ability.name == 'Love Connection' then
-            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand, always_pair)
+            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, always_pair)
+        end
+        if self.ability.name == 'Jelly Crawler' then
+            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, jelly_render)
         end
         if self.ability.name == 'Calories High' then
             ease_hands_played(self.ability.extra.hand_play - G.GAME.current_round.hands_left)
@@ -1867,6 +1901,10 @@ function Card:remove_from_deck(from_debuff)
         --        sendDebugMessage(G.GAME.probabilities[k])
         --    end
         --end
+        if self.ability.name == 'Jelly Crawler' then
+            evaluate_poker_hand = evaluate_poker_hand_OG
+            sendDebugMessage("Jelly Crawler Effect Wears Off! ")
+        end
         if self.ability.name == 'Chameleon' then
             evaluate_poker_hand = evaluate_poker_hand_OG
             sendDebugMessage("Flush Effect Wears Off! ")
@@ -2328,6 +2366,206 @@ function faceless_shift(ret, hand)
     return new_results
 end
 ]]--
+function generate_jelly_combos(numbers, combo, index, result)
+
+    local unpack = table.unpack or unpack
+
+    if index > #numbers then
+        table.insert(result, {unpack(combo)})  -- Insert a copy of the current combination
+        return
+    end
+
+    -- Include the current number as is
+    combo[index] = numbers[index]
+    generate_jelly_combos(numbers, combo, index + 1, result)
+
+    -- Include the current number minus one
+    combo[index] = numbers[index] - 1
+    generate_jelly_combos(numbers, combo, index + 1, result)
+end
+
+function jelly_combos(numbers)
+    local result = {}
+    generate_jelly_combos(numbers, {}, 1, result)
+    return result
+end
+
+function jelly_check_recursive(ranks, target)
+    
+    if ranks == nil then return false end
+
+    local four_fingers = next(find_joker('Four Fingers'))
+    local shortcut = next(find_joker('Shortcut'))
+
+    local appear_cnt = {0,0,0,0,0,0,0,0,0,0,0,0,0}
+    local total_ranks = #ranks
+    local straight_required = four_fingers and 4 or 5
+
+    for k, v in ipairs(ranks) do
+        appear_cnt[v - 1] = appear_cnt[v - 1] + 1
+    end
+
+    if target == "Five of a Kind" then 
+        if total_ranks < 5 then return false end
+        for k, v in ipairs(appear_cnt) do
+            if v >= 5 then return true end
+        end
+    elseif target == "Four of a Kind" then
+        if total_ranks < 4 then return false end
+        for k, v in ipairs(appear_cnt) do
+            if v >= 4 then return true end
+        end
+    elseif target == "Full House" then   
+        if total_ranks < 5 then return false end
+        local pair_appear = false 
+        local toak_appear = false 
+        for k, v in ipairs(appear_cnt) do
+            if v >= 3 then toak_appear = true 
+            elseif v >= 2 then pair_appear = true end
+            if pair_appear and toak_appear then return true end
+        end    
+    elseif target == "Straight" then
+        if four_fingers and total_ranks < 4 then return false
+        elseif total_ranks < 5 then return false end
+        local chain = 0
+        --if appear_cnt[#appear_cnt] > 0 then chain = 1 end
+        for k, v in ipairs(appear_cnt) do
+            if v > 0 then chain = chain + 1 
+            else 
+                if shortcut and k + 1 <= #appear_cnt and appear_cnt[k+1] > 0 then
+                else chain = 1 end 
+            end
+            if chain >= straight_required then return true end
+        end
+    elseif target == "Three of a Kind" then
+        if total_ranks < 3 then return false end
+        for k, v in ipairs(appear_cnt) do
+            if v >= 3 then return true end
+        end
+    elseif target == "Two Pair" then
+        if total_ranks < 4 then return false end
+        local inner_cnt = 0
+        for k, v in ipairs(appear_cnt) do
+            if v >= 2 then inner_cnt = inner_cnt + 1 end
+            if inner_cnt >= 2 then return true end
+        end
+    elseif target == "Pair" then
+        if total_ranks < 2 then return false end
+        for k, v in ipairs(appear_cnt) do
+            if v >= 2 then return true end
+        end
+    end
+    return false
+end
+
+function jelly_check(ranks, target)
+
+    if ranks == nil then return false end
+    local jelly_check_result = false
+    all_rank_combos = jelly_combos(ranks)
+    for i, combo in ipairs(all_rank_combos) do
+        for k, v in ipairs(combo) do
+            if v == 1 then combo[k] = 14 end
+        end
+        local combo_check_result = jelly_check_recursive(combo, target)
+        if combo_check_result then return true end
+    end
+    return false
+
+end
+
+function jelly_render(ret, hand)
+    if ret.top == nil then return ret end
+
+    local all_ranks = {}
+    for k, v in ipairs(hand) do
+        if v.config.center == G.P_CENTERS.m_stone then 
+        else table.insert(all_ranks, v.base.id) end
+    end
+
+    local is_same_suit = true
+    local current_suit = nil
+    local placeholder_tab = {}
+    for _,v in ipairs(hand) do
+        table.insert(placeholder_tab, v)
+        if current_suit and v.base.suit ~= current_suit then is_same_suit = false end
+        current_suit = v.base.suit
+    end
+
+    local new_results = ret
+    if next(ret["Five of a Kind"]) or next(ret["Flush Five"]) or next(ret["Flush House"]) or next(ret["Straight Flush"]) or next(ret["Straight"]) then
+    elseif next(ret["Four of a Kind"]) then
+        if jelly_check(all_ranks, "Five of a Kind") then 
+            new_results["Five of a Kind"] = {placeholder_tab}
+        end
+    elseif next(ret["Full House"]) then
+    elseif next(ret["Flush"]) then
+        if jelly_check(all_ranks, "Straight") then 
+            new_results["Straight Flush"] = {placeholder_tab}
+        end
+    elseif next(ret["Three of a Kind"]) then
+        if jelly_check(all_ranks, "Five of a Kind") then 
+            if is_same_suit then new_results["Flush Five"] = {placeholder_tab}
+            else new_results["Five of a Kind"] = {placeholder_tab} end
+        elseif jelly_check(all_ranks, "Four of a Kind") then 
+            new_results["Four of a Kind"] = {placeholder_tab}
+        elseif jelly_check(all_ranks, "Full House") then 
+            if is_same_suit then new_results["Flush House"] = {placeholder_tab}
+            else new_results["Full House"] = {placeholder_tab} end
+        elseif jelly_check(all_ranks, "Straight") then 
+            new_results["Straight"] = {placeholder_tab}
+        end
+    elseif next(ret["Two Pair"]) then
+        if jelly_check(all_ranks, "Five of a Kind") then 
+            if is_same_suit then new_results["Flush Five"] = {placeholder_tab}
+            else new_results["Five of a Kind"] = {placeholder_tab} end
+        elseif jelly_check(all_ranks, "Four of a Kind") then 
+            new_results["Four of a Kind"] = {placeholder_tab}
+        elseif jelly_check(all_ranks, "Full House") then 
+            if is_same_suit then new_results["Flush House"] = {placeholder_tab}
+            else new_results["Full House"] = {placeholder_tab} end
+        elseif jelly_check(all_ranks, "Straight") then 
+            new_results["Straight"] = {placeholder_tab}
+        elseif jelly_check(all_ranks, "Three of a Kind") then 
+            new_results["Three of a Kind"] = {placeholder_tab}--ret["Two Pair"]
+        end
+    elseif next(ret["Pair"]) then
+        if jelly_check(all_ranks, "Five of a Kind") then 
+            if is_same_suit then new_results["Flush Five"] = {placeholder_tab}
+            else new_results["Five of a Kind"] = {placeholder_tab} end
+        elseif jelly_check(all_ranks, "Four of a Kind") then 
+            new_results["Four of a Kind"] = {placeholder_tab}
+        elseif jelly_check(all_ranks, "Full House") then 
+            if is_same_suit then new_results["Flush House"] = {placeholder_tab}
+            else new_results["Full House"] = {placeholder_tab} end
+        elseif jelly_check(all_ranks, "Straight") then 
+            new_results["Straight"] = {placeholder_tab}
+        elseif jelly_check(all_ranks, "Three of a Kind") then 
+            new_results["Three of a Kind"] = {placeholder_tab}--ret["Pair"]
+        elseif jelly_check(all_ranks, "Two Pair") then 
+            new_results["Two Pair"] = {placeholder_tab}--ret["Pair"]
+        end
+    elseif next(ret["High Card"]) then
+        if jelly_check(all_ranks, "Five of a Kind") then 
+            if is_same_suit then new_results["Flush Five"] = {placeholder_tab}
+            else new_results["Five of a Kind"] = {placeholder_tab} end
+        elseif jelly_check(all_ranks, "Four of a Kind") then 
+            new_results["Four of a Kind"] = {placeholder_tab}
+        elseif jelly_check(all_ranks, "Full House") then 
+            if is_same_suit then new_results["Flush House"] = {placeholder_tab}
+            else new_results["Full House"] = {placeholder_tab} end
+        elseif jelly_check(all_ranks, "Straight") then 
+            new_results["Straight"] = {placeholder_tab}
+        elseif jelly_check(all_ranks, "Three of a Kind") then 
+            new_results["Three of a Kind"] = {placeholder_tab}
+        elseif jelly_check(all_ranks, "Two Pair") then 
+            new_results["Two Pair"] = {placeholder_tab}
+        elseif jelly_check(all_ranks, "Pair") then 
+            new_results["Pair"] = {placeholder_tab}
+        end
+    end
+    return new_results
+end
 
 function pre_flush(ret, hand)
     if ret.top == nil then return ret end
