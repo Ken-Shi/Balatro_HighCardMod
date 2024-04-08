@@ -69,7 +69,8 @@ local xplaying_jokers_info = {
 	            "and set hand size to {C:attention}#2#{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Neo New Nambu!"
 	    },
         ability_name = "HCM Neo New Nambu",
         slug = "hcm_neo_new_nambu",
@@ -422,6 +423,13 @@ local xplaying_jokers_info = {
                     done = false} }
     },
 }
+local xplaying_deck_info = {name = "X-Playing Deck",
+					        text = {
+					            "Start run as a {C:red}Player{}",
+					            "(i.e. Start with ",
+					            "{C:attention}X-Playing{} Joker)"
+					        }}
+
 local faceless_trigger = true
 
 -- Initialize deck effect
@@ -556,12 +564,7 @@ function SMODS.INIT.HighCardMod()
         								{ XPlayingDeck = true, atlas = "b_xplaying" },
         								--G.cardback_info["xplaying"], 
         								{x = 0, y = 0},
-        								{name = "X-Playing Deck",
-								        text = {
-								            "Start run as a {C:red}Player{}",
-								            "(i.e. Start with ",
-								            "{C:attention}X-Playing{} Joker)"
-								        }})
+        								xplaying_deck_info)
         SMODS.Sprite:new("b_xplaying", SMODS.findModByID("HighCardMod").path, "b_xplaying.png", 71, 95, "asset_atli"):register();
         newDeck:register()
     end
@@ -638,7 +641,7 @@ function SMODS.INIT.HighCardMod()
                     self.ability.extra.done = false
                     ease_hands_played(self.ability.extra.hand_gain)
                     return{
-                        message = "Neo New Nambu!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_neo_new_nambu"]["card_eval"],
                         card = self
                     }
                 end
@@ -1445,7 +1448,7 @@ function Card:add_to_deck(from_debuff)
             end
         end
         if self.ability.name == 'HCM Neo New Nambu' then
-            entrance_neo_new_nambu()
+            entrance_neo_new_nambu(self)
         end
         if self.ability.name == 'HCM Love and Peace' then 
             local any_forced = nil
@@ -1505,13 +1508,13 @@ function Card:remove_from_deck(from_debuff)
     remove_from_deckref(self, from_debuff)
 end
 
-function entrance_neo_new_nambu()
+function entrance_neo_new_nambu(xcard)
 	ease_discard(-G.GAME.current_round.discards_left, nil, true)
-    local handsize_change = self.ability.extra.hand_size - G.hand.config.card_limit
+    local handsize_change = xcard.ability.extra.hand_size - G.hand.config.card_limit
     G.hand:change_size(handsize_change)
     G.GAME.round_resets.temp_handsize = handsize_change
     
-    G.GAME.blind.debuff["h_size_ge"] = self.ability.extra.hand_ge
+    G.GAME.blind.debuff["h_size_ge"] = xcard.ability.extra.hand_ge
     if G.GAME.blind.boss then 
         if G.GAME.blind.name ~= 'The Psychic' then 
             if G.GAME.blind.loc_debuff_text and G.GAME.blind.loc_debuff_text ~= '' then
