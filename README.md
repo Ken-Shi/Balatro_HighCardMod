@@ -13,7 +13,7 @@ Quick Install for step 2: download the zip file and unzip them in Steamodded's M
 
 3. Enjoy your journey as a **PLAYER**!
 
-Note: There is a major rework of the mod released on April 8, 2024. If you have played a version prior to this date, I recommend a refresh install! 
+**Note: There is a major rework of the mod released on April 8, 2024. If you have played a version prior to this date, I recommend a refresh install!** 
 
 # X-Playing Deck and X-Playing Joker
 
@@ -25,7 +25,7 @@ This joker will **transform** into a X-Playing Card joker once you play your fir
 
 At the end of the round, it will transform back to X-Playing Joker so you can decide to **PLAY** something else next round! 
 
-# Currently Supported X-Playing Cards
+# Currently Supported X-Playing Cards (23 / 52)
 
 ![Neo New Nambu](./HighCardMod/assets/2x/j_hcm_neo_new_nambu.png)![Interceptor](./HighCardMod/assets/2x/j_hcm_interceptor.png)![All Kaboom](./HighCardMod/assets/2x/j_hcm_all_kaboom.png)![Bokka](./HighCardMod/assets/2x/j_hcm_bokka.png)![Love and Peace](./HighCardMod/assets/2x/j_hcm_love_and_peace.png)![Jelly Crawler](./HighCardMod/assets/2x/j_hcm_jelly_crawler.png)![Rockin Rocks](./HighCardMod/assets/2x/j_hcm_rockin_rocks.png)![Agent S](./HighCardMod/assets/2x/j_hcm_agent_s.png)![Calories High](./HighCardMod/assets/2x/j_hcm_calories_high.png)![Chameleon](./HighCardMod/assets/2x/j_hcm_chameleon.png)![Faceless](./HighCardMod/assets/2x/j_hcm_faceless.png)![Love Connection](./HighCardMod/assets/2x/j_hcm_love_connection.png)![Marble Rumble](./HighCardMod/assets/2x/j_hcm_marble_rumble.png)![13 Stairs](./HighCardMod/assets/2x/j_hcm_13_stairs.png)![Never No Dollars](./HighCardMod/assets/2x/j_hcm_never_no_dollars.png)![Unlucky Poky](./HighCardMod/assets/2x/j_hcm_unlucky_poky.png)![Out of Five](./HighCardMod/assets/2x/j_hcm_out_of_five.png)![Metallical Parade](./HighCardMod/assets/2x/j_hcm_metallical_parade.png)![Green Green](./HighCardMod/assets/2x/j_hcm_green_green.png)![G round](./HighCardMod/assets/2x/j_hcm_g_round.png)![Sinking Shadow](./HighCardMod/assets/2x/j_hcm_sinking_shadow.png)![Coming Home](./HighCardMod/assets/2x/j_hcm_coming_home.png)![Reaper's Hand](./HighCardMod/assets/2x/j_hcm_reapers_hand.png)
 
