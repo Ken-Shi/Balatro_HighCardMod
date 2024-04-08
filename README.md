@@ -5,13 +5,15 @@ A Balatro mod that introduces X-Play Mechanics to the game along with 1 deck and
 </div>
 
 # Installation
-1. Please install [Steamodded](https://github.com/Steamopollys/Steamodded) via its instructions (Currently support 0.9.3+). This is used by most of the Balatro mods.
+1. Please install [Steamodded](https://github.com/Steamopollys/Steamodded) via its instructions (Currently support 0.9.7+). This is used by most of the Balatro mods.
+   
+Quick Install for step 2: download the zip file and unzip them in Steamodded's Mods folder. You should get a folders called `HighCardMod`;
 
-Quick Install for step 2 and 3: download the two zip files and unzip them in Steamodded's Mods folder. You should get two folders: `CardBackInjection` and `HighCardMod`;
+2. Install HighCardMod simply by download `HighCardMod` folder put them in Steamodded's Mods folder.
 
-2. Please install [CardBackInjection](https://github.com/Ken-Shi/Balatro_CardBackInjection), which is another mod I made that allows addition of custom card backs to the game. TL;DR: get the `CardBackInjection` folder in Steamodded's Mods folder.
-3. Install HighCardMod simply by download `HighCardMod` folder put them in Steamodded's Mods folder.
-4. Enjoy your journey as a **PLAYER**!
+3. Enjoy your journey as a **PLAYER**!
+
+Note: There is a major rework of the mod released on April 8, 2024. If you have played a version prior to this date, I recommend a refresh install! 
 
 # X-Playing Deck and X-Playing Joker
 
