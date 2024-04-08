@@ -52,7 +52,8 @@ local xplaying_jokers_info = {
 	            "{C:red}PLAY{} {C:attention}first hand{} of round.",
 	            "(Transform into the scoring",
 	            "X-Playing card or X-hand)"
-	        }
+	        }, 
+	        card_eval = "PLAY!"
 	    },
         ability_name = "HCM X-Play",
         slug = "hcm_xplay",
@@ -145,8 +146,6 @@ local xplaying_jokers_info = {
 	            "Cards can be considered",
 	            "{C:attention}1 rank lower{} if that helps",
 	            "forming a better poker hand. ",
-	            "When that happens, every",
-	            "played cards will score.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
 	        }
@@ -471,7 +470,7 @@ function xplay(hand_name)
             return true
         end}))
     return {
-        message = "PLAY!",
+        message = G.localization.descriptions["Joker"]["j_hcm_xplay"]["card_eval"],
         card = self
     }
 end
