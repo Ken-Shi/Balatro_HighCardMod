@@ -15,6 +15,7 @@ local xplaying_config = {
     XPlayingJoker = true,
     -- Spade Family
     XPlayingSpade2 = true,
+    XPlayingSpade4 = true,
     XPlayingSpade7 = true,
     XPlayingSpade8 = true,
     XPlayingSpade9 = true,
@@ -75,6 +76,24 @@ local xplaying_jokers_info = {
         ability_name = "HCM Neo New Nambu",
         slug = "hcm_neo_new_nambu",
         ability = { extra = { hand_gain = 1, hand_size = 6, hand_ge = 5, 
+        			done = false} }
+    },
+    XPlayingSpade4 = {
+    	loc = {
+	        name = "Brain Buster",
+	        text = {
+	            "If your {C:attention}highest scoring card{}",
+	            "is higher than before, ",
+	            "accumulate {X:mult,C:white}X#1#{} Mult until",
+	            "end of round. {C:inactive}(Now {}{X:mult,C:white}X#2#{}{C:inactive}){}",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Brain Buster!"
+	    },
+        ability_name = "HCM Brain Buster",
+        slug = "hcm_brain_buster",
+        ability = { extra = { current_highest = 4, Xmult = 1, Xmult_acc = 1,
         			done = false} }
     },
     XPlayingSpade7 = {
@@ -673,6 +692,41 @@ function SMODS.INIT.HighCardMod()
                     return{
                         message = G.localization.descriptions["Joker"]["j_hcm_neo_new_nambu"]["card_eval"],
                         card = self
+                    }
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingSpade4 then
+        function SMODS.Jokers.j_hcm_brain_buster.loc_def(card)
+            return { card.ability.extra.Xmult, card.ability.extra.Xmult_acc }
+        end
+        SMODS.Jokers.j_hcm_brain_buster.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpade4")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    local upgraded = false
+                    for k, v in ipairs(context.scoring_hand) do 
+                    	if v:get_id() > self.ability.extra.current_highest then 
+                    		self.ability.extra.current_highest = v:get_id()
+                    		upgraded = true
+                    	end
+                    end
+                    if upgraded then 
+                    	self.ability.extra.Xmult_acc = self.ability.extra.Xmult_acc + self.ability.extra.Xmult
+	                    return{
+	                        message = G.localization.descriptions["Joker"]["j_hcm_brain_buster"]["card_eval"],
+	                        card = self,
+	                        Xmult_mod = self.ability.extra.Xmult_acc
+	                    }
+                	end
+            		return{
+                        card = self,
+                        Xmult_mod = self.ability.extra.Xmult_acc
                     }
                 end
             end
