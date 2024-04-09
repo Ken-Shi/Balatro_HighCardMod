@@ -19,6 +19,7 @@ local xplaying_config = {
     XPlayingSpade7 = true,
     XPlayingSpade8 = true,
     XPlayingSpade9 = true,
+    XPlayingSpade10 = true,
     XPlayingSpadeA = true,
     -- Heart Family
     XPlayingHeart2 = true, 
@@ -149,6 +150,23 @@ local xplaying_jokers_info = {
         ability_name = "HCM Bokka",
         slug = "hcm_bokka",
         ability = { extra = { done = false} }
+    },
+    XPlayingSpade10 = {
+    	loc = {
+	        name = "Honest Straight",
+	        text = {
+	            "Turn all scored cards",
+	            "into {C:attention}leftmost{} scored card",
+	            "{C:attention}after the scoring stage{}. ",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Honest Straight!",
+	        card_eval_pc = "HIT!"
+	    },
+        ability_name = "HCM Honest Straight",
+        slug = "hcm_honest_straight",
+        ability = { extra = { transfer_card = nil, done = false} }
     },
     XPlayingSpadeA = {
     	loc = {
@@ -887,6 +905,40 @@ function SMODS.INIT.HighCardMod()
                             card = self
                         } 
                     end
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingSpade10 then
+        SMODS.Jokers.j_hcm_honest_straight.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpade10")
+                    self.ability.extra.done = true
+                end
+                if context.before then 
+                	self.ability.extra.transfer_card = context.scoring_hand[1]
+                end
+                if context.after then 
+		            for i=1, #context.scoring_hand do
+		            	if i == 1 then
+		            	else 
+		            		card_eval_status_text(context.scoring_hand[i], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_honest_straight"]["card_eval_pc"], chip_mod=1})
+		                end
+		                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.1, func = function()
+		                    if context.scoring_hand[i] ~= self.ability.extra.transfer_card then
+		                        copy_card(self.ability.extra.transfer_card, context.scoring_hand[i])
+		                    end
+		                    return true end 
+		                }))
+		            end 
+		            return {
+                        message = G.localization.descriptions["Joker"]["j_hcm_honest_straight"]["card_eval"],
+                        card = self
+                    } 
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
