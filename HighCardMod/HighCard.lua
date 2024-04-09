@@ -26,6 +26,7 @@ local xplaying_config = {
     XPlayingHeart4 = true,
     XPlayingHeart5 = true,
     XPlayingHeart7 = true,
+    XPlayingHeartJ = true,
     XPlayingHeartA = true,
     -- Diamond Family
     XPlayingDiamond2 = true,
@@ -244,6 +245,22 @@ local xplaying_jokers_info = {
 	    },
         ability_name = "HCM Chameleon",
         slug = "hcm_chameleon",
+        ability = { extra = { done = false} }
+    },
+    XPlayingHeartJ = {
+    	loc = {
+	        name = "Sky Dancer",
+	        text = {
+	            "Scoring your {C:attention}most played hand{}",
+	            "that's not High Card will",
+	            "give a corresponding {C:planet}Planet{} card.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Sky Dancer!"
+	    },
+        ability_name = "HCM Sky Dancer",
+        slug = "hcm_sky_dancer",
         ability = { extra = { done = false} }
     },
     XPlayingHeartA = {
@@ -697,14 +714,14 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
-    if xplaying_config.XPlayingSpade4 then
+    if xplaying_config.XPlayingSpade5 then
         function SMODS.Jokers.j_hcm_brain_buster.loc_def(card)
             return { card.ability.extra.Xmult, card.ability.extra.Xmult_acc }
         end
         SMODS.Jokers.j_hcm_brain_buster.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
-                    end_xplay("XPlayingSpade4")
+                    end_xplay("XPlayingSpade5")
                     self.ability.extra.done = true
                 end
                 if SMODS.end_calculate_context(context) then
@@ -1026,7 +1043,6 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
-
     if xplaying_config.XPlayingHeart7 then
         SMODS.Jokers.j_hcm_chameleon.calculate = function(self, context)
             if not context.blueprint then
@@ -1062,6 +1078,46 @@ function SMODS.INIT.HighCardMod()
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingHeartJ then
+        SMODS.Jokers.j_hcm_sky_dancer.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeartJ")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    local most_played_planet, most_played_hand = nil, nil
+                    most_played_hand = hcm_hand_most_played(false)
+                    if most_played_hand and most_played_hand ~= "High Card" and context.scoring_name == most_played_hand then
+	                    if most_played_hand then
+	                        for k, v in pairs(G.P_CENTER_POOLS.Planet) do
+	                            if v.config.hand_type == most_played_hand then
+	                                most_played_planet = v.key
+	                            end
+	                        end
+	                    end
+	                    G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+	                    G.E_MANAGER:add_event(Event({
+	                        trigger = 'before',
+	                        delay = 0.0,
+	                        func = (function()
+	                                local card = create_card('Planet',G.consumeables, nil, nil, nil, nil, most_played_planet)
+	                                card:add_to_deck()
+	                                G.consumeables:emplace(card)
+	                                G.GAME.consumeable_buffer = 0
+	                            return true
+	                        end)}))
+	                    return {
+	                        message = G.localization.descriptions["Joker"]["j_hcm_sky_dancer"]["card_eval"],
+	                        colour = G.C.SECONDARY_SET.Planet,
+	                        card = self
+	                    }
+	                end
                 end
             end
         end
