@@ -87,7 +87,9 @@ local xplaying_jokers_info = {
 	            "scoring cards afterwards.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval_on = "Interceptor On!",
+	        card_eval_off = "Interceptor Off!"
 	    },
         ability_name = "HCM Interceptor",
         slug = "hcm_interceptor",
@@ -103,7 +105,9 @@ local xplaying_jokers_info = {
 	            "each destruction gives {C:mult}+#1#{} Mult. ",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        }, 
+	        card_eval_pc = "Place Bomb..",
+	        card_eval_jk = "All Kaboom!"
 	    },
         ability_name = "HCM All Kaboom",
         slug = "hcm_all_kaboom",
@@ -118,7 +122,8 @@ local xplaying_jokers_info = {
 	            "from played cards.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Bokka!"
 	    },
         ability_name = "HCM Bokka",
         slug = "hcm_bokka",
@@ -133,7 +138,8 @@ local xplaying_jokers_info = {
 	            "{C:attention}force a card{} for each hand.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Love & Peace!"
 	    },
         ability_name = "HCM Love and Peace",
         slug = "hcm_love_and_peace",
@@ -164,7 +170,8 @@ local xplaying_jokers_info = {
 	            "played {C:attention}Stone Card{} for {C:attention}#1# times{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Rockin' Rocks!"
 	    },
         ability_name = "HCM Rockin Rocks",
         slug = "hcm_rockin_rocks",
@@ -179,7 +186,8 @@ local xplaying_jokers_info = {
 	            "scoring for {C:attention}#1# times{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Agent S!"
 	    },
         ability_name = "HCM Agent S",
         slug = "hcm_agent_s",
@@ -195,7 +203,8 @@ local xplaying_jokers_info = {
 	            "you only play {C:attention}#2# hand{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Calorie's High!"
 	    },
         ability_name = "HCM Calories High",
         slug = "hcm_calories_high",
@@ -211,7 +220,8 @@ local xplaying_jokers_info = {
 	            "of {C:attention}a random played card{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Chameleon!"
 	    },
         ability_name = "HCM Chameleon",
         slug = "hcm_chameleon",
@@ -227,7 +237,8 @@ local xplaying_jokers_info = {
 	            "a {C:attention}higher poker hand{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Faceless!"
 	    },
         ability_name = "HCM Faceless",
         slug = "hcm_faceless",
@@ -244,7 +255,8 @@ local xplaying_jokers_info = {
 	            "have contained a {C:attention}Pair{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Love Connection!"
 	    },
         ability_name = "HCM Love Connection",
         slug = "hcm_love_connection",
@@ -258,7 +270,8 @@ local xplaying_jokers_info = {
 	            "into {C:attention}Glass Card{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Marble Rumble!"
 	    },
         ability_name = "HCM Marble Rumble",
         slug = "hcm_marble_rumble",
@@ -273,7 +286,8 @@ local xplaying_jokers_info = {
 	            "{C:attention}-#2# Ante{}. {C:inactive}({}{C:red}#3#{} {C:inactive}cards scored){}",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "13 Stairs!"
 	    },
         ability_name = "HCM 13 Stairs",
         slug = "hcm_13_stairs",
@@ -289,7 +303,9 @@ local xplaying_jokers_info = {
 	            "and {X:chips,C:white}X#2#{} that amount to {C:chips}Chips{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval_on = "Never No Dollars!",
+	        card_eval_off = "No Dollar :("
 	    },
         ability_name = "HCM Never No Dollars",
         slug = "hcm_never_no_dollars",
@@ -304,7 +320,8 @@ local xplaying_jokers_info = {
 	            "during the scoring stage.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Unlucky Poky!"
 	    },
         ability_name = "HCM Unlucky Poky",
         slug = "hcm_unlucky_poky",
@@ -320,7 +337,8 @@ local xplaying_jokers_info = {
 	            "{C:inactive}(Now it's{} {C:attention}#1#{}{C:inactive}...){}",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Out of Five!"
 	    },
         ability_name = "HCM Out of Five",
         slug = "hcm_out_of_five",
@@ -335,7 +353,8 @@ local xplaying_jokers_info = {
 	            "{C:attention}Gold Card{} played when scored.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Metallical Parade!"
 	    },
         ability_name = "HCM Metallical Parade",
         slug = "hcm_metallical_parade",
@@ -350,7 +369,8 @@ local xplaying_jokers_info = {
 	            "{C:red}only{} as {C:attention}Straight{}.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Green Green!"
 	    },
         ability_name = "HCM Green Green",
         slug = "hcm_green_green",
@@ -366,7 +386,9 @@ local xplaying_jokers_info = {
 	            "{C:inactive}(Currently{} {C:mult}+#2#{} {C:inactive}Mult){}",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval_pc = "Stomp!",
+	        card_eval_jk = "G Round!"
 	    },
         ability_name = "HCM G Round",
         slug = "hcm_g_round",
@@ -381,7 +403,9 @@ local xplaying_jokers_info = {
 	            "{C:attention}base{} {C:chips}chips{} to {C:mult}mult{} instead.",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval_pc = "Shadow..",
+	        card_eval_jk = "Sinking Shadow!"
 	    },
         ability_name = "HCM Sinking Shadow",
         slug = "hcm_sinking_shadow",
@@ -397,7 +421,8 @@ local xplaying_jokers_info = {
 	            "{C:inactive}(Now Looking for{} {C:attention}#1#{}{C:inactive}...){}",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
-	        }
+	        },
+	        card_eval = "Coming Home!"
 	    },
         ability_name = "HCM Coming Home",
         slug = "hcm_coming_home",
@@ -413,7 +438,12 @@ local xplaying_jokers_info = {
 	            "{C:inactive}({}{C:chips}+#1#{} chips, {C:mult}+#2#{} mult, {X:mult,C:white}X#3#{} mult",
 	            "and {C:attention}+#4#{} gold at end of round{C:inactive}){}",
 	            "This X-Playing card is {C:attention}eternal{}."
-	        }
+	        },
+	        card_eval_lm = "Lucky Mult!",
+	        card_eval_ld = "Lucky Dollars!",
+	        card_eval_st = "Shattered!",
+	        card_eval_pc = "Reap!",
+	        card_eval_jk = "Reaper's Hand!"
         },
         ability_name = "HCM Reapers Hand",
         slug = "hcm_reapers_hand",
@@ -671,7 +701,7 @@ function SMODS.INIT.HighCardMod()
                         end
                     end
                     return{
-                        message = "Interceptor On!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_interceptor"]["card_eval_on"],
                         card = self
                     }
                 end
@@ -689,7 +719,7 @@ function SMODS.INIT.HighCardMod()
                         end
                     end
                     return{
-                        message = "Interceptor Off!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_interceptor"]["card_eval_off"],
                         card = self
                     }
                 end
@@ -725,12 +755,12 @@ function SMODS.INIT.HighCardMod()
                     for k, v in ipairs(context.scoring_hand) do
                         if v.base.suit == self.ability.extra.kaboom_suit then
                             self.ability.extra.mult_cnt = self.ability.extra.mult_cnt + self.ability.extra.kaboom_mult
-                            card_eval_status_text(v, 'extra', nil, nil, nil, {message = "Place Bomb..", Xmult_mod=1})
+                            card_eval_status_text(v, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_all_kaboom"]["card_eval_pc"], Xmult_mod=1})
                         end
                     end
                     if self.ability.extra.mult_cnt ~= 0 then
                         return {
-                            message = "All Kaboom!",
+                            message = G.localization.descriptions["Joker"]["j_hcm_all_kaboom"]["card_eval_jk"],
                             mult_mod = self.ability.extra.mult_cnt,
                             card = self
                         }
@@ -764,7 +794,7 @@ function SMODS.INIT.HighCardMod()
                             return true
                         end}))
                         return {
-                            message = "Bokka!",
+                            message = G.localization.descriptions["Joker"]["j_hcm_bokka"]["card_eval"],
                             card = self
                         } 
                     end
@@ -820,7 +850,7 @@ function SMODS.INIT.HighCardMod()
                     self.ability.extra.done = false
                     self.ability.extra.discard_cnt = 0
                     return {
-                        message = "Love & Peace!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_love_and_peace"]["card_eval"],
                         chip_mod = self.ability.extra.chips_gain * #context.scoring_hand,
                         mult_mod = self.ability.extra.mult_gain * #context.scoring_hand,
                         card = self
@@ -861,14 +891,14 @@ function SMODS.INIT.HighCardMod()
                             end
                         })) 
                     return {
-                        message = "Rockin' Rocks!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_rockin_rocks"]["card_eval"],
                         card = self
                     }
                 end
                 if context.repetition then
                     if context.cardarea == G.play and context.other_card.config.center == G.P_CENTERS.m_stone then
                         return {
-                            message = "Rockin' Rocks!",
+                            message = G.localization.descriptions["Joker"]["j_hcm_rockin_rocks"]["card_eval"],
                             repetitions = self.ability.extra.retrigger_cnt,
                             card = self
                         }
@@ -896,7 +926,7 @@ function SMODS.INIT.HighCardMod()
                         sendDebugMessage("Agent S triggered!")
                         self.ability.extra.repeated = true
                         return {
-                            message = 'Agent S!',
+                            message = G.localization.descriptions["Joker"]["j_hcm_agent_s"]["card_eval"],
                             repetitions = self.ability.extra.retrigger_cnt,
                             card = self
                         }
@@ -927,7 +957,7 @@ function SMODS.INIT.HighCardMod()
                         ease_discard(self.ability.extra.discard_gain, nil, true)
                         self.ability.extra.discard_cnt = 0
                         return {
-                            message = "Calorie's High!",
+                            message = G.localization.descriptions["Joker"]["j_hcm_calories_high"]["card_eval"],
                             card = self
                         }
                     end
@@ -970,7 +1000,7 @@ function SMODS.INIT.HighCardMod()
                             table.insert(context.scoring_hand, v)
                         end
                         return {
-                            message = "Chameleon!",
+                            message = G.localization.descriptions["Joker"]["j_hcm_chameleon"]["card_eval"],
                             card = self
                         }
                     end
@@ -1046,7 +1076,7 @@ function SMODS.INIT.HighCardMod()
                         end
                     end
                     return {
-                        message = "Marble Rumble!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_marble_rumble"]["card_eval"],
                         card = self
                     }
                 end
@@ -1073,7 +1103,7 @@ function SMODS.INIT.HighCardMod()
                     end_xplay("XPlayingDiamond6")
                     self.ability.extra.done = true
                     if downstairs then return {
-                        message = "13 Stairs!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_13_stairs"]["card_eval"],
                         card = self
                     }end
                 end
@@ -1102,14 +1132,14 @@ function SMODS.INIT.HighCardMod()
                     if wallet > 0 then
                         ease_dollars(-wallet)
                         return {
-                            message = "Never No Dollars!",
+                            message = G.localization.descriptions["Joker"]["j_hcm_never_no_dollars"]["card_eval_on"],
                             chip_mod = self.ability.extra.chip_mult * wallet,
                             mult_mod = wallet,
                             card = self
                         }
                     else
                         return {
-                            message = "No Dollars :(",
+                            message = G.localization.descriptions["Joker"]["j_hcm_never_no_dollars"]["card_eval_off"],
                             card = self
                         }
                     end
@@ -1130,7 +1160,7 @@ function SMODS.INIT.HighCardMod()
                         G.GAME.probabilities[k] = v * 1000
                     end
                     return {
-                        message = "Unlucky Poky!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_unlucky_poky"]["card_eval"],
                         card = self
                     }
                 end
@@ -1190,7 +1220,7 @@ function SMODS.INIT.HighCardMod()
                 end
                 if context.after then 
                 	return {
-                        message = "Metallical Parade!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_metallical_parade"]["card_eval"],
                         card = self
                     }
                 end
@@ -1234,12 +1264,12 @@ function SMODS.INIT.HighCardMod()
                     for k, v in ipairs(context.full_hand) do
                         if v.config.center == G.P_CENTERS.m_stone then
                             self.ability.extra.mult_acc = self.ability.extra.mult_acc + self.ability.extra.mult_gain
-                            card_eval_status_text(v, 'extra', nil, nil, nil, {message = "Stomp!", Xmult_mod=1})
+                            card_eval_status_text(v, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_g_round"]["card_eval_pc"], Xmult_mod=1})
                         end
                     end
                     if self.ability.extra.mult_acc ~= 0 then
                         return {
-                            message = "G Round!",
+                            message = G.localization.descriptions["Joker"]["j_hcm_g_round"]["card_eval_jk"],
                             mult_mod = self.ability.extra.mult_acc,
                             card = self
                         }
@@ -1271,13 +1301,13 @@ function SMODS.INIT.HighCardMod()
                             end
                             if unscored then 
                                 self.ability.extra.mult_gain = self.ability.extra.mult_gain + v.base.nominal
-                                card_eval_status_text(v, 'extra', nil, nil, nil, {message = "Shadow..", Xmult_mod=1})
+                                card_eval_status_text(v, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_sinking_shadow"]["card_eval_pc"], Xmult_mod=1})
                             end
                         end
                     end
                     if self.ability.extra.mult_acc ~= 0 then
                         return {
-                            message = "Sinking Shadow!",
+                            message = G.localization.descriptions["Joker"]["j_hcm_sinking_shadow"]["card_eval_jk"],
                             mult_mod = self.ability.extra.mult_gain,
                             card = self
                         }
@@ -1381,17 +1411,17 @@ function SMODS.INIT.HighCardMod()
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
                     for k, v in ipairs(context.scoring_hand) do
-                        card_eval_status_text(v, 'extra', nil, nil, nil, {message = "Reap!", Xmult_mod=1})
+                        card_eval_status_text(v, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_reapers_hand"]["card_eval_pc"], Xmult_mod=1})
                     end
                     local lucky_multi = 0
                     if self.ability.extra.lucky_cnt > 0 then
                         for i = 1, self.ability.extra.lucky_cnt do
                             if pseudorandom('lucky_mult') < G.GAME.probabilities.normal / 5 then
-                                card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Lucky Mult!", Xmult_mod=1})
+                                card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_reapers_hand"]["card_eval_lm"], Xmult_mod=1})
                                 lucky_multi = lucky_multi + 1
                             end
                             if pseudorandom('lucky_money') < G.GAME.probabilities.normal / 15 then
-                                card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Lucky Dollars!", Xmult_mod=1})
+                                card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_reapers_hand"]["card_eval_ld"], Xmult_mod=1})
                                 ease_dollars(20)
                                 delay(0.3)
                             end
@@ -1404,7 +1434,7 @@ function SMODS.INIT.HighCardMod()
                                                 local glass_shattered = 0
                                                 for i = 1, self.ability.extra.glass_cnt do
                                                     if pseudorandom('glass') < G.GAME.probabilities.normal / 4 then
-                                                        card_eval_status_text(self, 'extra', nil, nil, nil, {message = "Shattered!"})
+                                                        card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_reapers_hand"]["card_eval_st"]})
                                                         glass_shattered = glass_shattered + 1
                                                     end
                                                 end
@@ -1417,7 +1447,7 @@ function SMODS.INIT.HighCardMod()
                                         return true
                                     end)}))
                     return {
-                        message = "Reaper's Hand!",
+                        message = G.localization.descriptions["Joker"]["j_hcm_reapers_hand"]["card_eval_jk"],
                         chip_mod = self.ability.extra.chips_gain,
                         mult_mod = self.ability.extra.mult_gain + lucky_multi * 20,
                         Xmult_mod = self.ability.extra.xmult_gain,
@@ -1470,11 +1500,6 @@ function Card:add_to_deck(from_debuff)
         if self.ability.name == 'HCM 13 Stairs' then 
         	self.ability.extra.scored_cards = 1
         end
-        --[[
-        if self.ability.name == 'HCM Jelly Crawler' then
-            evaluate_poker_hand = highcard_wraplast(evaluate_poker_hand_OG, jelly_render)
-        end
-        ]]--
         if self.ability.name == 'HCM Out of Five' then
             self.ability.extra.best_hand = hcm_hand_most_played(false)
             if self.ability.extra.best_hand == nil then 
@@ -1498,12 +1523,6 @@ function Card:remove_from_deck(from_debuff)
             G.GAME.blind.debuff["h_size_ge"] = 1
             G.GAME.blind.loc_debuff_text = ''
         end
-        --[[
-        if self.ability.name == 'HCM Jelly Crawler' then
-            evaluate_poker_hand = evaluate_poker_hand_OG
-            sendInfoMessage("Jelly Crawler Effect Wears Off! ")
-        end
-        ]]--
     end
     remove_from_deckref(self, from_debuff)
 end
@@ -1691,7 +1710,7 @@ function evaluate_poker_hand(hand)
 		    elseif next(result["Pair"]) then
 		    elseif next(result["High Card"]) then
 		        new_results[replacement] = result["High Card"]
-		        card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = "Out of Five!"})
+		        card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_out_of_five"]["card_eval"]})
 		    end   
 		    return new_results
         end
@@ -1735,7 +1754,7 @@ function coming_home_draws(xcard)
     else end
 
     if cards_to_draw and next(cards_to_draw) then 
-    	card_eval_status_text(xcard, 'extra', nil, nil, nil, {message = "Coming Home!"})
+    	card_eval_status_text(xcard, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_coming_home"]["card_eval"]})
     	for k, v in ipairs(cards_to_draw) do
     		sendInfoMessage("Draw Triggered! "..v.base.suit.." "..v:get_id())
     		draw_card(G.deck, G.hand, k*100/hand_space,'up', true, v)
@@ -2517,7 +2536,7 @@ G.FUNCS.play_cards_from_highlighted = function(e)
 		        end
 		    })) 
 		    table.insert(G.hand.highlighted, fake_card)
-		    card_eval_status_text(fake_card, 'extra', nil, nil, nil, {message = "Faceless!"})
+		    card_eval_status_text(fake_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_faceless"]["card_eval"]})
 		end
 	end
 	return play_cards_from_highlighted_OG()
