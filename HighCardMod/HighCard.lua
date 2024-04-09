@@ -15,7 +15,7 @@ local xplaying_config = {
     XPlayingJoker = true,
     -- Spade Family
     XPlayingSpade2 = true,
-    XPlayingSpade4 = true,
+    XPlayingSpade5 = true,
     XPlayingSpade7 = true,
     XPlayingSpade8 = true,
     XPlayingSpade9 = true,
@@ -78,7 +78,7 @@ local xplaying_jokers_info = {
         ability = { extra = { hand_gain = 1, hand_size = 6, hand_ge = 5, 
         			done = false} }
     },
-    XPlayingSpade4 = {
+    XPlayingSpade5 = {
     	loc = {
 	        name = "Brain Buster",
 	        text = {
@@ -93,7 +93,7 @@ local xplaying_jokers_info = {
 	    },
         ability_name = "HCM Brain Buster",
         slug = "hcm_brain_buster",
-        ability = { extra = { current_highest = 4, Xmult = 1, Xmult_acc = 1,
+        ability = { extra = { current_highest = 5, Xmult = 1, Xmult_acc = 1,
         			done = false} }
     },
     XPlayingSpade7 = {
