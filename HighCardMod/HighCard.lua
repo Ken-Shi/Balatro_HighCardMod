@@ -39,6 +39,7 @@ local xplaying_config = {
     XPlayingClub2 = true,
     XPlayingClub3 = true,
     XPlayingClub5 = true,
+    XPlayingClub7 = true,
     XPlayingClub8 = true,
     XPlayingClubJ = true,
     XPlayingClubK = true,
@@ -430,6 +431,22 @@ local xplaying_jokers_info = {
         slug = "hcm_g_round",
         ability = { extra = { mult_gain = 5, mult_acc = 0, done = false} }
     },
+    XPlayingClub7= {
+    	loc = {
+	        name = "Lethal Scoville",
+	        text = {
+	            "If your scoring hand {C:attention}lit{}",
+	            "{C:attention}the fire{}, gain a random",
+	            "{C:spectral}Spectral{} card.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "PLAY FOR THE FIRE!"
+	    },
+        ability_name = "HCM Lethal Scoville",
+        slug = "hcm_lethal_scoville",
+        ability = { extra = { done = false} }
+    },
     XPlayingClub8= {
     	loc = {
 	        name = "Sinking Shadow",
@@ -497,6 +514,7 @@ local xplaying_deck_info = {name = "X-Playing Deck",
 					        }}
 
 local faceless_trigger = true
+local hcm_flamed = false
 
 -- Initialize deck effect
 local Backapply_to_runRef = Back.apply_to_run
@@ -1101,22 +1119,24 @@ function SMODS.INIT.HighCardMod()
 	                            end
 	                        end
 	                    end
-	                    G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
-	                    G.E_MANAGER:add_event(Event({
-	                        trigger = 'before',
-	                        delay = 0.0,
-	                        func = (function()
-	                                local card = create_card('Planet',G.consumeables, nil, nil, nil, nil, most_played_planet)
-	                                card:add_to_deck()
-	                                G.consumeables:emplace(card)
-	                                G.GAME.consumeable_buffer = 0
-	                            return true
-	                        end)}))
-	                    return {
-	                        message = G.localization.descriptions["Joker"]["j_hcm_sky_dancer"]["card_eval"],
-	                        colour = G.C.SECONDARY_SET.Planet,
-	                        card = self
-	                    }
+	                    if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+		                    G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+		                    G.E_MANAGER:add_event(Event({
+		                        trigger = 'before',
+		                        delay = 0.0,
+		                        func = (function()
+		                                local card = create_card('Planet',G.consumeables, nil, nil, nil, nil, most_played_planet)
+		                                card:add_to_deck()
+		                                G.consumeables:emplace(card)
+		                                G.GAME.consumeable_buffer = 0
+		                            return true
+		                        end)}))
+		                    return {
+		                        message = G.localization.descriptions["Joker"]["j_hcm_sky_dancer"]["card_eval"],
+		                        colour = G.C.SECONDARY_SET.Planet,
+		                        card = self
+		                    }
+		                end
 	                end
                 end
             end
@@ -1384,6 +1404,21 @@ function SMODS.INIT.HighCardMod()
                             card = self
                         }
                     end
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingClub7 then
+        SMODS.Jokers.j_hcm_lethal_scoville.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClub7")
+                    self.ability.extra.done = true
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    hcm_flamed = false
                 end
             end
         end
@@ -2651,6 +2686,37 @@ G.FUNCS.play_cards_from_highlighted = function(e)
 	end
 	return play_cards_from_highlighted_OG()
 end
+
+flame_handler_OG = G.FUNCS.flame_handler
+
+G.FUNCS.flame_handler = function(e)
+	flame_handler_OG(e)
+	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM Lethal Scoville' then
+			if not hcm_flamed then
+				if G.ARGS.score_intensity.earned_score >= G.ARGS.score_intensity.required_score and G.ARGS.score_intensity.required_score > 0 then
+			    	sendInfoMessage("Play for the Fire!")
+			    	if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+			            G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+			            G.E_MANAGER:add_event(Event({
+			                trigger = 'before',
+			                delay = 0.0,
+			                func = (function()
+			                        local card = create_card('Spectral',G.consumeables, nil, nil, nil, nil, nil, 'sixth')
+			                        card:add_to_deck()
+			                        G.consumeables:emplace(card)
+			                        G.GAME.consumeable_buffer = 0
+			                    return true
+			                end)}))
+			            card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_lethal_scoville"]["card_eval"], colour = G.C.SECONDARY_SET.Spectral})
+			        end
+			        hcm_flamed = true
+			    end
+			end
+		end
+	end
+end
+
 
 function hcm_best_hand(current_suits, current_ranks)
     local suits, ranks = {}, {}
