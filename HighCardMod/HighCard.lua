@@ -15,6 +15,7 @@ local xplaying_config = {
     XPlayingJoker = true,
     -- Spade Family
     XPlayingSpade2 = true,
+    XPlayingSpade4 = true,
     XPlayingSpade5 = true,
     XPlayingSpade7 = true,
     XPlayingSpade8 = true,
@@ -80,6 +81,23 @@ local xplaying_jokers_info = {
         ability_name = "HCM Neo New Nambu",
         slug = "hcm_neo_new_nambu",
         ability = { extra = { hand_gain = 1, hand_size = 6, hand_ge = 5, 
+        			done = false} }
+    },
+    XPlayingSpade4 = {
+    	loc = {
+	        name = "Clear Lance",
+	        text = {
+	            "If you play {C:attention}#1#{} cards and",
+	            "score {C:attention}exactly #2#{} cards,",
+	            "this card gives {X:mult,C:white}X#3#{} Mult. ",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Clear Lance!"
+	    },
+        ability_name = "HCM Clear Lance",
+        slug = "hcm_clear_lance",
+        ability = { extra = { card_play = 5, card_score = 4, Xmult = 4, 
         			done = false} }
     },
     XPlayingSpade5 = {
@@ -764,6 +782,29 @@ function SMODS.INIT.HighCardMod()
                         message = G.localization.descriptions["Joker"]["j_hcm_neo_new_nambu"]["card_eval"],
                         card = self
                     }
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingSpade4 then
+        function SMODS.Jokers.j_hcm_clear_lance.loc_def(card)
+            return { card.ability.extra.card_play, card.ability.extra.card_score, card.ability.extra.Xmult }
+        end
+        SMODS.Jokers.j_hcm_clear_lance.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpade4")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    if #context.full_hand == 5 and #context.scoring_hand == 4 then 
+	                    return{
+	                        message = G.localization.descriptions["Joker"]["j_hcm_clear_lance"]["card_eval"],
+	                        card = self,
+	                        Xmult_mod = self.ability.extra.Xmult
+	                    }
+	                end
                 end
             end
         end
