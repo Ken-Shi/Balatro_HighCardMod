@@ -36,6 +36,7 @@ local xplaying_config = {
     XPlayingDiamond7 = true,
     XPlayingDiamond10 = true,
     XPlayingDiamondJ = true,
+    XPlayingDiamondK = true,
     -- Club Family
     XPlayingClub2 = true,
     XPlayingClub3 = true,
@@ -399,6 +400,23 @@ local xplaying_jokers_info = {
         slug = "hcm_out_of_five",
         ability = { extra = { best_hand = "Nothing else", msg_on = false, 
         			done = false} }
+    },
+    XPlayingDiamondK= {
+    	loc = {
+	        name = "Round & Round",
+	        text = {
+	            "If your scoring hand contains",
+	            "{C:attention}#1#{} scoring cards, {C:purple}balance{}",
+	            "your {C:chips}chips{} and {C:mult}mult{} and",
+	            "{C:attention}destroy{} all scoring cards.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Round & Round!"
+	    },
+        ability_name = "HCM Round and Round",
+        slug = "hcm_round_and_round",
+        ability = { extra = { required_cnt = 5, required_sat = false, done = false} }
     },
     XPlayingClub2= {
     	loc = {
@@ -1375,6 +1393,38 @@ function SMODS.INIT.HighCardMod()
                     if self.ability.extra.best_hand == nil then 
                     	self.ability.extra.best_hand = "Nothing else" 
                     end
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingDiamondK then
+        function SMODS.Jokers.j_hcm_round_and_round.loc_def(card)
+            return { card.ability.extra.required_cnt }
+        end
+        SMODS.Jokers.j_hcm_round_and_round.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamondK")
+                    self.ability.extra.done = true
+                end
+                if context.before then 
+                	if #context.scoring_hand == self.ability.extra.required_cnt then 
+                		self.ability.extra.required_sat = true 
+                	else
+                		self.ability.extra.required_sat = false
+                	end
+                end
+                if context.after then 
+                	self.ability.extra.required_sat = false
+                end
+                if context.destroying_card then 
+                	if self.ability.extra.required_sat then 
+                		return true 
+                	end
+                	return nil
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
                 end
             end
         end
@@ -2839,6 +2889,66 @@ function hcm_best_hand(current_suits, current_ranks)
     if pair >= 2 then return "Two Pair" end
     if pair == 1 then return "Pair" end
     return "High Card"
+end
+
+local back_trigger_effect_OG = Back.trigger_effect
+function Back:trigger_effect(args)
+	result = back_trigger_effect_OG(self, args)
+
+	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM Round and Round' then
+			sendInfoMessage("Checking Round and Round!")
+			if jkr.ability.extra.required_sat and args.context == 'final_scoring_step' then
+		        sendInfoMessage("Round and Round!")
+		        local tot = args.chips + args.mult
+		        args.chips = math.floor(tot/2)
+		        args.mult = math.floor(tot/2)
+		        update_hand_text({delay = 0}, {mult = args.mult, chips = args.chips})
+
+		        G.E_MANAGER:add_event(Event({
+		            func = (function()
+		                local text = G.localization.descriptions["Joker"]["j_hcm_round_and_round"]["card_eval"]
+		                play_sound('gong', 0.94, 0.3)
+		                play_sound('gong', 0.94*1.5, 0.2)
+		                play_sound('tarot1', 1.5)
+		                ease_colour(G.C.UI_CHIPS, {0.8, 0.45, 0.85, 1})
+		                ease_colour(G.C.UI_MULT, {0.8, 0.45, 0.85, 1})
+		                attention_text({
+		                    scale = 1.4, text = text, hold = 2, align = 'cm', offset = {x = 0,y = -2.7},major = G.play
+		                })
+		                G.E_MANAGER:add_event(Event({
+		                    trigger = 'after',
+		                    blockable = false,
+		                    blocking = false,
+		                    delay =  4.3,
+		                    func = (function() 
+		                            ease_colour(G.C.UI_CHIPS, G.C.BLUE, 2)
+		                            ease_colour(G.C.UI_MULT, G.C.RED, 2)
+		                        return true
+		                    end)
+		                }))
+		                G.E_MANAGER:add_event(Event({
+		                    trigger = 'after',
+		                    blockable = false,
+		                    blocking = false,
+		                    no_delete = true,
+		                    delay =  6.3,
+		                    func = (function() 
+		                        G.C.UI_CHIPS[1], G.C.UI_CHIPS[2], G.C.UI_CHIPS[3], G.C.UI_CHIPS[4] = G.C.BLUE[1], G.C.BLUE[2], G.C.BLUE[3], G.C.BLUE[4]
+		                        G.C.UI_MULT[1], G.C.UI_MULT[2], G.C.UI_MULT[3], G.C.UI_MULT[4] = G.C.RED[1], G.C.RED[2], G.C.RED[3], G.C.RED[4]
+		                        return true
+		                    end)
+		                }))
+		                return true
+		            end)
+		        }))
+
+		        delay(0.6)
+		        result = args.chips, args.mult
+		    end
+		end
+	end
+	return result
 end
 
 -- This is an important replacement that handles a piece of faulty code in OG game
