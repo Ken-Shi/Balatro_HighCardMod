@@ -27,6 +27,7 @@ local xplaying_config = {
     XPlayingHeart3 = true,
     XPlayingHeart4 = true,
     XPlayingHeart5 = true,
+    XPlayingHeart6 = true,
     XPlayingHeart7 = true,
     XPlayingHeartJ = true,
     XPlayingHeartA = true,
@@ -175,7 +176,7 @@ local xplaying_jokers_info = {
 	        name = "Honest Straight",
 	        text = {
 	            "Turn all scored cards",
-	            "into {C:attention}leftmost{} scored card",
+	            "into a {C:attention}random{} scored card",
 	            "{C:attention}after the scoring stage{}. ",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
@@ -268,6 +269,23 @@ local xplaying_jokers_info = {
         slug = "hcm_calories_high",
         ability = { extra = { discard_gain = 1, hand_play = 1, discard_cnt = 0, 
         			done = false} }
+    },
+    XPlayingHeart6 = {
+    	loc = {
+	        name = "The Zoo",
+	        text = {
+	            "Transform your scoring cards",
+	            "to the {C:attention}leftmost{} scoring card",
+	            "if they are of the same {C:attention}rank{}.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "The Zoo!",
+	        card_eval_pc = "HIT!"
+	    },
+        ability_name = "HCM The Zoo",
+        slug = "hcm_the_zoo",
+        ability = { extra = { transfer_card = nil, done = false} }
     },
     XPlayingHeart7 = {
     	loc = {
@@ -979,11 +997,13 @@ function SMODS.INIT.HighCardMod()
                     self.ability.extra.done = true
                 end
                 if context.before then 
-                	self.ability.extra.transfer_card = context.scoring_hand[1]
+                	local chosen_idx = pseudorandom(pseudoseed('seed'), 1, #context.scoring_hand)
+                	self.ability.extra.transfer_card = context.scoring_hand[chosen_idx]
                 end
                 if context.after then 
+                	card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_honest_straight"]["card_eval"]})
 		            for i=1, #context.scoring_hand do
-		            	if i == 1 then
+		            	if context.scoring_hand[i] == self.ability.extra.transfer_card then
 		            	else 
 		            		card_eval_status_text(context.scoring_hand[i], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_honest_straight"]["card_eval_pc"], chip_mod=1})
 		                end
@@ -994,10 +1014,6 @@ function SMODS.INIT.HighCardMod()
 		                    return true end 
 		                }))
 		            end 
-		            return {
-                        message = G.localization.descriptions["Joker"]["j_hcm_honest_straight"]["card_eval"],
-                        card = self
-                    } 
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
@@ -1139,8 +1155,6 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
-
-
     if xplaying_config.XPlayingHeart5 then
         function SMODS.Jokers.j_hcm_calories_high.loc_def(card)
             return { card.ability.extra.discard_gain, card.ability.extra.hand_play }
@@ -1168,6 +1182,19 @@ function SMODS.INIT.HighCardMod()
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
                     self.ability.extra.discard_cnt = 0
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingHeart6 then
+        SMODS.Jokers.j_hcm_the_zoo.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeart6")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
                 end
             end
         end
@@ -2001,12 +2028,20 @@ function evaluate_poker_hand(hand)
 		        card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_out_of_five"]["card_eval"]})
 		    end   
 		    return new_results
+		end
+		if jkr.ability.name == 'HCM The Zoo' then 
+			for _,v in ipairs(hand) do
+	            sendInfoMessage("Poker Info: "..v.base.suit..v:get_id())
+	        end 
         end
 	end
 	return new_results
 end
 
 local draw_card_OG = draw_card
+function draw_card(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
+	draw_card_OG(from, to, percent, dir, sort, card, delay, mute, stay_flipped, vol, discarded_only)
+end
 
 function coming_home_draws(xcard)
     local most_played_hand = hcm_hand_most_played(true)
@@ -2744,6 +2779,46 @@ function hcm_draw_Straight_Flush(card_deck, card_hand, hand_space)
 end
 
 evaluate_play_OG = G.FUNCS.evaluate_play
+function G.FUNCS.evaluate_play(self, e)
+	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM The Zoo' then
+			sendInfoMessage("eval play zoo!")
+			sendInfoMessage(#G.play.cards)
+			local text,disp_text,poker_hands,scoring_hand,non_loc_disp_text = G.FUNCS.get_poker_hand_info(G.play.cards)
+            jkr.ability.extra.transfer_card = scoring_hand[1]
+        	if #scoring_hand > 1 then
+        		card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_the_zoo"]["card_eval"]})
+            end
+            for i=1, #scoring_hand do
+            	if i == 1 then
+            	elseif scoring_hand[i]:get_id() == jkr.ability.extra.transfer_card:get_id() then
+            		card_eval_status_text(scoring_hand[i], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_the_zoo"]["card_eval_pc"], chip_mod=1})
+
+            		for idx, val in ipairs(G.play.cards) do
+        				if scoring_hand[i] == G.play.cards[idx] then
+                    		G.play.cards[idx] = copy_card(jkr.ability.extra.transfer_card, G.play.cards[idx])
+                    		--G.play.cards[idx]:juice_up()
+                    	end
+                    end
+
+            		G.E_MANAGER:add_event(Event({trigger = 'before', func = function()
+            			for idx, val in ipairs(G.play.cards) do
+            				if scoring_hand[i] == G.play.cards[idx] then
+	                    		--G.play.cards[idx] = copy_card(jkr.ability.extra.transfer_card, G.play.cards[idx])
+	                    		G.play.cards[idx]:juice_up()
+	                    	end
+	                    end
+	                    return true end 
+	                }))
+
+                end
+            end 
+		end 
+	end
+	sendInfoMessage("Actual Eval Play")
+	evaluate_play_OG(self, e)
+end
+
 play_cards_from_highlighted_OG = G.FUNCS.play_cards_from_highlighted
 
 G.FUNCS.play_cards_from_highlighted = function(e)
