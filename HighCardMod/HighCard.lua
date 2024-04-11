@@ -1909,6 +1909,10 @@ function Card:add_to_deck(from_debuff)
 		if self.ability.name == 'HCM Reapers Hand' then 
             self:set_eternal(true) 
         end
+        if self.ability.name == 'HCM Red Labyrinth' then 
+        	--card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_red_labyrinth"]["card_eval"]})
+            ease_background_colour{new_colour = G.C.RED, contrast = 3}
+        end
     end
     add_to_deckref(self, from_debuff)
 end
@@ -2132,6 +2136,7 @@ function Card:sell_card()
 		    local aof = area == G.jokers and 'jokers' or 'consumeables'
 		    if aof == "consumeables" and G.GAME.dollars - jkr.ability.extra.reroll_cost >= 0 then
 		    	card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_red_labyrinth"]["card_eval"]})
+		    	ease_background_colour{new_colour = G.C.RED, contrast = 3}
 		    	local consume_type = self.ability.set
 		    	local key_append_extra = nil
 		    	--if consume_type == 'Tarot' then key_append_extra = 'emp'
