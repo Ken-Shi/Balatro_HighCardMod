@@ -36,6 +36,7 @@ local xplaying_config = {
     XPlayingDiamond3 = true,
     XPlayingDiamond6 = true,
     XPlayingDiamond7 = true,
+    XPlayingDiamond8 = true,
     XPlayingDiamond10 = true,
     XPlayingDiamondJ = true,
     XPlayingDiamondK = true,
@@ -403,6 +404,23 @@ local xplaying_jokers_info = {
         ability_name = "HCM Never No Dollars",
         slug = "hcm_never_no_dollars",
         ability = { extra = { max_money = 20, chip_mult = 10, done = false} }
+    },
+    XPlayingDiamond8= {
+    	loc = {
+	        name = "Red Labyrinth",
+	        text = {
+	            "Selling consumeables will not earn",
+	            "dollars, but will spend {C:attention}#1# dollar{}",
+	            "and get a {C:attention}random consumeable of{}",
+	            "{C:attention}the same type{} if you have dollars.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Red Labyrinth!"
+	    },
+        ability_name = "HCM Red Labyrinth",
+        slug = "hcm_red_labyrinth",
+        ability = { extra = {reroll_cost = 1, done = false} }
     },
     XPlayingDiamond10= {
     	loc = {
@@ -1433,6 +1451,22 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingDiamond8 then
+        function SMODS.Jokers.j_hcm_red_labyrinth.loc_def(card)
+            return { card.ability.extra.reroll_cost }
+        end
+        SMODS.Jokers.j_hcm_red_labyrinth.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamond8")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingDiamond10 then
         SMODS.Jokers.j_hcm_unlucky_poky.calculate = function(self, context)
             if not context.blueprint then
@@ -2086,6 +2120,76 @@ function evaluate_poker_hand(hand)
         ]]--
 	end
 	return new_results
+end
+
+local sell_card_OG = Card.sell_card
+function Card:sell_card()
+	local alternative = false
+	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM Red Labyrinth' then
+			alternative = true
+			local area = self.area
+		    local aof = area == G.jokers and 'jokers' or 'consumeables'
+		    if aof == "consumeables" and G.GAME.dollars - jkr.ability.extra.reroll_cost >= 0 then
+		    	card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_red_labyrinth"]["card_eval"]})
+		    	local consume_type = self.ability.set
+		    	local key_append_extra = nil
+		    	--if consume_type == 'Tarot' then key_append_extra = 'emp'
+		    	--elseif consume_type == 'Planet' then key_append_extra = 'pri'
+		    	--else end
+				G.CONTROLLER.locks.selling_card = true
+			    stop_use()
+			    G.CONTROLLER:save_cardarea_focus(aof)
+
+			    if self.children.use_button then self.children.use_button:remove(); self.children.use_button = nil end
+			    if self.children.sell_button then self.children.sell_button:remove(); self.children.sell_button = nil end
+			    
+			    self:calculate_joker{selling_self = true}
+
+			    G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2,func = function()
+			        play_sound('gong', 0.94, 0.3)
+			        self:juice_up(0.3, 0.4)
+			        return true
+			    end}))
+			    delay(0.2)
+			    G.E_MANAGER:add_event(Event({trigger = 'immediate',func = function()
+			        ease_dollars(-jkr.ability.extra.reroll_cost)
+			        self:start_dissolve({G.C.GOLD})
+			        delay(0.15)		 
+
+			        G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, func = function()
+		                if G.consumeables.config.card_limit > #G.consumeables.cards then
+		                    play_sound('timpani')
+		                    local card = create_card(consume_type, G.consumeables, nil, nil, nil, nil, nil, key_append_extra)
+		                    card:add_to_deck()
+		                    G.consumeables:emplace(card)
+		                end
+		                return true end }))
+			        G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.3, blocking = false,
+			        func = function()
+			            G.E_MANAGER:add_event(Event({trigger = 'immediate',
+			            func = function()
+			                G.E_MANAGER:add_event(Event({trigger = 'immediate',
+			                func = function()
+			                    G.CONTROLLER.locks.selling_card = nil
+			                    G.CONTROLLER:recall_cardarea_focus(area == G.jokers and 'jokers' or 'consumeables')
+			                return true
+			                end}))
+			            return true
+			            end}))
+			        return true
+			        end}))
+			        return true
+			    end}))
+			else
+				alternative = false 
+			end
+		end
+	end
+	if alternative then 
+	else 
+		sell_card_OG(self)
+	end
 end
 
 local draw_card_OG = draw_card
