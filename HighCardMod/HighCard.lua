@@ -45,6 +45,7 @@ local xplaying_config = {
     XPlayingClub5 = true,
     XPlayingClub7 = true,
     XPlayingClub8 = true,
+    XPlayingClub10 = true,
     XPlayingClubJ = true,
     XPlayingClubK = true,
 }
@@ -535,6 +536,23 @@ local xplaying_jokers_info = {
         ability_name = "HCM Sinking Shadow",
         slug = "hcm_sinking_shadow",
         ability = { extra = { mult_gain = 0, done = false} }
+    },
+    XPlayingClub10= {
+    	loc = {
+	        name = "Million Volt",
+	        text = {
+	            "{C:attention}Steel{} Card will also act",
+	            "like {C:attention}Gold{} Card and {C:attention}vice versa{}.",
+	            "{C:red}(Only for {}{C:attention}enhancement{} {C:red}effects){}",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval_pc = "Conductive!",
+	        card_eval_jk = "Million Volt!"
+	    },
+        ability_name = "HCM Million Volt",
+        slug = "hcm_million_volt",
+        ability = { extra = { h_dollars = 3, h_x_mult = 1.5, done = false} }
     },
     XPlayingClubJ= {
     	loc = {
@@ -1631,6 +1649,36 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingClub10 then
+        SMODS.Jokers.j_hcm_million_volt.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then 
+                    for k, v in ipairs(G.hand.cards) do 
+                		local percent = (k-0.999)/(#G.hand.cards-0.998)
+                		if v.config.center == G.P_CENTERS.m_steel then 
+                			ease_dollars(self.ability.extra.h_dollars)
+                			card_eval_status_text(G.hand.cards[k], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_million_volt"]["card_eval_pc"]})
+                            card_eval_status_text(G.hand.cards[k], 'dollars', self.ability.extra.h_dollars, percent)
+                		end
+                	end
+                    end_xplay("XPlayingClub10")
+                    self.ability.extra.done = true
+                end
+                if context.individual then 
+                	if context.other_card.config.center == G.P_CENTERS.m_gold then 
+                		card_eval_status_text(context.other_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_million_volt"]["card_eval_pc"]})
+                        return {
+                            x_mult = self.ability.extra.h_x_mult,
+                            card = self
+                        }
+                    end
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingClubJ then
         function SMODS.Jokers.j_hcm_coming_home.loc_def(card)
             return { card.ability.extra.best_hand }
@@ -2029,11 +2077,13 @@ function evaluate_poker_hand(hand)
 		    end   
 		    return new_results
 		end
+		--[[
 		if jkr.ability.name == 'HCM The Zoo' then 
 			for _,v in ipairs(hand) do
 	            sendInfoMessage("Poker Info: "..v.base.suit..v:get_id())
 	        end 
         end
+        ]]--
 	end
 	return new_results
 end
@@ -2782,8 +2832,8 @@ evaluate_play_OG = G.FUNCS.evaluate_play
 function G.FUNCS.evaluate_play(self, e)
 	for _, jkr in pairs(G.jokers.cards) do
 		if jkr.ability.name == 'HCM The Zoo' then
-			sendInfoMessage("eval play zoo!")
-			sendInfoMessage(#G.play.cards)
+			--sendInfoMessage("eval play zoo!")
+			--sendInfoMessage(#G.play.cards)
 			local text,disp_text,poker_hands,scoring_hand,non_loc_disp_text = G.FUNCS.get_poker_hand_info(G.play.cards)
             jkr.ability.extra.transfer_card = scoring_hand[1]
         	if #scoring_hand > 1 then
@@ -2815,7 +2865,7 @@ function G.FUNCS.evaluate_play(self, e)
             end 
 		end 
 	end
-	sendInfoMessage("Actual Eval Play")
+	--sendInfoMessage("Actual Eval Play")
 	evaluate_play_OG(self, e)
 end
 
