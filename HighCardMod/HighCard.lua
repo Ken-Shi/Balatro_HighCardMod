@@ -678,10 +678,11 @@ function Back.apply_to_run(arg_56_0)
     end
 end
 
+--[[
 local generate_card_ui_OG = generate_card_ui
 function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
 	local card = _c
-  	if _c and _c.config.center then card = card.config.center end
+  	if _c and _c.config.center then card = _c.config.center end
   	local first_pass = nil
     if not full_UI_table then 
         first_pass = true
@@ -702,11 +703,13 @@ function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, h
 		local desc_nodes = (not result_table.name and result_table.main) or result_table.info
   		localize{type = 'other', key = extra_badge.key, nodes = desc_nodes, vars = specific_vars}
   	end
-	]]--
+	
 	
 
   	return result_table
 end
+]]--
+
 
 --[[
 local generate_card_ui_OG = generate_card_ui
@@ -2097,24 +2100,24 @@ function SMODS.INIT.HighCardMod()
                         end
                     end
                     G.E_MANAGER:add_event(Event({
-                                    delay = 0.0,
-                                    func = (function()
-                                            if self.ability.extra.glass_cnt > 0 then
-                                                local glass_shattered = 0
-                                                for i = 1, self.ability.extra.glass_cnt do
-                                                    if pseudorandom('glass') < G.GAME.probabilities.normal / 4 then
-                                                        card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_reapers_hand"]["card_eval_st"]})
-                                                        glass_shattered = glass_shattered + 1
-                                                    end
-                                                end
-                                                while glass_shattered > 0 do
-                                                    self.ability.extra.xmult_gain = self.ability.extra.xmult_gain - 2
-                                                    self.ability.extra.glass_cnt = self.ability.extra.glass_cnt - 1
-                                                    glass_shattered = glass_shattered - 1
-                                                end
-                                            end
-                                        return true
-                                    end)}))
+                        delay = 0.0,
+                        func = (function()
+                                if self.ability.extra.glass_cnt > 0 then
+                                    local glass_shattered = 0
+                                    for i = 1, self.ability.extra.glass_cnt do
+                                        if pseudorandom('glass') < G.GAME.probabilities.normal / 4 then
+                                            card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_reapers_hand"]["card_eval_st"]})
+                                            glass_shattered = glass_shattered + 1
+                                        end
+                                    end
+                                    while glass_shattered > 0 do
+                                        self.ability.extra.xmult_gain = self.ability.extra.xmult_gain - 2
+                                        self.ability.extra.glass_cnt = self.ability.extra.glass_cnt - 1
+                                        glass_shattered = glass_shattered - 1
+                                    end
+                                end
+                            return true
+                        end)}))
                     return {
                         message = G.localization.descriptions["Joker"]["j_hcm_reapers_hand"]["card_eval_jk"],
                         chip_mod = self.ability.extra.chips_gain,
