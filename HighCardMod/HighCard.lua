@@ -21,6 +21,7 @@ local xplaying_config = {
     XPlayingSpade8 = true,
     XPlayingSpade9 = true,
     XPlayingSpade10 = true,
+    XPlayingSpadeK = false,
     XPlayingSpadeA = true,
     -- Heart Family
     XPlayingHeart2 = true, 
@@ -189,6 +190,25 @@ local xplaying_jokers_info = {
         ability_name = "HCM Honest Straight",
         slug = "hcm_honest_straight",
         ability = { extra = { transfer_card = nil, done = false} }
+    },
+    XPlayingSpadeK = {
+    	loc = {
+	        name = "San Galgano",
+	        text = {
+	            "When you play and score {C:attention}High Card{},",
+	            "{C:attention}consume{} the scoring card and disable",
+	            "its transformation. Gain {X:mult,C:white}X#1#{} per card",
+	            "consumed. {C:inactive}(Currently give{} {X:mult,C:white}X#2#{} {C:inactive}){}",
+	            "{C:red}Warning: This card has a mind of its own!{}"
+	        },
+	        card_eval_consume = "Consume..",
+	        card_eval_replace = "My Turn!",
+	        card_eval_takeover = "THE THRONE IS MINE!"
+	    },
+        ability_name = "HCM San Galgano",
+        slug = "hcm_san_galgano",
+        ability = { extra = { Xmult = 1, Xmult_acc = 1, card_consumed = 0, 
+        			done = false} }
     },
     XPlayingSpadeA = {
     	loc = {
@@ -624,6 +644,20 @@ local xplaying_deck_info = {name = "X-Playing Deck",
 local faceless_trigger = true
 local hcm_flamed = false
 
+local x_sprite_info = {
+	XPlayingSpadeK = {max = 500, order = 1, name = "San Galgano", set = "XPlaying", pos = {x=0,y=0}, effect = "San Galgano", label = "San Galgano", config = {bonus = 1}, atlas = "m_hcm_san_galgano"},
+}
+
+local x_playing_loc = {
+	name = "X-Playing Card", 
+	text = {
+		"If your {C:attention}first hand{}",
+		"of the round is",
+		"{C:attention}High Card{} of this,",
+        "{C:red}PLAY{} this X-Playing Card!",
+    }, 
+}
+
 -- Initialize deck effect
 local Backapply_to_runRef = Back.apply_to_run
 function Back.apply_to_run(arg_56_0)
@@ -644,8 +678,212 @@ function Back.apply_to_run(arg_56_0)
     end
 end
 
+local generate_card_ui_OG = generate_card_ui
+function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
+	local card = _c
+  	if _c and _c.config.center then card = card.config.center end
+  	local first_pass = nil
+    if not full_UI_table then 
+        first_pass = true
+    end
+  	local supported_badge = {}
+  	local extra_badge = nil
+  	if first_pass and badges then 
+  		for k, v in ipairs(badges) do
+        	if v == 'X-Playing Card' then extra_badge = {key = _c.xability.handname, set = 'XPlaying'} 
+        	else table.insert(supported_badge, v)
+        	end
+        end
+  	end
+	local result_table = generate_card_ui_OG(card, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
+
+	--[[
+	if extra_badge then 
+		local desc_nodes = (not result_table.name and result_table.main) or result_table.info
+  		localize{type = 'other', key = extra_badge.key, nodes = desc_nodes, vars = specific_vars}
+  	end
+	]]--
+	
+
+  	return result_table
+end
+
+--[[
+local generate_card_ui_OG = generate_card_ui
+function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
+  	local card = _c
+  	if _c and _c.config.center then card = card.config.center end
+  	if _c and (_c.xability and _c.xability.set == 'XPlaying') or (_c.set and _c.set == 'XPlaying' ) then
+	    local first_pass = nil
+	    if not full_UI_table then 
+	        first_pass = true
+	        full_UI_table = {
+	            main = {},
+	            info = {},
+	            type = {},
+	            name = nil,
+	            badges = badges or {}
+	        }
+	    end
+
+	    local desc_nodes = (not full_UI_table.name and full_UI_table.main) or full_UI_table.info
+	    local name_override = nil
+	    local info_queue = {}
+
+	    if full_UI_table.name then
+	        full_UI_table.info[#full_UI_table.info+1] = {}
+	        desc_nodes = full_UI_table.info[#full_UI_table.info]
+	    end
+
+	    if not full_UI_table.name then
+	        if specific_vars and specific_vars.no_name then
+	            full_UI_table.name = true
+	        elseif specific_vars and (card_type == 'Default' or card_type == 'Enhanced') then
+	            if (_c.name == 'Stone Card') then full_UI_table.name = true end
+	            if (specific_vars.playing_card and (_c.name ~= 'Stone Card')) then
+	                full_UI_table.name = {}
+	                localize{type = 'other', key = 'playing_card', set = 'Other', nodes = full_UI_table.name, vars = {localize(specific_vars.value, 'ranks'), localize(specific_vars.suit, 'suits_plural'), colours = {specific_vars.colour}}}
+	                full_UI_table.name = full_UI_table.name[1]
+	            end
+	        else
+	            full_UI_table.name = localize{type = 'name', set = _c.set, key = _c.key, nodes = full_UI_table.name}
+	        end
+	        full_UI_table.card_type = card_type or _c.set
+	    end 
+
+	    local loc_vars = {}
+	    if main_start then 
+	        desc_nodes[#desc_nodes+1] = main_start 
+	    end
+
+
+	    localize{type = 'descriptions', key = _c.key, set = _c.set, nodes = desc_nodes, vars = loc_vars}
+
+	    if main_end then 
+	        desc_nodes[#desc_nodes+1] = main_end 
+	    end
+
+	   --Fill all remaining info if this is the main desc
+	    if not ((specific_vars and not specific_vars.sticker) and (card_type == 'Default' or card_type == 'Enhanced')) then
+	        if desc_nodes == full_UI_table.main and not full_UI_table.name then
+	            localize{type = 'name', key = _c.key, set = _c.set, nodes = full_UI_table.name} 
+	            if not full_UI_table.name then full_UI_table.name = {} end
+	        elseif desc_nodes ~= full_UI_table.main then 
+	            desc_nodes.name = localize{type = 'name_text', key = name_override or _c.key, set = name_override and 'Other' or _c.set} 
+	        end
+	    end
+
+	    if first_pass and not (card.set == 'Edition') and badges then
+	        for k, v in ipairs(badges) do
+	        	if v == 'X-Playing Card' then info_queue[#info_queue+1] = {key = _c.xability.atlas, set = 'XPlaying'} end
+	            if v == 'foil' then info_queue[#info_queue+1] = G.P_CENTERS['e_foil'] end
+	            if v == 'holographic' then info_queue[#info_queue+1] = G.P_CENTERS['e_holo'] end
+	            if v == 'polychrome' then info_queue[#info_queue+1] = G.P_CENTERS['e_polychrome'] end
+	            if v == 'negative' then info_queue[#info_queue+1] = G.P_CENTERS['e_negative'] end
+	            if v == 'negative_consumable' then info_queue[#info_queue+1] = {key = 'e_negative_consumable', set = 'Edition', config = {extra = 1}} end
+	            if v == 'gold_seal' then info_queue[#info_queue+1] = {key = 'gold_seal', set = 'Other'} end
+	            if v == 'blue_seal' then info_queue[#info_queue+1] = {key = 'blue_seal', set = 'Other'} end
+	            if v == 'red_seal' then info_queue[#info_queue+1] = {key = 'red_seal', set = 'Other'} end
+	            if v == 'purple_seal' then info_queue[#info_queue+1] = {key = 'purple_seal', set = 'Other'} end
+	            if v == 'eternal' then info_queue[#info_queue+1] = {key = 'eternal', set = 'Other'} end
+	            if v == 'pinned_left' then info_queue[#info_queue+1] = {key = 'pinned_left', set = 'Other'} end
+	        end
+	    end
+
+	    for _, v in ipairs(info_queue) do
+	        generate_card_ui(v, full_UI_table)
+	    end
+
+	    return full_UI_table
+    end
+  
+    return generate_card_ui_OG(card, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
+end
+]]--
+
+--[[
+local generate_UIBox_ability_table_OG = Card.generate_UIBox_ability_table
+function Card:generate_UIBox_ability_table()
+  	if self.xability and self.xability.set == 'XPlaying' then
+	    local card_type, hide_desc = self.ability.set or "None", nil
+	    local loc_vars = nil
+	    local main_start, main_end = nil, nil
+	    local no_badge = nil
+	    local is_custom = false
+ 
+		if self.debuff then
+	        loc_vars = { debuffed = true, playing_card = not not self.base.colour, value = self.base.value, suit = self.base.suit, colour = self.base.colour}
+	    elseif card_type == 'Default' or card_type == 'Enhanced' then
+	        loc_vars = { playing_card = not not self.base.colour, value = self.base.value, suit = self.base.suit, colour = self.base.colour,
+	                    nominal_chips = self.base.nominal > 0 and self.base.nominal or nil,
+	                    bonus_chips = (self.ability.bonus + (self.ability.perma_bonus or 0)) > 0 and (self.ability.bonus + (self.ability.perma_bonus or 0)) or nil,
+	                    x_playing = true,
+	                }
+	    end
+
+        local badges = {}
+	    if (card_type ~= 'Locked' and card_type ~= 'Undiscovered' and card_type ~= 'Default') or self.debuff then
+	          badges.card_type = card_type
+	    end
+	    if self.edition then
+	        if self.edition.type == 'negative' and self.ability.consumeable then
+	            badges[#badges + 1] = 'negative_consumable'
+	        else
+	            badges[#badges + 1] = (self.edition.type == 'holo' and 'holographic' or self.edition.type)
+	        end
+	    end
+	    badges[#badges + 1] = 'X-Playing Card'
+	    if self.seal then badges[#badges + 1] = string.lower(self.seal)..'_seal' end
+	    if self.ability.eternal then badges[#badges + 1] = 'eternal' end
+	    if self.pinned then badges[#badges + 1] = 'pinned_left' end
+
+	    if self.sticker then loc_vars = loc_vars or {}; loc_vars.sticker=self.sticker end
+
+	    return generate_card_ui(self, nil, loc_vars, card_type, badges, hide_desc, main_start, main_end)
+  	end
+
+  	return generate_UIBox_ability_table_OG(self)
+end
+]]--
+
+
+
+function Card:set_x_playing(hand_name)
+	-- Front:
+    if self.children.front then
+    	--sendInfoMessage("Hits Front")
+        self.children.front.atlas = G.ASSET_ATLAS[x_sprite_info[hand_name].atlas]
+        self.children.front:set_sprite_pos(x_sprite_info[hand_name].pos)
+    else
+    	--sendInfoMessage("Didn't hit front")
+        self.children.front = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ASSET_ATLAS[x_sprite_info[hand_name].atlas], x_sprite_info[hand_name].pos)
+        self.children.front.states.hover = self.states.hover
+        self.children.front.states.click = self.states.click
+        self.children.front.states.drag = self.states.drag
+        self.children.front.states.collide.can = false
+        self.children.front:set_role({major = self, role_type = 'Glued', draw_major = self})
+    end
+
+    -- Back:
+    self.children.back = Sprite(self.T.x, self.T.y, self.T.w, self.T.h, G.ASSET_ATLAS["b_xplaying"], {x = 0, y = 0})
+    self.children.back.states.hover = self.states.hover
+    self.children.back.states.click = self.states.click
+    self.children.back.states.drag = self.states.drag
+    self.children.back.states.collide.can = false
+    self.children.back:set_role({major = self, role_type = 'Glued', draw_major = self})
+
+    self.name = x_sprite_info[hand_name].name
+    self.xability = {
+        name = x_sprite_info[hand_name].name,
+        handname = hand_name,
+        set = "XPlaying",
+        atlas = x_sprite_info[hand_name].atlas
+    }
+end
+
 -- X-Playing Mechanics
 function xplay(hand_name)
+	if not xplaying_config[hand_name] then return false end
 	local joker_to_destroy = nil
     for i = 1, #G.jokers.cards do
         if G.jokers.cards[i].ability.name == "HCM X-Play" then 
@@ -748,6 +986,7 @@ end
 function SMODS.INIT.HighCardMod()
 
     init_localization()
+    --G.localization.descriptions.Other["XPlaying"] = {}
 
     -- Initialize the deck
     if xplaying_config["XPlayingDeck"] then
@@ -792,6 +1031,12 @@ function SMODS.INIT.HighCardMod()
             local sprite = SMODS.Sprite:new("j_" .. value.slug, SMODS.findModByID("HighCardMod").path,
                 "j_" .. value.slug .. ".png", 71, 95, "asset_atli")
             sprite:register()
+            if key == "XPlayingSpadeK" then
+	            local m_sprite = SMODS.Sprite:new("m_" .. value.slug, SMODS.findModByID("HighCardMod").path,
+	                "m_" .. value.slug .. ".png", 71, 95, "asset_atli")
+	            m_sprite:register()
+	            G.localization.descriptions.Other[key] = x_playing_loc
+	        end
         end
     end
 
@@ -1053,6 +1298,33 @@ function SMODS.INIT.HighCardMod()
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingSpadeK then
+        function SMODS.Jokers.j_hcm_san_galgano.loc_def(card)
+            return { card.ability.extra.Xmult, card.ability.extra.Xmult_acc }
+        end
+        SMODS.Jokers.j_hcm_san_galgano.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpadeK")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                	
+                	if context.scoring_hand[1]:get_id() == 13 and context.scoring_hand[1].base.suit == "Spades" then
+                    	sendInfoMessage("Trying to set ability")
+                    	G.E_MANAGER:add_event(Event({
+				            func = function()
+				                context.scoring_hand[1]:set_x_playing("XPlayingSpadeK")
+				                return true
+				            end
+				        })) 
+                    	sendInfoMessage("Ability set")
+                    end
+                	
                 end
             end
         end
@@ -1773,9 +2045,9 @@ function SMODS.INIT.HighCardMod()
                             self.ability.extra.mult_gain = self.ability.extra.mult_gain + 4
                         elseif context.destroying_card.config.center == G.P_CENTERS.m_glass then
                             self.ability.extra.glass_cnt = self.ability.extra.glass_cnt + 1
-                            self.ability.extra.xmult_gain = self.ability.extra.xmult_gain * 2
+                            self.ability.extra.xmult_gain = self.ability.extra.xmult_gain + 2
                         elseif context.destroying_card.config.center == G.P_CENTERS.m_steel then
-                            self.ability.extra.xmult_gain = self.ability.extra.xmult_gain * 1.5
+                            self.ability.extra.xmult_gain = self.ability.extra.xmult_gain + 1.5
                         elseif context.destroying_card.config.center == G.P_CENTERS.m_gold then
                             self.ability.extra.gold_cnt = self.ability.extra.gold_cnt + 1 
                         elseif context.destroying_card.config.center == G.P_CENTERS.m_lucky then
@@ -1836,7 +2108,7 @@ function SMODS.INIT.HighCardMod()
                                                     end
                                                 end
                                                 while glass_shattered > 0 do
-                                                    self.ability.extra.xmult_gain = self.ability.extra.xmult_gain / 2
+                                                    self.ability.extra.xmult_gain = self.ability.extra.xmult_gain - 2
                                                     self.ability.extra.glass_cnt = self.ability.extra.glass_cnt - 1
                                                     glass_shattered = glass_shattered - 1
                                                 end
@@ -2974,8 +3246,10 @@ function G.FUNCS.evaluate_play(self, e)
             end 
 		end 
 	end
-	--sendInfoMessage("Actual Eval Play")
-	evaluate_play_OG(self, e)
+	sendInfoMessage("Actual Eval Play")
+	result = evaluate_play_OG(self, e)
+	sendInfoMessage("Done!")
+	return result
 end
 
 play_cards_from_highlighted_OG = G.FUNCS.play_cards_from_highlighted
@@ -3168,62 +3442,84 @@ end
 
 local back_trigger_effect_OG = Back.trigger_effect
 function Back:trigger_effect(args)
-	result = back_trigger_effect_OG(self, args)
 
+	local roundandround = false 
+	local rnr_jkr = nil
 	for _, jkr in pairs(G.jokers.cards) do
 		if jkr.ability.name == 'HCM Round and Round' then
-			sendInfoMessage("Checking Round and Round!")
-			if jkr.ability.extra.required_sat and args.context == 'final_scoring_step' then
-		        sendInfoMessage("Round and Round!")
-		        local tot = args.chips + args.mult
-		        args.chips = math.floor(tot/2)
-		        args.mult = math.floor(tot/2)
-		        update_hand_text({delay = 0}, {mult = args.mult, chips = args.chips})
-
-		        G.E_MANAGER:add_event(Event({
-		            func = (function()
-		                local text = G.localization.descriptions["Joker"]["j_hcm_round_and_round"]["card_eval"]
-		                play_sound('gong', 0.94, 0.3)
-		                play_sound('gong', 0.94*1.5, 0.2)
-		                play_sound('tarot1', 1.5)
-		                ease_colour(G.C.UI_CHIPS, {0.8, 0.45, 0.85, 1})
-		                ease_colour(G.C.UI_MULT, {0.8, 0.45, 0.85, 1})
-		                attention_text({
-		                    scale = 1.4, text = text, hold = 2, align = 'cm', offset = {x = 0,y = -2.7},major = G.play
-		                })
-		                G.E_MANAGER:add_event(Event({
-		                    trigger = 'after',
-		                    blockable = false,
-		                    blocking = false,
-		                    delay =  4.3,
-		                    func = (function() 
-		                            ease_colour(G.C.UI_CHIPS, G.C.BLUE, 2)
-		                            ease_colour(G.C.UI_MULT, G.C.RED, 2)
-		                        return true
-		                    end)
-		                }))
-		                G.E_MANAGER:add_event(Event({
-		                    trigger = 'after',
-		                    blockable = false,
-		                    blocking = false,
-		                    no_delete = true,
-		                    delay =  6.3,
-		                    func = (function() 
-		                        G.C.UI_CHIPS[1], G.C.UI_CHIPS[2], G.C.UI_CHIPS[3], G.C.UI_CHIPS[4] = G.C.BLUE[1], G.C.BLUE[2], G.C.BLUE[3], G.C.BLUE[4]
-		                        G.C.UI_MULT[1], G.C.UI_MULT[2], G.C.UI_MULT[3], G.C.UI_MULT[4] = G.C.RED[1], G.C.RED[2], G.C.RED[3], G.C.RED[4]
-		                        return true
-		                    end)
-		                }))
-		                return true
-		            end)
-		        }))
-
-		        delay(0.6)
-		        result = args.chips, args.mult
-		    end
+			roundandround = true 
+			rnr_jkr = jkr
 		end
 	end
-	return result
+
+	if args.context == 'final_scoring_step' and roundandround and self.name ~= 'Plasma Deck' then
+		local new_args = {context = 'final_scoring_step', chips = args.chips, mult = args.mult}	
+		local result1, result2 = back_trigger_effect_OG(self, args)
+		sendInfoMessage("Checking Round and Round!")
+		if rnr_jkr.ability.extra.required_sat and args.context == 'final_scoring_step' then
+	        sendInfoMessage("Round and Round!")
+	        local tot = new_args.chips + new_args.mult
+	        new_args.chips = math.floor(tot/2)
+	        new_args.mult = math.floor(tot/2)
+	        update_hand_text({delay = 0}, {mult = new_args.mult, chips = new_args.chips})
+
+	        G.E_MANAGER:add_event(Event({
+	            func = (function()
+	                local text = G.localization.descriptions["Joker"]["j_hcm_round_and_round"]["card_eval"]
+	                play_sound('gong', 0.94, 0.3)
+	                play_sound('gong', 0.94*1.5, 0.2)
+	                play_sound('tarot1', 1.5)
+	                ease_colour(G.C.UI_CHIPS, {0.8, 0.45, 0.85, 1})
+	                ease_colour(G.C.UI_MULT, {0.8, 0.45, 0.85, 1})
+	                attention_text({
+	                    scale = 1.4, text = text, hold = 2, align = 'cm', offset = {x = 0,y = -2.7},major = G.play
+	                })
+	                G.E_MANAGER:add_event(Event({
+	                    trigger = 'after',
+	                    blockable = false,
+	                    blocking = false,
+	                    delay =  4.3,
+	                    func = (function() 
+	                            ease_colour(G.C.UI_CHIPS, G.C.BLUE, 2)
+	                            ease_colour(G.C.UI_MULT, G.C.RED, 2)
+	                        return true
+	                    end)
+	                }))
+	                G.E_MANAGER:add_event(Event({
+	                    trigger = 'after',
+	                    blockable = false,
+	                    blocking = false,
+	                    no_delete = true,
+	                    delay =  6.3,
+	                    func = (function() 
+	                        G.C.UI_CHIPS[1], G.C.UI_CHIPS[2], G.C.UI_CHIPS[3], G.C.UI_CHIPS[4] = G.C.BLUE[1], G.C.BLUE[2], G.C.BLUE[3], G.C.BLUE[4]
+	                        G.C.UI_MULT[1], G.C.UI_MULT[2], G.C.UI_MULT[3], G.C.UI_MULT[4] = G.C.RED[1], G.C.RED[2], G.C.RED[3], G.C.RED[4]
+	                        return true
+	                    end)
+	                }))
+	                return true
+	            end)
+	        }))
+
+	        delay(0.6)
+	        sendInfoMessage("The score should be: "..(new_args.chips * new_args.mult))
+	        --return args.chips, args.mult
+			if result1 ~= nil then 
+				return result1, result2 
+			end 
+	        return new_args.chips, new_args.mult
+	        
+	    end
+		sendInfoMessage("The args should be: "..new_args.chips.." / "..new_args.mult)
+		
+	end
+
+	return back_trigger_effect_OG(self, args)
+
+	--[[
+	
+	]]--
+	
 end
 
 -- This is an important replacement that handles a piece of faulty code in OG game
