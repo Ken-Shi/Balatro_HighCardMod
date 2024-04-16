@@ -3,6 +3,8 @@
 --- MOD_ID: HighCardMod
 --- MOD_AUTHOR: [Kenny Stone]
 --- MOD_DESCRIPTION: Create a deck that references the HighCard Franchise!
+--- BADGE_COLOUR: AF843E
+--- DISPLAY_NAME: HIGH CARD
 
 ----------------------------------------------
 ------------MOD CODE -------------------------
