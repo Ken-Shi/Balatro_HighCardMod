@@ -619,7 +619,7 @@ local xplaying_jokers_info = {
 	        text = {
 	            "After playing hand or discard,",
 	            "you always draw cards that",
-	            "form your most played hand. ",
+	            "form your {C:attention}most played hand{}. ",
 	            "{C:inactive}(Now Looking for{} {C:attention}#1#{}{C:inactive}...){}",
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
