@@ -33,6 +33,7 @@ local xplaying_config = {
     XPlayingHeart6 = true,
     XPlayingHeart7 = true,
     XPlayingHeartJ = true,
+    XPlayingHeartK = true,
     XPlayingHeartA = true,
     -- Diamond Family
     XPlayingDiamond2 = true,
@@ -342,6 +343,24 @@ local xplaying_jokers_info = {
         ability_name = "HCM Sky Dancer",
         slug = "hcm_sky_dancer",
         ability = { extra = { done = false} }
+    },
+    XPlayingHeartK = {
+    	loc = {
+	        name = "Masculine Parfait",
+	        text = {
+	            "Destroy all scoring {C:attention}face cards{} and add",
+	            "{C:chips}+#1#{} chips and {C:mult}+#2#{} mult per card to {C:attention}both{}",
+	            "{C:attention}this joker and the playing card of this{}.",
+	            "{C:inactive}(Now gives {}{C:chips}+#3#{} chips, {C:mult}+#4#{} mult{C:inactive}){}",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Masculine Parfait!"
+	    },
+        ability_name = "HCM Masculine Parfait",
+        slug = "hcm_masculine_parfait",
+        ability = { extra = { done = false, transfer_card = nil, mult_gain = 5, 
+        			chips_gain = 10, mult_acc = 0, chips_acc = 0} }
     },
     XPlayingHeartA = {
     	loc = {
@@ -887,7 +906,7 @@ function Card:set_x_playing(hand_name)
 end
 
 -- X-Playing Mechanics
-function xplay(hand_name)
+function xplay(hand_name, card_info)
 	if not xplaying_config[hand_name] then return false end
 	local joker_to_destroy = nil
     for i = 1, #G.jokers.cards do
@@ -907,6 +926,11 @@ function xplay(hand_name)
             card:set_edition(nil, nil, true)
             if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_reapers_hand" then 
                 card:set_eternal(true) 
+            end
+            if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_masculine_parfait" then 
+                card.ability.extra.chips_acc = card_info:get_chip_bonus()
+                card.ability.extra.mult_acc = card_info:get_chip_mult()
+                card.ability.extra.transfer_card = card_info
             end
             card:add_to_deck()
             G.jokers:emplace(card)
@@ -1061,7 +1085,7 @@ function SMODS.INIT.HighCardMod()
                         	local xcard_name = "XPlaying"..string.sub(card_suit, 1, -2)..hcm_id_to_rank(card_rank)
                         	sendInfoMessage(xcard_name)
                         	if xplaying_config[xcard_name] then
-                        		return xplay(xcard_name)
+                        		return xplay(xcard_name, context.scoring_hand[1])
                         	end
                         end 
                     end
@@ -1589,6 +1613,40 @@ function SMODS.INIT.HighCardMod()
 		                    }
 		                end
 	                end
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingHeartK then
+        function SMODS.Jokers.j_hcm_masculine_parfait.loc_def(card)
+            return { card.ability.extra.chips_gain, card.ability.extra.mult_gain, card.ability.extra.chips_acc, card.ability.extra.mult_acc }
+        end
+        SMODS.Jokers.j_hcm_masculine_parfait.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeartK")
+                    self.ability.extra.done = true
+                end
+                if context.destroying_card then 
+                    if context.destroying_card:is_face() then
+                    	if self.ability.extra.transfer_card then sendInfoMessage("card exist") end
+                    	self.ability.extra.transfer_card.ability.perma_bonus = (self.ability.extra.transfer_card.ability.perma_bonus or 0) + self.ability.extra.chips_gain
+                    	self.ability.extra.transfer_card.ability.mult = (self.ability.extra.transfer_card.ability.mult or 0) + self.ability.extra.mult_gain
+                    	self.ability.extra.chips_acc = self.ability.extra.transfer_card:get_chip_bonus()
+                    	self.ability.extra.mult_acc = self.ability.extra.transfer_card:get_chip_mult()
+                    	card_eval_status_text(context.destroying_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_masculine_parfait"]["card_eval"], Xmult_mod=1})
+                    	return true
+                    end
+                    return nil
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    return {
+                        message = G.localization.descriptions["Joker"]["j_hcm_masculine_parfait"]["card_eval"],
+                        chip_mod = self.ability.extra.chips_acc,
+                        mult_mod = self.ability.extra.mult_acc,
+                        card = self
+                    }
                 end
             end
         end
