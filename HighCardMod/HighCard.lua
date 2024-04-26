@@ -19,6 +19,7 @@ local xplaying_config = {
     XPlayingSpade2 = true,
     XPlayingSpade4 = true,
     XPlayingSpade5 = true,
+    XPlayingSpade6 = true,
     XPlayingSpade7 = true,
     XPlayingSpade8 = true,
     XPlayingSpade9 = true,
@@ -125,6 +126,22 @@ local xplaying_jokers_info = {
         slug = "hcm_brain_buster",
         ability = { extra = { current_highest = 5, Xmult = 1, Xmult_acc = 1,
         			done = false} }
+    },
+    XPlayingSpade6 = {
+    	loc = {
+	        name = "Juggling Gun",
+	        text = {
+	            "Automatically plays your {C:attention}lowest{}",
+	            "{C:attention}card held in hand{} in addition",
+	            "to your selected cards for play.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Fire!"
+	    },
+        ability_name = "HCM Juggling Gun",
+        slug = "hcm_juggling_gun",
+        ability = { extra = { done = false} }
     },
     XPlayingSpade7 = {
     	loc = {
@@ -1203,6 +1220,19 @@ function SMODS.INIT.HighCardMod()
                         card = self,
                         Xmult_mod = self.ability.extra.Xmult_acc
                     }
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingSpade6 then
+        SMODS.Jokers.j_hcm_juggling_gun.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpade6")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
                 end
             end
         end
@@ -3460,6 +3490,32 @@ G.FUNCS.play_cards_from_highlighted = function(e)
 		    })) 
 		    table.insert(G.hand.highlighted, fake_card)
 		    card_eval_status_text(fake_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_faceless"]["card_eval"]})
+		end
+		if jkr.ability.name == 'HCM Juggling Gun' then
+			sendInfoMessage("Juggling Gun!")
+			local lowest_unhighlighted_card = nil
+			local lowest_card_value = nil
+			for k, v in ipairs(G.hand.cards) do
+				if v.highlighted then 
+				else
+			    	if v.config.center == G.P_CENTERS.m_stone then
+			    		if lowest_card_value == nil then 
+			    			lowest_card_value = 50
+			    			lowest_unhighlighted_card = v 
+			    		end
+			    	else
+				    	if lowest_card_value == nil or v:get_id() < lowest_card_value then 
+				    		lowest_card_value = v:get_id()
+				    		lowest_unhighlighted_card = v
+				    	end
+				    end
+				end
+		    end
+		    if lowest_unhighlighted_card == nil then 
+		    else
+		    	table.insert(G.hand.highlighted, lowest_unhighlighted_card)
+		    	card_eval_status_text(lowest_unhighlighted_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_juggling_gun"]["card_eval"]})
+			end
 		end
 	end
 	return play_cards_from_highlighted_OG()
