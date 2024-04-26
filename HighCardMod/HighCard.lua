@@ -38,6 +38,7 @@ local xplaying_config = {
     -- Diamond Family
     XPlayingDiamond2 = true,
     XPlayingDiamond3 = true,
+    XPlayingDiamond5 = true,
     XPlayingDiamond6 = true,
     XPlayingDiamond7 = true,
     XPlayingDiamond8 = true,
@@ -411,6 +412,23 @@ local xplaying_jokers_info = {
         ability_name = "HCM Marble Rumble",
         slug = "hcm_marble_rumble",
         ability = { extra = { done = false} }
+    },
+    XPlayingDiamond5= {
+    	loc = {
+	        name = "Greatest Man",
+	        text = {
+	            "If your {C:attention}scoring poker{} is higher",
+	            "than your round best, upgrade",
+	            "level of played {C:attention}poker hand{}.",
+	            "{C:inactive}(Current best is {}{C:attention}#1#{}{C:inactive}){}",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Evolve!"
+	    },
+        ability_name = "HCM Greatest Man",
+        slug = "hcm_greatest_man",
+        ability = { extra = { done = false, best_hand = "High Card"} }
     },
     XPlayingDiamond6= {
     	loc = {
@@ -1010,6 +1028,23 @@ function hcm_get_lowest_value(hand)
         end
     end
     if #hand > 0 then return lowest else return nil end
+end
+
+function hcm_compare_hand(reference_hand, test_hand)
+	local idx_reference_hand = nil 
+	local idx_test_hand = nil
+	for k, v in pairs(G.handlist) do
+        if reference_hand == v then 
+        	idx_reference_hand = k
+        end
+        if test_hand == v then 
+        	idx_test_hand = k
+        end
+    end
+    if idx_reference_hand == nil or idx_test_hand == nil then 
+    	return nil 
+    end
+	return (idx_test_hand < idx_reference_hand)
 end
 
 function SMODS.INIT.HighCardMod()
@@ -1718,6 +1753,35 @@ function SMODS.INIT.HighCardMod()
                         message = G.localization.descriptions["Joker"]["j_hcm_marble_rumble"]["card_eval"],
                         card = self
                     }
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingDiamond5 then
+        function SMODS.Jokers.j_hcm_greatest_man.loc_def(card)
+            return { card.ability.extra.best_hand }
+        end
+        SMODS.Jokers.j_hcm_greatest_man.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamond5")
+                    self.ability.extra.done = true
+                end
+                if context.before then 
+                	local is_higher = hcm_compare_hand(self.ability.extra.best_hand, context.scoring_name)
+                	if is_higher then 
+                		self.ability.extra.best_hand = context.scoring_name
+                		--card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_greatest_man"]["card_eval"]})		
+                		return {
+	                        level_up = true,
+	                        message = G.localization.descriptions["Joker"]["j_hcm_greatest_man"]["card_eval"],
+	                        --message = localize('k_level_up_ex'),
+	                        card = self
+	                    }
+                	end
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
