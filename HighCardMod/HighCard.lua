@@ -33,6 +33,7 @@ local xplaying_config = {
     XPlayingHeart5 = true,
     XPlayingHeart6 = true,
     XPlayingHeart7 = true,
+    XPlayingHeart8 = true,
     XPlayingHeartJ = true,
     XPlayingHeartK = true,
     XPlayingHeartA = true,
@@ -344,6 +345,22 @@ local xplaying_jokers_info = {
 	    },
         ability_name = "HCM Chameleon",
         slug = "hcm_chameleon",
+        ability = { extra = { done = false} }
+    },
+    XPlayingHeart8 = {
+    	loc = {
+	        name = "Mun Pheromone Mun",
+	        text = {
+	            "If you scored {C:attention}High Card{} is lower",
+	            "than 8, increase its {C:attention}rank{} by 1;",
+	            "if it's higher, decrease it by 1. ",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Mun!"
+	    },
+        ability_name = "HCM Mun Pheromone Mun",
+        slug = "hcm_mun_pheromone_mun",
         ability = { extra = { done = false} }
     },
     XPlayingHeartJ = {
@@ -1633,6 +1650,58 @@ function SMODS.INIT.HighCardMod()
                         }
                     end
                     
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingHeart8 then
+        SMODS.Jokers.j_hcm_mun_pheromone_mun.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeart8")
+                    self.ability.extra.done = true
+                end
+                if context.after then 
+                	if context.scoring_name == "High Card" then
+                    	if context.scoring_hand[1].config.center == G.P_CENTERS.m_stone then return false end
+                    	local card_rank = context.scoring_hand[1]:get_id()
+                    	if card_rank > 8 then 
+                    		G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.1,func = function()
+			                    local card = context.scoring_hand[1]
+			                    local suit_prefix = string.sub(card.base.suit, 1, 1)..'_'
+			                    local rank_suffix = card.base.id == 1 and 13 or math.max(card.base.id - 1, 2)
+			                    if rank_suffix < 10 then rank_suffix = tostring(rank_suffix)
+			                    elseif rank_suffix == 10 then rank_suffix = 'T'
+			                    elseif rank_suffix == 11 then rank_suffix = 'J'
+			                    elseif rank_suffix == 12 then rank_suffix = 'Q'
+			                    elseif rank_suffix == 13 then rank_suffix = 'K'
+			                    elseif rank_suffix == 14 then rank_suffix = 'A'
+			                    end
+			                    card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+			                    card:juice_up()
+			                return true end }))
+			                card_eval_status_text(context.scoring_hand[1], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_mun_pheromone_mun"]["card_eval"], Xmult_mod=1})
+                    	elseif card_rank < 8 then 
+                    		G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.1,func = function()
+			                    local card = context.scoring_hand[1]
+			                    local suit_prefix = string.sub(card.base.suit, 1, 1)..'_'
+			                    local rank_suffix = card.base.id == 14 and 2 or math.min(card.base.id + 1, 14)
+			                    if rank_suffix < 10 then rank_suffix = tostring(rank_suffix)
+			                    elseif rank_suffix == 10 then rank_suffix = 'T'
+			                    elseif rank_suffix == 11 then rank_suffix = 'J'
+			                    elseif rank_suffix == 12 then rank_suffix = 'Q'
+			                    elseif rank_suffix == 13 then rank_suffix = 'K'
+			                    elseif rank_suffix == 14 then rank_suffix = 'A'
+			                    end
+			                    card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
+			                    card:juice_up()
+			                return true end }))
+			                card_eval_status_text(context.scoring_hand[1], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_mun_pheromone_mun"]["card_eval"], Xmult_mod=1})
+                    	end
+                    end 
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
