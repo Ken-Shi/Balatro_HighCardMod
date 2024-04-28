@@ -34,6 +34,7 @@ local xplaying_config = {
     XPlayingHeart6 = true,
     XPlayingHeart7 = true,
     XPlayingHeart8 = true,
+    XPlayingHeart10 = true,
     XPlayingHeartJ = true,
     XPlayingHeartK = true,
     XPlayingHeartA = true,
@@ -363,6 +364,22 @@ local xplaying_jokers_info = {
         ability_name = "HCM Mun Pheromone Mun",
         slug = "hcm_mun_pheromone_mun",
         ability = { extra = { done = false} }
+    },
+    XPlayingHeart10 = {
+    	loc = {
+	        name = "Common Destiny",
+	        text = {
+	            "If you scoring hand contains",
+	            "{C:attention}exactly #1# cards{}, this hand",
+	            "is regarded as {C:attention}Five of A Kind{}. ",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Common Destiny!"
+	    },
+        ability_name = "HCM Common Destiny",
+        slug = "hcm_common_destiny",
+        ability = { extra = { done = false, chain_cnt = 5} }
     },
     XPlayingHeartJ = {
     	loc = {
@@ -1734,6 +1751,22 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingHeart10 then
+        function SMODS.Jokers.j_hcm_common_destiny.loc_def(card)
+            return { card.ability.extra.chain_cnt }
+        end
+        SMODS.Jokers.j_hcm_common_destiny.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeart10")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingHeartJ then
         SMODS.Jokers.j_hcm_sky_dancer.calculate = function(self, context)
             if not context.blueprint then
@@ -2667,6 +2700,13 @@ function evaluate_poker_hand(hand)
 		            table.insert(placeholder_tab, v)
 		        end
 		        if #hand - has_stone >= 5 then new_results["Flush"] = {placeholder_tab} end
+		    end
+		    return new_results
+		elseif jkr.ability.name == 'HCM Common Destiny' then
+			if result and result.top and next(result.top) then sendInfoMessage(#result.top) end
+		    if result and result.top and next(result.top) and #result.top[1] == 5 then 
+		    	new_results["Five of a Kind"] = result.top
+		    	card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_common_destiny"]["card_eval"]})
 		    end
 		    return new_results
         elseif jkr.ability.name == 'HCM Love Connection' then 
