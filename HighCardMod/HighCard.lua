@@ -44,6 +44,7 @@ local xplaying_config = {
     XPlayingDiamond6 = true,
     XPlayingDiamond7 = true,
     XPlayingDiamond8 = true,
+    XPlayingDiamond9 = true,
     XPlayingDiamond10 = true,
     XPlayingDiamondJ = true,
     XPlayingDiamondK = true,
@@ -515,6 +516,26 @@ local xplaying_jokers_info = {
         slug = "hcm_red_labyrinth",
         ability = { extra = {reroll_cost = 1, done = false} }
     },
+    XPlayingDiamond9= {
+    	loc = {
+	        name = "No Mercy",
+	        text = {
+	            "If you play {C:attention}5 cards{} of",
+	            "{C:attention}distinctive ranks{}, this card",
+	            "accumulate {C:mult}+#1#{} mult; Otherwise",
+	            "{C:attention}lose all mult accumulated{}",
+	            "and set your {C:blue}hand{} to {C:blue}0{}. ",
+	            "{C:inactive}(Currently{} {C:mult}+#2#{} {C:inactive}Mult){}",
+	            --"Otherwise, you {C:red}lose the game instantly{}.",
+	            "This X-Playing card is {C:attention}eternal{}."
+	        },
+	        card_eval = "No Mercy!",
+	        card_eval_mercy = "Absorb.."
+	    },
+        ability_name = "HCM No Mercy",
+        slug = "hcm_no_mercy",
+        ability = { extra = {done = false, mult_gain = 9, mult_acc = 0, reset = false} }
+    },
     XPlayingDiamond10= {
     	loc = {
 	        name = "Unlucky Poky",
@@ -529,7 +550,7 @@ local xplaying_jokers_info = {
 	    },
         ability_name = "HCM Unlucky Poky",
         slug = "hcm_unlucky_poky",
-        ability = { extra = { done = false} }
+        ability = { extra = {done = false} }
     },
     XPlayingDiamondJ= {
     	loc = {
@@ -979,6 +1000,9 @@ function xplay(hand_name, card_info)
             if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_reapers_hand" then 
                 card:set_eternal(true) 
             end
+            if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_no_mercy" then 
+                card:set_eternal(true) 
+            end
             if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_masculine_parfait" then 
                 card.ability.extra.chips_acc = card_info:get_chip_bonus()
                 card.ability.extra.mult_acc = card_info:get_chip_mult()
@@ -1123,8 +1147,9 @@ function SMODS.INIT.HighCardMod()
         if xplaying_config[key] then
             local joker = SMODS.Joker:new(value.ability_name, value.slug, value.ability, { x = 0, y = 0 }, value.loc,
                 value.rarity, value.cost, value.unlocked, value.discovered, value.blueprint_compat, value.eternal_compat)
-            if value.ability_name == "HCM X-Play" then joker.eternal_compat = true end
+            --if value.ability_name == "HCM X-Play" then joker.eternal_compat = true end
             if value.ability_name == "HCM Reapers Hand" then joker.eternal_compat = true end
+            if value.ability_name == "HCM No Mercy" then joker.eternal_compat = true end
             joker:register()
             local sprite = SMODS.Sprite:new("j_" .. value.slug, SMODS.findModByID("HighCardMod").path,
                 "j_" .. value.slug .. ".png", 71, 95, "asset_atli")
@@ -1965,6 +1990,60 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingDiamond9 then
+        function SMODS.Jokers.j_hcm_no_mercy.loc_def(card)
+            return { card.ability.extra.mult_gain, card.ability.extra.mult_acc }
+        end
+        SMODS.Jokers.j_hcm_no_mercy.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    --end_xplay("XPlayingDiamond9")
+                    self.ability.extra.done = true
+                end
+
+                if context.after then 
+                	if self.ability.extra.reset then 
+                		self.ability.extra.mult_acc = 0
+                		self.ability.extra.reset = false 
+                	end
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    local card_played = {}
+                    local card_cnt = 0
+                    for k, v in ipairs(context.full_hand) do
+                    	local card_rank = nil
+                        if v.config.center == G.P_CENTERS.m_stone then
+                        	card_rank = "stone"
+                        else
+                        	card_rank = v:get_id()
+                        end
+                        if card_played[card_rank] then break end
+                        card_played[card_rank] = true
+                        card_cnt = card_cnt + 1
+                    end
+                    if card_cnt > 4 then
+                    	self.ability.extra.reset = false
+                    	self.ability.extra.mult_acc = self.ability.extra.mult_acc + self.ability.extra.mult_gain
+                        return {
+                            message = G.localization.descriptions["Joker"]["j_hcm_no_mercy"]["card_eval_mercy"],
+                            mult_mod = self.ability.extra.mult_acc,
+                            card = self
+                        }
+                    else
+                    	self.ability.extra.reset = true
+                    	ease_hands_played(-G.GAME.current_round.hands_left)
+                        return {
+                            message = G.localization.descriptions["Joker"]["j_hcm_no_mercy"]["card_eval"],
+                            mult_mod = self.ability.extra.mult_acc,
+                            card = self
+                        }
+                    end
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingDiamond10 then
         SMODS.Jokers.j_hcm_unlucky_poky.calculate = function(self, context)
             if not context.blueprint then
@@ -2405,6 +2484,9 @@ function Card:add_to_deck(from_debuff)
             self.ability.extra.best_hand = hcm_hand_most_played(true)
         end
 		if self.ability.name == 'HCM Reapers Hand' then 
+            self:set_eternal(true) 
+        end
+        if self.ability.name == 'HCM No Mercy' then 
             self:set_eternal(true) 
         end
         if self.ability.name == 'HCM Red Labyrinth' then 
