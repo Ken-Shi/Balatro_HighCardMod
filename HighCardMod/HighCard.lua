@@ -36,6 +36,7 @@ local xplaying_config = {
     XPlayingHeart8 = true,
     XPlayingHeart10 = true,
     XPlayingHeartJ = true,
+    XPlayingHeartQ = true,
     XPlayingHeartK = true,
     XPlayingHeartA = true,
     -- Diamond Family
@@ -398,6 +399,23 @@ local xplaying_jokers_info = {
         ability_name = "HCM Sky Dancer",
         slug = "hcm_sky_dancer",
         ability = { extra = { done = false} }
+    },
+    XPlayingHeartQ = {
+    	loc = {
+	        name = "Sonic Move",
+	        text = {
+	            "Start a {C:attention}#1# second timer{}, ",
+	            "{C:red}Lose the game when time is{}",
+	            "{C:red}up{}. This card gives {X:mult,C:white}X#2#{}",
+	            "{C:inactive}(Time left: #3#s){}",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Sonic Move!"
+	    },
+        ability_name = "HCM Sonic Move",
+        slug = "hcm_sonic_move",
+        ability = { extra = { done = false, timer_value = 60, timer = 60, Xmult = 12 } }
     },
     XPlayingHeartK = {
     	loc = {
@@ -1843,6 +1861,27 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingHeartQ then
+        function SMODS.Jokers.j_hcm_sonic_move.loc_def(card)
+            return { card.ability.extra.timer_value, card.ability.extra.Xmult, card.ability.extra.timer }
+        end
+        SMODS.Jokers.j_hcm_sonic_move.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingHeartQ")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    return{
+                        message = G.localization.descriptions["Joker"]["j_hcm_sonic_move"]["card_eval"],
+                        card = self,
+                        Xmult_mod = self.ability.extra.Xmult
+                    }
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingHeartK then
         function SMODS.Jokers.j_hcm_masculine_parfait.loc_def(card)
             return { card.ability.extra.chips_gain, card.ability.extra.mult_gain, card.ability.extra.chips_acc, card.ability.extra.mult_acc }
@@ -2950,6 +2989,25 @@ function Card:sell_card()
 	else 
 		sell_card_OG(self)
 	end
+end
+
+local card_update_OG = Card.update
+function Card.update(self, dt)
+    if G.STAGE == G.STAGES.RUN then
+        if self.config.center.key == "j_hcm_sonic_move" and not self.debuff then
+            self.ability.extra.timer = self.ability.extra.timer - (dt / G.SETTINGS.GAMESPEED)
+            if self.ability.extra.timer <= 0 and G.STATE ~= G.STATES.GAME_OVER then
+                G.STATE = G.STATES.GAME_OVER
+                if not G.GAME.won and not G.GAME.seeded and not G.GAME.challenge then 
+                    G.PROFILES[G.SETTINGS.profile].high_scores.current_streak.amt = 0
+                end
+                G:save_settings()
+                G.FILE_HANDLER.force = true
+                G.STATE_COMPLETE = false
+            end
+        end
+    end
+    card_update_OG(self, dt)
 end
 
 local draw_card_OG = draw_card
