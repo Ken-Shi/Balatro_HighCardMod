@@ -52,12 +52,14 @@ local xplaying_config = {
     -- Club Family
     XPlayingClub2 = true,
     XPlayingClub3 = true,
+    XPlayingClub4 = true,
     XPlayingClub5 = true,
     XPlayingClub7 = true,
     XPlayingClub8 = true,
     XPlayingClub10 = true,
     XPlayingClubJ = true,
     XPlayingClubK = true,
+    XPlayingClubA = true,
 }
 
 -- Create Jokers
@@ -635,6 +637,22 @@ local xplaying_jokers_info = {
         slug = "hcm_green_green",
         ability = { extra = { done = false} }
     },
+    XPlayingClub4= {
+    	loc = {
+	        name = "Wing Wind",
+	        text = {
+	            "Your {C:attention}Gold{}, {C:blue}Blue{} and {C:purple}Purple{} Seals",
+	            "can all trigger upon {C:attention}scoring{},",
+	            "{C:attention}discard{} or {C:attention}held at end of round{}.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Wing Wind!"
+	    },
+        ability_name = "HCM Wing Wind",
+        slug = "hcm_wing_wind",
+        ability = { extra = { done = false} }
+    },
     XPlayingClub5= {
     	loc = {
 	        name = "G Round",
@@ -743,6 +761,24 @@ local xplaying_jokers_info = {
                             steel_cnt = 0, gold_cnt = 0, lucky_cnt = 0,
                             glass_cnt = 0, gseal = 0, rseal = 0, bseal = 0,
                     done = false} }
+    },
+    XPlayingClubA= {
+    	loc = {
+	        name = "Life Binder",
+	        text = {
+	            "If your scoring hand contains {C:attention}exactly{}",
+	            "{C:attention}#1# cards{} and they are of the same",
+	            "{C:attention}enhancement{}, add an {C:clubs}Ace of Clubs{}",
+	            "with that enhancement to your hand.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Life Binder!",
+	        card_eval_pc = "Create!"
+	    },
+        ability_name = "HCM Life Binder",
+        slug = "hcm_life_binder",
+        ability = { extra = { done = false, cards_required = 5} }
     },
 }
 local xplaying_deck_info = {name = "X-Playing Deck",
@@ -959,8 +995,6 @@ function Card:generate_UIBox_ability_table()
   	return generate_UIBox_ability_table_OG(self)
 end
 ]]--
-
-
 
 function Card:set_x_playing(hand_name)
 	-- Front:
@@ -2205,6 +2239,23 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingClub4 then
+        SMODS.Jokers.j_hcm_wing_wind.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClub4")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    for k, v in ipairs(context.scoring_hand) do
+                    	local hcm_triggered = hcm_wing_wind_bundle(v, 'Gold', self)
+                    	--if hcm_triggered then card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_wing_wind"]["card_eval"]}) end
+                    end
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingClub5 then
         function SMODS.Jokers.j_hcm_g_round.loc_def(card)
             return { card.ability.extra.mult_gain, card.ability.extra.mult_acc }
@@ -2464,6 +2515,64 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingClubA then
+        function SMODS.Jokers.j_hcm_life_binder.loc_def(card)
+            return { card.ability.extra.cards_required }
+        end
+        SMODS.Jokers.j_hcm_life_binder.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClubA")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    if #context.scoring_hand == self.ability.extra.cards_required then 
+                    	local satisfied = true 
+                    	local enhancement = nil 
+                    	for k, v in ipairs(context.scoring_hand) do 
+                    		if v.config.center == G.P_CENTERS.c_base then
+                    			satisfied = false 
+                    			break 
+                    		else
+                    			if enhancement == nil then 
+                    				enhancement = v.config.center
+                    			elseif enhancement ~= v.config.center then 
+                    				satisfied = false 
+                    				break 
+                    			end
+                    		end
+                    	end
+                  		if enhancement == nil then satisfied = false end
+                    	if satisfied then 
+                    		card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_life_binder"]["card_eval"]})
+							sendInfoMessage("Life Binder Generation Process!")
+							G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+						    
+						    local fake_card = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['H_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+						    local card_encode = 'C_A'
+
+						    fake_card:set_base(G.P_CARDS[card_encode])
+						    fake_card:set_ability(enhancement)
+						    fake_card:add_to_deck()
+						    G.deck.config.card_limit = G.deck.config.card_limit + 1
+						    table.insert(G.playing_cards, fake_card)
+						    G.hand:emplace(fake_card)
+						    fake_card.states.visible = nil
+
+						    G.E_MANAGER:add_event(Event({
+						        func = function()
+						            fake_card:start_materialize()
+						            return true
+						        end
+						    })) 
+						    card_eval_status_text(fake_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_life_binder"]["card_eval_pc"]})
+                    	end
+                    end
+                end
+            end
+        end
+    end
 end
 
 local add_to_deckref = Card.add_to_deck
@@ -2530,7 +2639,7 @@ function Card:add_to_deck(from_debuff)
     add_to_deckref(self, from_debuff)
 end
 
-local remove_from_deckref = Card.remove_from_deck
+local remove_from_deck_OG = Card.remove_from_deck
 function Card:remove_from_deck(from_debuff)
     if self.added_to_deck then
         if self.ability.name == 'HCM Neo New Nambu' then
@@ -2538,7 +2647,33 @@ function Card:remove_from_deck(from_debuff)
             G.GAME.blind.loc_debuff_text = ''
         end
     end
-    remove_from_deckref(self, from_debuff)
+    remove_from_deck_OG(self, from_debuff)
+end
+
+local get_end_of_round_effect_OG = Card.get_end_of_round_effect
+function Card:get_end_of_round_effect(context)
+	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM Wing Wind' then
+			--card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_wing_wind"]["card_eval"]})
+			local hcm_triggered = hcm_wing_wind_bundle(self, 'Blue', jkr)
+			--if hcm_triggered then card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_wing_wind"]["card_eval"]}) end
+		end
+	end
+	return get_end_of_round_effect_OG(self, context)
+end
+
+local calculate_seal_OG = Card.calculate_seal
+function Card:calculate_seal(context)
+	if context.discard then
+		for _, jkr in pairs(G.jokers.cards) do
+			if jkr.ability.name == 'HCM Wing Wind' then
+				--sendInfoMessage("Discard WW")
+				local hcm_triggered = hcm_wing_wind_bundle(self, 'Purple', jkr)
+				--if hcm_triggered then card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_wing_wind"]["card_eval"]}) end
+			end
+		end
+	end
+	calculate_seal_OG(self, context)
 end
 
 function entrance_neo_new_nambu(xcard)
@@ -2703,7 +2838,7 @@ function evaluate_poker_hand(hand)
 		    end
 		    return new_results
 		elseif jkr.ability.name == 'HCM Common Destiny' then
-			if result and result.top and next(result.top) then sendInfoMessage(#result.top) end
+			--if result and result.top and next(result.top) then sendInfoMessage(#result.top) end
 		    if result and result.top and next(result.top) and #result.top[1] == 5 then 
 		    	new_results["Five of a Kind"] = result.top
 		    	card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_common_destiny"]["card_eval"]})
@@ -3894,6 +4029,52 @@ function Back:trigger_effect(args)
 	
 	]]--
 	
+end
+
+function hcm_wing_wind_bundle(card, already_happening, jkr)
+	local disabled_seal = "None" 
+	local hcm_triggered = false
+	if already_happening then disabled_seal = already_happening end
+	if disabled_seal ~= 'Gold' and card.seal == 'Gold' then
+		if jkr then card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_wing_wind"]["card_eval"]}) end
+        ease_dollars(3)
+        hcm_triggered = true
+        --card_eval_status_text(card, 'extra', nil, nil, nil, {message = localize('k_plus_gold')})
+    end
+	if disabled_seal ~= 'Purple' and card.seal == 'Purple' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+        if jkr then card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_wing_wind"]["card_eval"]}) end
+        G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+        G.E_MANAGER:add_event(Event({
+            trigger = 'before',
+            delay = 0.0,
+            func = (function()
+                    local card = create_card('Tarot',G.consumeables, nil, nil, nil, nil, nil, '8ba')
+                    card:add_to_deck()
+                    G.consumeables:emplace(card)
+                    G.GAME.consumeable_buffer = 0
+                return true
+            end)}))
+        card_eval_status_text(card, 'extra', nil, nil, nil, {message = localize('k_plus_tarot'), colour = G.C.PURPLE})
+    	hcm_triggered = true
+    end
+	if disabled_seal ~= 'Blue' and card.seal == 'Blue' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
+        if jkr then card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_wing_wind"]["card_eval"]}) end
+        local card_type = 'Planet'
+        G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 1
+        G.E_MANAGER:add_event(Event({
+            trigger = 'before',
+            delay = 0.0,
+            func = (function()
+                    local card = create_card(card_type,G.consumeables, nil, nil, nil, nil, nil, 'blusl')
+                    card:add_to_deck()
+                    G.consumeables:emplace(card)
+                    G.GAME.consumeable_buffer = 0
+                return true
+            end)}))
+        card_eval_status_text(card, 'extra', nil, nil, nil, {message = localize('k_plus_planet'), colour = G.C.SECONDARY_SET.Planet})
+    	hcm_triggered = true
+    end
+    return hcm_triggered
 end
 
 -- This is an important replacement that handles a piece of faulty code in OG game
