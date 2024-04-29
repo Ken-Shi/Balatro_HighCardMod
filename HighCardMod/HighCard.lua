@@ -17,6 +17,7 @@ local xplaying_config = {
     XPlayingJoker = true,
     -- Spade Family
     XPlayingSpade2 = true,
+    XPlayingSpade3 = true,
     XPlayingSpade4 = true,
     XPlayingSpade5 = true,
     XPlayingSpade6 = true,
@@ -97,6 +98,23 @@ local xplaying_jokers_info = {
         slug = "hcm_neo_new_nambu",
         ability = { extra = { hand_gain = 1, hand_size = 6, hand_ge = 5, 
         			done = false} }
+    },
+    XPlayingSpade3 = {
+    	loc = {
+	        name = "Staff Master",
+	        text = {
+	            "If you score a {C:attention}Three of a Kind{}",
+	            "with cards of {C:attention}#1# different suits{},",
+	            "add a card of the {C:attention}missing suit{}",
+	            "to make it {C:attention}Four of a Kind{}.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Extend!"
+	    },
+        ability_name = "HCM Staff Master",
+        slug = "hcm_staff_master",
+        ability = { extra = { done = false, suits_required = 3} }
     },
     XPlayingSpade4 = {
     	loc = {
@@ -1273,6 +1291,23 @@ function SMODS.INIT.HighCardMod()
                         message = G.localization.descriptions["Joker"]["j_hcm_neo_new_nambu"]["card_eval"],
                         card = self
                     }
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingSpade3 then
+        function SMODS.Jokers.j_hcm_staff_master.loc_def(card)
+            return { card.ability.extra.suits_required }
+        end
+        SMODS.Jokers.j_hcm_staff_master.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpade3")
+                    self.ability.extra.done = true
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
                 end
             end
         end
@@ -3798,6 +3833,82 @@ play_cards_from_highlighted_OG = G.FUNCS.play_cards_from_highlighted
 G.FUNCS.play_cards_from_highlighted = function(e)
 	
 	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM Staff Master' then
+			sendInfoMessage("Staff Master Generation Process!")
+			jkr.ability.extra.faceless_trigger = false
+			if #G.hand.highlighted <= 2 then return play_cards_from_highlighted_OG() end
+			local suits = {
+				Hearts=0, 
+				Diamonds=0, 
+				Clubs=0, 
+				Spades=0
+			}
+		    local ranks = {}
+		    local temp_hand_suits = {}
+		    local temp_hand_ranks = {}
+		    for k, v in ipairs(G.hand.highlighted) do
+		    	if v.config.center == G.P_CENTERS.m_stone then
+		    	else
+			    	table.insert(temp_hand_suits, v.base.suit)
+			    	table.insert(temp_hand_ranks, v:get_id())
+			    	if ranks[v:get_id()] then ranks[v:get_id()] = ranks[v:get_id()] + 1
+			    	else ranks[v:get_id()] = 1 end
+			    end
+		    end
+		    if #temp_hand_suits == 0 then return play_cards_from_highlighted_OG() end
+		    local current_hand = hcm_best_hand(temp_hand_suits, temp_hand_ranks)
+		    
+		    if current_hand == "Three of a Kind" then 
+		    	local target_rank = nil
+		    	for k, v in pairs(ranks) do
+		    		if v == 3 then target_rank = k end
+		    	end
+		    	for k, v in ipairs(temp_hand_suits) do 
+			    	if temp_hand_ranks[k] == target_rank then 
+			    		if suits[v] then suits[v] = suits[v] + 1 end
+			    	end
+			    end
+			    local target_suit = nil
+			    for k, v in pairs(suits) do 
+			    	if v == 0 and target_suit == nil then target_suit = k
+			    	elseif v == 1 then
+			    	else 
+			    		target_suit = nil 
+			    		break 
+			    	end
+			    end
+			    if target_rank == nil or target_suit == nil then return play_cards_from_highlighted_OG() end
+			    G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+		    
+			    local fake_card = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['H_A'], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+
+			    local card_encode = string.sub(target_suit, 1, 1)..'_'
+
+			    local card_suffix = target_rank < 10 and tostring(target_rank) or
+			                        target_rank == 10 and 'T' or target_rank == 11 and 'J' or
+			                        target_rank == 12 and 'Q' or target_rank == 13 and 'K' or
+			                        target_rank == 14 and 'A'
+			    card_encode = card_encode .. card_suffix
+
+			    fake_card:set_base(G.P_CARDS[card_encode])
+			    fake_card:add_to_deck()
+			    G.deck.config.card_limit = G.deck.config.card_limit + 1
+			    table.insert(G.playing_cards, fake_card)
+			    G.hand:emplace(fake_card)
+			    fake_card.states.visible = nil
+
+			    G.E_MANAGER:add_event(Event({
+			        func = function()
+			            fake_card:start_materialize()
+			            return true
+			        end
+			    })) 
+			    table.insert(G.hand.highlighted, fake_card)
+			    card_eval_status_text(fake_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_staff_master"]["card_eval"]})
+		    else
+		    	return play_cards_from_highlighted_OG()
+		    end
+		end
 		if jkr.ability.name == 'HCM Faceless' then
 			sendInfoMessage("Faceless Generation Process!")
 			jkr.ability.extra.faceless_trigger = false
