@@ -60,6 +60,7 @@ local xplaying_config = {
     XPlayingClub8 = true,
     XPlayingClub10 = true,
     XPlayingClubJ = true,
+    XPlayingClubQ = true,
     XPlayingClubK = true,
     XPlayingClubA = true,
 }
@@ -772,6 +773,22 @@ local xplaying_jokers_info = {
 	    },
         ability_name = "HCM Coming Home",
         slug = "hcm_coming_home",
+        ability = { extra = { best_hand = "High Card", done = false} }
+    },
+    XPlayingClubQ= {
+    	loc = {
+	        name = "Funker Viper",
+	        text = {
+	            "{C:attention}Shuffle{} all cards played or ",
+	            "discarded {C:attention}back to the deck{}",
+	            "{C:attention}after you play a hand{}.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Funker Viper!"
+	    },
+        ability_name = "HCM Funker Viper",
+        slug = "hcm_funker_viper",
         ability = { extra = { best_hand = "High Card", done = false} }
     },
     XPlayingClubK= {
@@ -2474,6 +2491,23 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingClubQ then
+        SMODS.Jokers.j_hcm_funker_viper.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClubQ")
+                    self.ability.extra.done = true
+                end
+                --if context.after then 
+                --	card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_funker_viper"]["card_eval"]})
+                --	G.FUNCS.draw_from_discard_to_deck()
+                --end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingClubK then
         function SMODS.Jokers.j_hcm_reapers_hand.loc_def(card)
             return { card.ability.extra.chips_gain, card.ability.extra.mult_gain, card.ability.extra.xmult_gain, 
@@ -4016,7 +4050,41 @@ G.FUNCS.play_cards_from_highlighted = function(e)
 	return play_cards_from_highlighted_OG()
 end
 
-flame_handler_OG = G.FUNCS.flame_handler
+local draw_from_play_to_discard_OG = G.FUNCS.draw_from_play_to_discard
+
+G.FUNCS.draw_from_play_to_discard = function(e)
+    draw_from_play_to_discard_OG()
+    for _, jkr in pairs(G.jokers.cards) do
+    	if jkr.ability.name == 'HCM Funker Viper' then
+			sendInfoMessage("Funker Viper!")
+		    card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_funker_viper"]["card_eval"]})
+            G.FUNCS.draw_from_discard_to_deck(e)
+		end
+	end
+end
+--[[
+local draw_from_deck_to_hand_OG = G.FUNCS.draw_from_deck_to_hand
+
+G.FUNCS.draw_from_deck_to_hand = function(e)
+	
+	for _, jkr in pairs(G.jokers.cards) do
+    	if jkr.ability.name == 'HCM Funker Viper' then
+			sendInfoMessage("Funker Viper!")
+		    card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_funker_viper"]["card_eval"]})
+            local discard_count = #G.discard.cards
+            for i=1, discard_count do --draw cards from deck
+                draw_card(G.discard, G.deck, i*100/discard_count,'up', nil ,nil, 0.005, i%2==0, nil, math.max((21-i)/20,0.7))
+            end
+            --G.FUNCS.draw_from_discard_to_deck(e)
+		end
+	end
+	
+    
+    return draw_from_deck_to_hand_OG(e)
+end
+]]--
+
+local flame_handler_OG = G.FUNCS.flame_handler
 
 G.FUNCS.flame_handler = function(e)
 	flame_handler_OG(e)
