@@ -51,6 +51,7 @@ local xplaying_config = {
     XPlayingDiamond10 = true,
     XPlayingDiamondJ = true,
     XPlayingDiamondK = true,
+    XPlayingDiamondA = true,
     -- Club Family
     XPlayingClub2 = true,
     XPlayingClub3 = true,
@@ -643,6 +644,22 @@ local xplaying_jokers_info = {
         slug = "hcm_round_and_round",
         ability = { extra = { required_cnt = 5, required_sat = false, done = false} }
     },
+    XPlayingDiamondA= {
+    	loc = {
+	        name = "Dynamic Kinesis",
+	        text = {
+	            "If your played hand is",
+	            "{C:attention}exactly #1# card{}, retrigger",
+	            "this card {C:attention}#2# times{}. ",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Dynamic Kinesis!"
+	    },
+        ability_name = "HCM Dynamic Kinesis",
+        slug = "hcm_dynamic_kinesis",
+        ability = { extra = { retrigger_cnt = 5, required_cnt = 1, repeated = false, done = false} }
+    },
     XPlayingClub2= {
     	loc = {
 	        name = "Metallical Parade",
@@ -652,7 +669,8 @@ local xplaying_jokers_info = {
 	            "When round ends, transform",
 	            "back to {C:attention}X-Playing Joker{}."
 	        },
-	        card_eval = "Metallical Parade!"
+	        card_eval = "Metallical Parade!",
+	        card_eval_pc = "Metal!",
 	    },
         ability_name = "HCM Metallical Parade",
         slug = "hcm_metallical_parade",
@@ -2284,6 +2302,36 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingDiamondA then
+        function SMODS.Jokers.j_hcm_dynamic_kinesis.loc_def(card)
+            return { card.ability.extra.required_cnt, card.ability.extra.retrigger_cnt }
+        end
+        SMODS.Jokers.j_hcm_dynamic_kinesis.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamondA")
+                    self.ability.extra.done = true
+                end
+                if context.repetition then
+                    if context.cardarea == G.play and #context.full_hand == self.ability.extra.required_cnt and not self.ability.extra.repeated then
+                        sendInfoMessage("Dynamic Kinesis triggered!")
+                        self.ability.extra.repeated = true
+                        card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_dynamic_kinesis"]["card_eval"]})
+                        return {
+                        	message = localize('k_again_ex'),
+                            --message = G.localization.descriptions["Joker"]["j_hcm_dynamic_kinesis"]["card_eval"],
+                            repetitions = self.ability.extra.retrigger_cnt,
+                            card = context.other_card
+                        }
+                    end
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    self.ability.extra.repeated = false
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingClub2 then
         function SMODS.Jokers.j_hcm_metallical_parade.loc_def(card)
             return { card.ability.extra.Xmult }
@@ -2297,7 +2345,7 @@ function SMODS.INIT.HighCardMod()
                 if context.individual then 
                     if context.cardarea == G.play then
                         if context.other_card.config.center == G.P_CENTERS.m_steel or context.other_card.config.center == G.P_CENTERS.m_gold then
-                            card_eval_status_text(context.other_card, 'extra', nil, nil, nil, {message = "Metal!"})
+                            card_eval_status_text(context.other_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_metallical_parade"]["card_eval_pc"]})
                             return {
                                 x_mult = self.ability.extra.Xmult,
                                 card = self
