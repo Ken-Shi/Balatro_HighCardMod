@@ -10,7 +10,7 @@ The mod takes inspiration from the anime series "High Card", with joker art and 
 </div>
 
 # Installation
-1. Please install [Steamodded](https://github.com/Steamopollys/Steamodded) via its instructions (Currently support 0.9.7+). This is used by most of the Balatro mods.
+1. Please install [Steamodded](https://github.com/Steamopollys/Steamodded) via its instructions (Currently support 0.9.8+). This is used by most of the Balatro mods.
    
 Quick Install for step 2: download the zip file and unzip them in Steamodded's Mods folder. You should get a folders called `HighCardMod`;
 
