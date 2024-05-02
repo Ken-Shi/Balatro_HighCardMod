@@ -25,6 +25,7 @@ local xplaying_config = {
     XPlayingSpade8 = true,
     XPlayingSpade9 = true,
     XPlayingSpade10 = true,
+    XPlayingSpadeQ = false,
     XPlayingSpadeK = false,
     XPlayingSpadeA = true,
     -- Heart Family
@@ -237,6 +238,21 @@ local xplaying_jokers_info = {
         ability_name = "HCM Honest Straight",
         slug = "hcm_honest_straight",
         ability = { extra = { transfer_card = nil, done = false} }
+    },
+    XPlayingSpadeQ = {
+    	loc = {
+	        name = "Typhoid Mary",
+	        text = {
+	            "After you play a hand,",
+	            "{C:attention}replay{} that hand with {X:mult,C:white}X#1#{}.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Typhoid Mary!",
+	    },
+        ability_name = "HCM Typhoid Mary",
+        slug = "hcm_typhoid_mary",
+        ability = { extra = { Xmult = 0.5, done = false, bonus_hand = false, highlighted_cards = {}} }
     },
     XPlayingSpadeK = {
     	loc = {
@@ -1287,6 +1303,7 @@ function SMODS.INIT.HighCardMod()
 
     -- Individual Jokers
     if xplaying_config.XPlayingJoker then
+    	--SMODS.Jokers.j_hcm_xplay.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_xplay.loc_def(card)
             return { card.ability.extra.placeholder }
         end
@@ -1310,6 +1327,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpade2 then
+    	SMODS.Jokers.j_hcm_neo_new_nambu.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_neo_new_nambu.loc_def(card)
             return { card.ability.extra.hand_gain, card.ability.extra.hand_size, card.ability.extra.hand_ge }
         end
@@ -1331,6 +1349,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpade3 then
+    	SMODS.Jokers.j_hcm_staff_master.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_staff_master.loc_def(card)
             return { card.ability.extra.suits_required }
         end
@@ -1348,6 +1367,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpade4 then
+    	SMODS.Jokers.j_hcm_clear_lance.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_clear_lance.loc_def(card)
             return { card.ability.extra.card_play, card.ability.extra.card_score, card.ability.extra.Xmult }
         end
@@ -1371,6 +1391,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpade5 then
+    	SMODS.Jokers.j_hcm_brain_buster.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_brain_buster.loc_def(card)
             return { card.ability.extra.Xmult, card.ability.extra.Xmult_acc }
         end
@@ -1406,6 +1427,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpade6 then
+    	SMODS.Jokers.j_hcm_juggling_gun.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_juggling_gun.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1419,6 +1441,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpade7 then
+    	SMODS.Jokers.j_hcm_interceptor.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_interceptor.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1470,6 +1493,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpade8 then
+    	SMODS.Jokers.j_hcm_all_kaboom.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_all_kaboom.loc_def(card)
             return { card.ability.extra.kaboom_mult }
         end
@@ -1510,6 +1534,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpade9 then
+    	SMODS.Jokers.j_hcm_bokka.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_bokka.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1546,6 +1571,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpade10 then
+    	SMODS.Jokers.j_hcm_honest_straight.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_honest_straight.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1577,7 +1603,40 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingSpadeQ then
+    	SMODS.Jokers.j_hcm_typhoid_mary.yes_pool_flag = 'X-Playing Card'
+        function SMODS.Jokers.j_hcm_typhoid_mary.loc_def(card)
+            return { card.ability.extra.Xmult }
+        end
+        SMODS.Jokers.j_hcm_typhoid_mary.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpadeQ")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                	self.ability.extra.done = false
+                	self.ability.extra.highlighted_cards = {}
+					for k, v in ipairs(context.full_hand) do
+						table.insert(self.ability.extra.highlighted_cards, v)
+					end
+					sendInfoMessage(#self.ability.extra.highlighted_cards)
+                	if self.ability.extra.bonus_hand then 
+                		self.ability.extra.bonus_hand = false 
+                		return{
+	                        message = G.localization.descriptions["Joker"]["j_hcm_typhoid_mary"]["card_eval"],
+	                        card = self,
+	                        Xmult_mod = self.ability.extra.Xmult
+	                    }
+                	else
+                		self.ability.extra.bonus_hand = true 
+                	end
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingSpadeK then
+    	SMODS.Jokers.j_hcm_san_galgano.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_san_galgano.loc_def(card)
             return { card.ability.extra.Xmult, card.ability.extra.Xmult_acc }
         end
@@ -1588,7 +1647,7 @@ function SMODS.INIT.HighCardMod()
                     self.ability.extra.done = true
                 end
                 if SMODS.end_calculate_context(context) then
-                	
+                	self.ability.extra.done = false
                 	if context.scoring_hand[1]:get_id() == 13 and context.scoring_hand[1].base.suit == "Spades" then
                     	sendInfoMessage("Trying to set ability")
                     	G.E_MANAGER:add_event(Event({
@@ -1605,6 +1664,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingSpadeA then
+    	SMODS.Jokers.j_hcm_love_and_peace.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_love_and_peace.loc_def(card)
             return { card.ability.extra.chips_gain, card.ability.extra.mult_gain }
         end
@@ -1659,6 +1719,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeart2 then
+    	SMODS.Jokers.j_hcm_jelly_crawler.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_jelly_crawler.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1672,6 +1733,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeart3 then
+    	SMODS.Jokers.j_hcm_rockin_rocks.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_rockin_rocks.loc_def(card)
             return { card.ability.extra.retrigger_cnt }
         end
@@ -1711,6 +1773,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeart4 then
+    	SMODS.Jokers.j_hcm_agent_s.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_agent_s.loc_def(card)
             return { card.ability.extra.retrigger_cnt }
         end
@@ -1739,6 +1802,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeart5 then
+    	SMODS.Jokers.j_hcm_calories_high.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_calories_high.loc_def(card)
             return { card.ability.extra.discard_gain, card.ability.extra.hand_play }
         end
@@ -1770,6 +1834,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeart6 then
+    	SMODS.Jokers.j_hcm_the_zoo.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_the_zoo.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1783,6 +1848,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeart7 then
+    	SMODS.Jokers.j_hcm_chameleon.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_chameleon.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1822,6 +1888,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeart8 then
+    	SMODS.Jokers.j_hcm_mun_pheromone_mun.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_mun_pheromone_mun.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1874,6 +1941,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeart10 then
+    	SMODS.Jokers.j_hcm_common_destiny.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_common_destiny.loc_def(card)
             return { card.ability.extra.chain_cnt }
         end
@@ -1890,6 +1958,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeartJ then
+    	SMODS.Jokers.j_hcm_sky_dancer.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_sky_dancer.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -1932,6 +2001,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeartQ then
+    	SMODS.Jokers.j_hcm_sonic_move.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_sonic_move.loc_def(card)
             return { card.ability.extra.timer_value, card.ability.extra.Xmult, card.ability.extra.timer }
         end
@@ -1953,6 +2023,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingHeartK then
+    	SMODS.Jokers.j_hcm_masculine_parfait.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_masculine_parfait.loc_def(card)
             return { card.ability.extra.chips_gain, card.ability.extra.mult_gain, card.ability.extra.chips_acc, card.ability.extra.mult_acc }
         end
@@ -1987,6 +2058,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
 	if xplaying_config.XPlayingHeartA then
+		SMODS.Jokers.j_hcm_faceless.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_faceless.loc_def(card)
             return { card.ability.extra.cards_limit }
         end
@@ -2018,6 +2090,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamond2 then
+    	SMODS.Jokers.j_hcm_love_connection.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_love_connection.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -2031,6 +2104,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamond3 then
+    	SMODS.Jokers.j_hcm_marble_rumble.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_marble_rumble.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -2061,6 +2135,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamond5 then
+    	SMODS.Jokers.j_hcm_greatest_man.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_greatest_man.loc_def(card)
             return { card.ability.extra.best_hand }
         end
@@ -2090,6 +2165,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamond6 then
+    	SMODS.Jokers.j_hcm_13_stairs.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_13_stairs.loc_def(card)
             return { card.ability.extra.stairs, card.ability.extra.ante_mod, card.ability.extra.scored_cards }
         end
@@ -2120,6 +2196,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamond7 then
+    	SMODS.Jokers.j_hcm_never_no_dollars.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_never_no_dollars.loc_def(card)
             return { card.ability.extra.max_money, card.ability.extra.chip_mult }
         end
@@ -2151,6 +2228,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamond8 then
+    	SMODS.Jokers.j_hcm_red_labyrinth.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_red_labyrinth.loc_def(card)
             return { card.ability.extra.reroll_cost }
         end
@@ -2167,6 +2245,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamond9 then
+    	SMODS.Jokers.j_hcm_no_mercy.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_no_mercy.loc_def(card)
             return { card.ability.extra.mult_gain, card.ability.extra.mult_acc }
         end
@@ -2221,6 +2300,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamond10 then
+    	SMODS.Jokers.j_hcm_unlucky_poky.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_unlucky_poky.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -2250,6 +2330,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamondJ then
+    	SMODS.Jokers.j_hcm_out_of_five.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_out_of_five.loc_def(card)
             return { card.ability.extra.best_hand }
         end
@@ -2271,6 +2352,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamondK then
+    	SMODS.Jokers.j_hcm_round_and_round.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_round_and_round.loc_def(card)
             return { card.ability.extra.required_cnt }
         end
@@ -2303,6 +2385,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingDiamondA then
+    	SMODS.Jokers.j_hcm_dynamic_kinesis.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_dynamic_kinesis.loc_def(card)
             return { card.ability.extra.required_cnt, card.ability.extra.retrigger_cnt }
         end
@@ -2333,6 +2416,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClub2 then
+    	SMODS.Jokers.j_hcm_metallical_parade.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_metallical_parade.loc_def(card)
             return { card.ability.extra.Xmult }
         end
@@ -2366,6 +2450,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClub3 then
+    	SMODS.Jokers.j_hcm_green_green.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_green_green.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -2379,6 +2464,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClub4 then
+    	SMODS.Jokers.j_hcm_wing_wind.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_wing_wind.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -2396,6 +2482,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClub5 then
+    	SMODS.Jokers.j_hcm_g_round.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_g_round.loc_def(card)
             return { card.ability.extra.mult_gain, card.ability.extra.mult_acc }
         end
@@ -2431,6 +2518,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClub7 then
+    	SMODS.Jokers.j_hcm_lethal_scoville.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_lethal_scoville.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -2446,6 +2534,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClub8 then
+    	SMODS.Jokers.j_hcm_sinking_shadow.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_sinking_shadow.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -2484,6 +2573,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClub10 then
+    	SMODS.Jokers.j_hcm_million_volt.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_million_volt.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then 
@@ -2514,6 +2604,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClubJ then
+    	SMODS.Jokers.j_hcm_coming_home.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_coming_home.loc_def(card)
             return { card.ability.extra.best_hand }
         end
@@ -2540,6 +2631,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClubQ then
+    	SMODS.Jokers.j_hcm_funker_viper.yes_pool_flag = 'X-Playing Card'
         SMODS.Jokers.j_hcm_funker_viper.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
@@ -2557,6 +2649,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClubK then
+    	SMODS.Jokers.j_hcm_reapers_hand.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_reapers_hand.loc_def(card)
             return { card.ability.extra.chips_gain, card.ability.extra.mult_gain, card.ability.extra.xmult_gain, 
                      card.ability.extra.gold_cnt * 3}
@@ -2672,6 +2765,7 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClubA then
+    	SMODS.Jokers.j_hcm_life_binder.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_life_binder.loc_def(card)
             return { card.ability.extra.cards_required }
         end
@@ -2735,7 +2829,8 @@ local add_to_deckref = Card.add_to_deck
 function Card:add_to_deck(from_debuff)
     if not self.added_to_deck then
         
-        if self.ability.name == 'HCM X-Play' then 
+        --[[
+		if self.ability.name == 'HCM X-Play' then 
             for idx, jkr in pairs(xplaying_jokers) do
                 local jokers_for_remove = {}
                 for k, rjkr in pairs(G.P_JOKER_RARITY_POOLS[4]) do
@@ -2749,6 +2844,8 @@ function Card:add_to_deck(from_debuff)
                 end
             end
         end
+        ]]--
+        
         if self.ability.name == 'HCM Neo New Nambu' then
             entrance_neo_new_nambu(self)
         end
@@ -3913,7 +4010,7 @@ end
 play_cards_from_highlighted_OG = G.FUNCS.play_cards_from_highlighted
 
 G.FUNCS.play_cards_from_highlighted = function(e)
-	
+	sendInfoMessage("Play cards from highlighted!")
 	for _, jkr in pairs(G.jokers.cards) do
 		if jkr.ability.name == 'HCM Staff Master' then
 			sendInfoMessage("Staff Master Generation Process!")
@@ -4094,15 +4191,196 @@ G.FUNCS.play_cards_from_highlighted = function(e)
 		    	card_eval_status_text(lowest_unhighlighted_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_juggling_gun"]["card_eval"]})
 			end
 		end
+		if jkr.ability.name == 'HCM Typhoid Mary' then
+			if jkr.ability.extra.bonus_hand then
+			    if G.play and G.play.cards[1] then return end
+			    --check the hand first
+			    sendInfoMessage("This is happening?")
+			    stop_use()
+			    sendInfoMessage("This is after stop_use")
+			    G.GAME.blind.triggered = false
+			    G.CONTROLLER.interrupt.focus = true
+			    G.CONTROLLER:save_cardarea_focus('hand')
+			    sendInfoMessage("This is after save_cardarea_focus")
+
+			    for k, v in ipairs(G.playing_cards) do
+			        v.ability.forced_selection = nil
+			    end
+			    sendInfoMessage("This is after removing forced selection")
+			    
+			    table.sort(G.hand.highlighted, function(a,b) return a.T.x < b.T.x end)
+			    G.E_MANAGER:add_event(Event({
+			        trigger = 'immediate',
+			        func = function()
+			        	sendInfoMessage("Fuck?")
+			            G.STATE = G.STATES.HAND_PLAYED
+			            G.STATE_COMPLETE = true
+			            return true
+			        end
+			    }))
+			    inc_career_stat('c_cards_played', #G.hand.highlighted)
+			    inc_career_stat('c_hands_played', 1)
+			    sendInfoMessage("This is after inc_career_stat")
+			    ease_hands_played(-1)
+			    delay(0.4)
+			    sendInfoMessage("This is after hand ease")
+
+			        for i=1, #G.hand.highlighted do
+			            if G.hand.highlighted[i]:is_face() then inc_career_stat('c_face_cards_played', 1) end
+			            G.hand.highlighted[i].base.times_played = G.hand.highlighted[i].base.times_played + 1
+			            G.hand.highlighted[i].ability.played_this_ante = true
+			            G.GAME.round_scores.cards_played.amt = G.GAME.round_scores.cards_played.amt + 1
+			            draw_card(G.hand, G.play, i*100/#G.hand.highlighted, 'up', nil, G.hand.highlighted[i])
+			        end
+			        
+					G.E_MANAGER:add_event(Event({
+			            trigger = 'before',
+			            func = (function()
+			            	sendInfoMessage("A couple of things!")
+			                check_for_unlock({type = 'hand_contents', cards = G.play.cards})
+
+			                G.E_MANAGER:add_event(Event({
+			                    trigger = 'immediate',
+			                    func = function()
+			                    	sendInfoMessage("evaluate_play is happening!")
+			                        G.FUNCS.evaluate_play()
+			                        return true
+			                    end
+			                }))
+			                G.E_MANAGER:add_event(Event({
+			                    trigger = 'after',
+			                    delay = 0.1,
+			                    func = function()
+			                        check_for_unlock({type = 'play_all_hearts'})
+			                        sendInfoMessage("play to discard is happening!")
+			                        G.FUNCS.draw_from_play_to_discard()
+			                        G.GAME.hands_played = G.GAME.hands_played + 1
+			                        G.GAME.current_round.hands_played = G.GAME.current_round.hands_played + 1
+			                        return true
+			                    end
+			                }))
+			                G.E_MANAGER:add_event(Event({
+			                    trigger = 'immediate',
+			                    func = function()
+			                    	sendInfoMessage("Fuck!")
+			                        G.STATE_COMPLETE = false
+			                        return true
+			                    end
+			                }))
+			                return true
+			            end)
+			            }))
+			        
+			        
+			    return true
+			end
+		end
 	end
-	return play_cards_from_highlighted_OG()
+	return play_cards_from_highlighted_OG(e)
+end
+
+local update_draw_to_hand_OG = Game.update_draw_to_hand
+
+function Game:update_draw_to_hand(dt)
+	--sendInfoMessage("Update draw to hand!")
+	update_draw_to_hand_OG(self, dt)
+end
+
+local draw_from_deck_to_hand_OG = G.FUNCS.draw_from_deck_to_hand
+
+G.FUNCS.draw_from_deck_to_hand = function(e)
+	sendInfoMessage("draw cards now!")
+	local hcm_replace = false
+	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM Typhoid Mary' then
+			if jkr.ability.extra.bonus_hand then
+				hcm_replace = true
+			end
+		end
+	end
+	if hcm_replace then 
+		sendInfoMessage("draw cards: check return")
+		if not (G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK) and
+	        G.hand.config.card_limit <= 0 and #G.hand.cards == 0 then 
+	        G.STATE = G.STATES.GAME_OVER; G.STATE_COMPLETE = false 
+	        return true
+	    end
+
+	    local hand_space = e or math.min(#G.deck.cards, G.hand.config.card_limit - #G.hand.cards)
+	    if G.GAME.blind.name == 'The Serpent' and
+	        not G.GAME.blind.disabled and
+	        (G.GAME.current_round.hands_played > 0 or
+	        G.GAME.current_round.discards_used > 0) then
+	            hand_space = math.min(#G.deck.cards, 3)
+	    end
+	    delay(0.3)
+	    sendInfoMessage("draw cards: calculated handspace")
+	    for i=1, hand_space do --draw cards from deckL
+	        if G.STATE == G.STATES.TAROT_PACK or G.STATE == G.STATES.SPECTRAL_PACK then 
+	            draw_card(G.deck,G.hand, i*100/hand_space,'up', true)
+	        else
+	            draw_card(G.deck,G.hand, i*100/hand_space,'up', true)
+	        end
+	    end
+	    sendInfoMessage("draw cards: done!")
+	else return draw_from_deck_to_hand_OG(e) end
 end
 
 local draw_from_play_to_discard_OG = G.FUNCS.draw_from_play_to_discard
 
 G.FUNCS.draw_from_play_to_discard = function(e)
-    draw_from_play_to_discard_OG()
-    for _, jkr in pairs(G.jokers.cards) do
+	--[[]]
+	draw_from_play_to_discard_OG()
+	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM Typhoid Mary' then
+			sendInfoMessage("Typhoid Mary!")
+			if jkr.ability.extra.bonus_hand then
+				sendInfoMessage("Typhoid Mary Bonus Set!")
+				G.E_MANAGER:add_event(Event({
+			        trigger = 'before',
+			        func = function()
+			        	card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_typhoid_mary"]["card_eval"]})
+						sendInfoMessage("Typhoid Mary Bonus Triggered!")
+			        	G.E_MANAGER:add_event(Event({
+		                    trigger = 'before',
+		                    func = function()
+		                        for k, v in ipairs(jkr.ability.extra.highlighted_cards) do
+					        		draw_card(G.discard, G.hand, k*100/#jkr.ability.extra.highlighted_cards,'up', nil ,v, 0.005, k%2==0, nil, math.max((21-k)/20,0.7))
+					        	end
+					        	sendInfoMessage(#jkr.ability.extra.highlighted_cards)
+					        	return true
+		                    end
+		                }))
+
+			        	G.E_MANAGER:add_event(Event({
+		                    trigger = 'before',
+		                    func = function()
+		                        for k, v in ipairs(jkr.ability.extra.highlighted_cards) do
+									table.insert(G.hand.highlighted, v)
+								end
+								sendInfoMessage(#G.hand.highlighted)
+					        	return true
+		                    end
+		                }))
+		             	G.E_MANAGER:add_event(Event({
+		                    trigger = 'immediate',
+		                    func = function()
+		                    	sendInfoMessage("Time to play")
+		                        ease_hands_played(1)
+		                        G.FUNCS.play_cards_from_highlighted(e)
+					        	return true
+		                    end
+		                }))
+
+			            return true
+			        end
+			    }))
+			end
+		end
+	end
+	--]]--
+    --draw_from_play_to_discard_OG()
+	for _, jkr in pairs(G.jokers.cards) do
     	if jkr.ability.name == 'HCM Funker Viper' then
 			sendInfoMessage("Funker Viper!")
 		    card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_funker_viper"]["card_eval"]})
@@ -4110,27 +4388,6 @@ G.FUNCS.draw_from_play_to_discard = function(e)
 		end
 	end
 end
---[[
-local draw_from_deck_to_hand_OG = G.FUNCS.draw_from_deck_to_hand
-
-G.FUNCS.draw_from_deck_to_hand = function(e)
-	
-	for _, jkr in pairs(G.jokers.cards) do
-    	if jkr.ability.name == 'HCM Funker Viper' then
-			sendInfoMessage("Funker Viper!")
-		    card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_funker_viper"]["card_eval"]})
-            local discard_count = #G.discard.cards
-            for i=1, discard_count do --draw cards from deck
-                draw_card(G.discard, G.deck, i*100/discard_count,'up', nil ,nil, 0.005, i%2==0, nil, math.max((21-i)/20,0.7))
-            end
-            --G.FUNCS.draw_from_discard_to_deck(e)
-		end
-	end
-	
-    
-    return draw_from_deck_to_hand_OG(e)
-end
-]]--
 
 local flame_handler_OG = G.FUNCS.flame_handler
 
