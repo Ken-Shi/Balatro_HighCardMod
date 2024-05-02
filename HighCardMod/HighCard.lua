@@ -25,7 +25,7 @@ local xplaying_config = {
     XPlayingSpade8 = true,
     XPlayingSpade9 = true,
     XPlayingSpade10 = true,
-    XPlayingSpadeQ = false,
+    XPlayingSpadeQ = false,--
     XPlayingSpadeK = false,
     XPlayingSpadeA = true,
     -- Heart Family
