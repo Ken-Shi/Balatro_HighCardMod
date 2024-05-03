@@ -5,6 +5,7 @@
 --- MOD_DESCRIPTION: Create a deck that references the HighCard Franchise!
 --- BADGE_COLOUR: AF843E
 --- DISPLAY_NAME: HIGH CARD
+--- PRIORITY: -28
 
 ----------------------------------------------
 ------------MOD CODE -------------------------
@@ -25,7 +26,8 @@ local xplaying_config = {
     XPlayingSpade8 = true,
     XPlayingSpade9 = true,
     XPlayingSpade10 = true,
-    XPlayingSpadeQ = true,--
+    XPlayingSpadeJ = true,
+    XPlayingSpadeQ = true,
     XPlayingSpadeK = false,
     XPlayingSpadeA = true,
     -- Heart Family
@@ -239,6 +241,23 @@ local xplaying_jokers_info = {
         ability_name = "HCM Honest Straight",
         slug = "hcm_honest_straight",
         ability = { extra = { transfer_card = nil, done = false} }
+    },
+    XPlayingSpadeJ = {
+    	loc = {
+	        name = "Marine Hunter",
+	        text = {
+	            "Scoring your {C:attention}most played hand{}",
+	            "will add the {C:attention}number of times{}",
+	            "{C:attention}this hand is played{} to {C:mult}mult{}.",
+	            "{C:inactive}(Now Looking for{} {C:attention}#1#{}{C:inactive}...){}",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Marine Hunter!",
+	    },
+        ability_name = "HCM Marine Hunter",
+        slug = "hcm_marine_hunter",
+        ability = { extra = { mult_gain = 0, best_hand = "High Card", done = false} }
     },
     XPlayingSpadeQ = {
     	loc = {
@@ -1624,6 +1643,32 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingSpadeJ then
+    	SMODS.Jokers.j_hcm_marine_hunter.yes_pool_flag = 'X-Playing Card'
+        function SMODS.Jokers.j_hcm_marine_hunter.loc_def(card)
+            return { card.ability.extra.best_hand }
+        end
+        SMODS.Jokers.j_hcm_marine_hunter.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingSpadeJ")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    self.ability.extra.best_hand = hcm_hand_most_played(true)
+				    if context.scoring_name == self.ability.extra.best_hand then
+					    local most_played_times = G.GAME.hands[self.ability.extra.best_hand].played
+					    return{
+	                        message = G.localization.descriptions["Joker"]["j_hcm_marine_hunter"]["card_eval"],
+	                        card = self,
+	                        mult_mod = most_played_times
+	                    }
+	                end
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingSpadeQ then
     	SMODS.Jokers.j_hcm_typhoid_mary.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_typhoid_mary.loc_def(card)
@@ -2926,6 +2971,9 @@ function Card:add_to_deck(from_debuff)
         
         if self.ability.name == 'HCM Neo New Nambu' then
             entrance_neo_new_nambu(self)
+        end
+        if self.ability.name == 'HCM Marine Hunter' then 
+            self.ability.extra.best_hand = hcm_hand_most_played(false)
         end
         if self.ability.name == 'HCM Love and Peace' then 
             local any_forced = nil
