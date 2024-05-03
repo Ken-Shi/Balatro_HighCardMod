@@ -58,6 +58,7 @@ local xplaying_config = {
     XPlayingClub3 = true,
     XPlayingClub4 = true,
     XPlayingClub5 = true,
+    XPlayingClub6 = true,
     XPlayingClub7 = true,
     XPlayingClub8 = true,
     XPlayingClub10 = true,
@@ -742,6 +743,23 @@ local xplaying_jokers_info = {
         ability_name = "HCM G Round",
         slug = "hcm_g_round",
         ability = { extra = { mult_gain = 5, mult_acc = 0, done = false} }
+    },
+    XPlayingClub6= {
+    	loc = {
+	        name = "Eye of the Storm",
+	        text = {
+	            "All scoring cards whose rank",
+	            "is equal to the {C:attention}average{}",
+	            "{C:attention}scoring rank of this hand{}",
+	            "permanently gains {C:chips}+#1#{} chips.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Vortex!"
+	    },
+        ability_name = "HCM Eye of the Storm",
+        slug = "hcm_eye_of_the_storm",
+        ability = { extra = { chips_gain = 6, current_average = 0, done = false} }
     },
     XPlayingClub7= {
     	loc = {
@@ -2521,6 +2539,58 @@ function SMODS.INIT.HighCardMod()
                             card = self
                         }
                     end
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingClub6 then
+    	SMODS.Jokers.j_hcm_eye_of_the_storm.yes_pool_flag = 'X-Playing Card'
+    	function SMODS.Jokers.j_hcm_eye_of_the_storm.loc_def(card)
+            return { card.ability.extra.chips_gain }
+        end
+        SMODS.Jokers.j_hcm_eye_of_the_storm.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClub6")
+                    self.ability.extra.done = true
+                end
+
+                if context.before then 
+                	local current_average = 0
+                	local rank_cnt = 0
+                	for k, v in ipairs(context.scoring_hand) do
+                		local current_rank = v:get_id()
+                		if current_rank == 14 then current_rank = 1 end
+                		if v.config.center == G.P_CENTERS.m_stone then 
+                		else 
+                			current_average = current_average + current_rank 
+                			rank_cnt = rank_cnt + 1
+                		end
+                	end
+                	current_average = current_average / rank_cnt
+             		self.ability.extra.current_average = current_average
+             		sendInfoMessage("average is "..current_average)
+                end
+
+                if context.individual then
+		            if context.cardarea == G.play then
+		            	local rank_now = context.other_card:get_id()
+		            	if rank_now == 14 then rank_now = 1 end
+		            	if context.other_card.config.center == G.P_CENTERS.m_stone then rank_now = 0 end
+		                if self.ability.extra.current_average == rank_now then
+	                        context.other_card.ability.perma_bonus = context.other_card.ability.perma_bonus or 0
+	                        context.other_card.ability.perma_bonus = context.other_card.ability.perma_bonus + self.ability.extra.chips_gain
+	                        return {
+	                            extra = {message = G.localization.descriptions["Joker"]["j_hcm_eye_of_the_storm"]["card_eval"], colour = G.C.CHIPS},
+	                            colour = G.C.CHIPS,
+	                            card = self
+	                        }
+		                end
+		            end
+		        end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
                 end
             end
         end
