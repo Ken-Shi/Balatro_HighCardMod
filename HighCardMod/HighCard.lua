@@ -46,6 +46,7 @@ local xplaying_config = {
     -- Diamond Family
     XPlayingDiamond2 = true,
     XPlayingDiamond3 = true,
+    XPlayingDiamond4 = true,
     XPlayingDiamond5 = true,
     XPlayingDiamond6 = true,
     XPlayingDiamond7 = true,
@@ -541,6 +542,22 @@ local xplaying_jokers_info = {
         ability_name = "HCM Marble Rumble",
         slug = "hcm_marble_rumble",
         ability = { extra = { done = false} }
+    },
+    XPlayingDiamond4= {
+    	loc = {
+	        name = "Musical Alchemist",
+	        text = {
+	            "Add a {C:attention}Wildcard 4{} to play if",
+	            "you played {C:attention}exactly #1# cards{}",
+	            "and this helps to form {C:attention}Flush{}.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Musical Alchemist!"
+	    },
+        ability_name = "HCM Musical Alchemist",
+        slug = "hcm_musical_alchemist",
+        ability = { extra = { required_cnt = 4, done = false} }
     },
     XPlayingDiamond5= {
     	loc = {
@@ -2198,6 +2215,23 @@ function SMODS.INIT.HighCardMod()
                         message = G.localization.descriptions["Joker"]["j_hcm_marble_rumble"]["card_eval"],
                         card = self
                     }
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingDiamond4 then
+    	SMODS.Jokers.j_hcm_musical_alchemist.yes_pool_flag = 'X-Playing Card'
+        function SMODS.Jokers.j_hcm_musical_alchemist.loc_def(card)
+            return { card.ability.extra.required_cnt }
+        end
+        SMODS.Jokers.j_hcm_musical_alchemist.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamond4")
+                    self.ability.extra.done = true
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
@@ -4660,7 +4694,6 @@ G.FUNCS.play_cards_from_highlighted = function(e)
 	for _, jkr in pairs(G.jokers.cards) do
 		if jkr.ability.name == 'HCM Staff Master' then
 			sendInfoMessage("Staff Master Generation Process!")
-			jkr.ability.extra.faceless_trigger = false
 			if #G.hand.highlighted <= 2 then return play_cards_from_highlighted_OG() end
 			local suits = {
 				Hearts=0, 
@@ -4744,6 +4777,9 @@ G.FUNCS.play_cards_from_highlighted = function(e)
 		    local temp_hand_ranks = {}
 		    for k, v in ipairs(G.hand.highlighted) do
 		    	if v.config.center == G.P_CENTERS.m_stone then
+		    	elseif v.config.center == G.P_CENTERS.m_wild then
+		    		table.insert(temp_hand_suits, "Wild") 
+		    		table.insert(temp_hand_ranks, v:get_id())
 		    	else
 			    	table.insert(temp_hand_suits, v.base.suit)
 			    	table.insert(temp_hand_ranks, v:get_id())
@@ -4810,6 +4846,54 @@ G.FUNCS.play_cards_from_highlighted = function(e)
 		    })) 
 		    table.insert(G.hand.highlighted, fake_card)
 		    card_eval_status_text(fake_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_faceless"]["card_eval"]})
+		end
+		if jkr.ability.name == 'HCM Musical Alchemist' then
+			sendInfoMessage("Musical Alchemist Generation Process!")
+			if #G.hand.highlighted ~= 4 then return play_cards_from_highlighted_OG() end
+			local suits = {"Hearts", "Diamonds", "Clubs", "Spades"}
+		    local ranks = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}
+		    local temp_hand_suits = {}
+		    local temp_hand_ranks = {}
+		    for k, v in ipairs(G.hand.highlighted) do
+		    	if v.config.center == G.P_CENTERS.m_stone then
+		    	elseif v.config.center == G.P_CENTERS.m_wild then
+		    		table.insert(temp_hand_suits, "Wild") 
+		    		table.insert(temp_hand_ranks, v:get_id())
+		    	else
+			    	table.insert(temp_hand_suits, v.base.suit)
+			    	table.insert(temp_hand_ranks, v:get_id())
+			    end
+		    end
+		    if #temp_hand_ranks == 0 then return play_cards_from_highlighted_OG() end
+		    local temp_card_suit = "Wild"
+		    local temp_card_rank = 4
+		    table.insert(temp_hand_suits, temp_card_suit)
+		    table.insert(temp_hand_ranks, temp_card_rank)
+			local current_hand = hcm_best_hand(temp_hand_suits, temp_hand_ranks)
+			if current_hand == 'Flush' or current_hand == 'Flush Five' or current_hand == 'Flush House' then
+				G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+		    
+			    local card_encode = 'D_4'
+			    local fake_card = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[card_encode], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+
+				fake_card:set_ability(G.P_CENTERS.m_wild, nil, true)
+			    fake_card:add_to_deck()
+			    G.deck.config.card_limit = G.deck.config.card_limit + 1
+			    table.insert(G.playing_cards, fake_card)
+			    G.hand:emplace(fake_card)
+			    fake_card.states.visible = nil
+
+			    G.E_MANAGER:add_event(Event({
+			        func = function()
+			            fake_card:start_materialize()
+			            return true
+			        end
+			    })) 
+			    table.insert(G.hand.highlighted, fake_card)
+			    card_eval_status_text(fake_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_musical_alchemist"]["card_eval"]})
+			else
+				return play_cards_from_highlighted_OG()
+			end
 		end
 		if jkr.ability.name == 'HCM Juggling Gun' then
 			sendInfoMessage("Juggling Gun!")
@@ -5091,7 +5175,15 @@ end
 function hcm_best_hand(current_suits, current_ranks)
     local suits, ranks = {}, {}
     for i, _ in ipairs(current_suits) do
-        suits[current_suits[i]] = (suits[current_suits[i]] or 0) + 1
+    	if current_suits[i] == "Wild" then
+    		local all_suits = {'Spades', 'Hearts', 'Clubs', 'Diamonds'}
+    		if SMODS and SMODS.Card and SMODS.Card.SUIT_LIST then all_suits = SMODS.Card.SUIT_LIST end
+    		for _, cur_suit in ipairs(all_suits) do
+    			suits[cur_suit] = (suits[cur_suit] or 0) + 1
+    		end
+    	else 
+        	suits[current_suits[i]] = (suits[current_suits[i]] or 0) + 1
+        end
         ranks[current_ranks[i]] = (ranks[current_ranks[i]] or 0) + 1
         -- Ace can also act as rank 1 for straights
         if current_ranks[i] == 14 then
