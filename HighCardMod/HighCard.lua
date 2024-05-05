@@ -2747,11 +2747,11 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClub9 then
-    	SMODS.Jokers.j_hcm_chlorophyll_overgrowth.yes_pool_flag = 'X-Playing Card'
-    	function SMODS.Jokers.j_hcm_chlorophyll_overgrowth.loc_def(card)
+    	SMODS.Jokers.j_hcm_chlorophyll_overgrown.yes_pool_flag = 'X-Playing Card'
+    	function SMODS.Jokers.j_hcm_chlorophyll_overgrown.loc_def(card)
             return { card.ability.extra.number_gain }
         end
-        SMODS.Jokers.j_hcm_chlorophyll_overgrowth.calculate = function(self, context)
+        SMODS.Jokers.j_hcm_chlorophyll_overgrown.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingClub9")
@@ -2763,7 +2763,7 @@ function SMODS.INIT.HighCardMod()
                     G.GAME.hands[context.scoring_name].played = G.GAME.hands[context.scoring_name].played + self.ability.extra.number_gain - 1
     				G.GAME.hands[context.scoring_name].played_this_round = G.GAME.hands[context.scoring_name].played_this_round + self.ability.extra.number_gain - 1
                 	return {
-                        message = G.localization.descriptions["Joker"]["j_hcm_chlorophyll_overgrowth"]["card_eval"],
+                        message = G.localization.descriptions["Joker"]["j_hcm_chlorophyll_overgrown"]["card_eval"],
                         card = self
                     }
                 end
