@@ -64,6 +64,7 @@ local xplaying_config = {
     XPlayingClub6 = true,
     XPlayingClub7 = true,
     XPlayingClub8 = true,
+    XPlayingClub9 = true,
     XPlayingClub10 = true,
     XPlayingClubJ = true,
     XPlayingClubQ = true,
@@ -829,6 +830,22 @@ local xplaying_jokers_info = {
         ability_name = "HCM Sinking Shadow",
         slug = "hcm_sinking_shadow",
         ability = { extra = { mult_gain = 0, done = false} }
+    },
+    XPlayingClub9= {
+    	loc = {
+	        name = "Chlorophyll Overgrown",
+	        text = {
+	            "Any poker hand played is",
+	            "considered as played {C:attention}#1#{}",
+	            "times in the {C:attention}record book{}. ",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Chlorophyll Overgrown"
+	    },
+        ability_name = "HCM Chlorophyll Overgrown",
+        slug = "hcm_chlorophyll_overgrown",
+        ability = { extra = { number_gain = 3, done = false} }
     },
     XPlayingClub10= {
     	loc = {
@@ -2725,6 +2742,30 @@ function SMODS.INIT.HighCardMod()
                             card = self
                         }
                     end
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingClub9 then
+    	SMODS.Jokers.j_hcm_chlorophyll_overgrowth.yes_pool_flag = 'X-Playing Card'
+    	function SMODS.Jokers.j_hcm_chlorophyll_overgrowth.loc_def(card)
+            return { card.ability.extra.number_gain }
+        end
+        SMODS.Jokers.j_hcm_chlorophyll_overgrowth.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingClub9")
+                    self.ability.extra.done = true
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    G.GAME.hands[context.scoring_name].played = G.GAME.hands[context.scoring_name].played + self.ability.extra.number_gain - 1
+    				G.GAME.hands[context.scoring_name].played_this_round = G.GAME.hands[context.scoring_name].played_this_round + self.ability.extra.number_gain - 1
+                	return {
+                        message = G.localization.descriptions["Joker"]["j_hcm_chlorophyll_overgrowth"]["card_eval"],
+                        card = self
+                    }
                 end
             end
         end
