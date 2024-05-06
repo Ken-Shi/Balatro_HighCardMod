@@ -55,6 +55,7 @@ local xplaying_config = {
     XPlayingDiamond9 = true,
     XPlayingDiamond10 = true,
     XPlayingDiamondJ = true,
+    XPlayingDiamondQ = true,
     XPlayingDiamondK = true,
     XPlayingDiamondA = true,
     -- Club Family
@@ -698,6 +699,23 @@ local xplaying_jokers_info = {
         slug = "hcm_out_of_five",
         ability = { extra = { best_hand = "Nothing else", msg_on = false, 
         			done = false} }
+    },
+    XPlayingDiamondQ= {
+    	loc = {
+	        name = "Balor",
+	        text = {
+	            "Gains a {C:spectral}vision{} that shows",
+	            "cards in deck {C:attention}in the order{}",
+	            "{C:attention}of which they will be drawn.{}",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Balor Vision",
+	        card_explained = "Cards will be drawn from left to right!"
+	    },
+        ability_name = "HCM Balor",
+        slug = "hcm_balor",
+        ability = { extra = { done = false} }
     },
     XPlayingDiamondK= {
     	loc = {
@@ -2538,6 +2556,21 @@ function SMODS.INIT.HighCardMod()
             end
         end
     end
+    if xplaying_config.XPlayingDiamondQ then
+    	SMODS.Jokers.j_hcm_balor.yes_pool_flag = 'X-Playing Card'
+        SMODS.Jokers.j_hcm_balor.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                    end_xplay("XPlayingDiamondQ")
+                    self.ability.extra.done = true
+                end
+
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                end
+            end
+        end
+    end
     if xplaying_config.XPlayingDiamondK then
     	SMODS.Jokers.j_hcm_round_and_round.yes_pool_flag = 'X-Playing Card'
         function SMODS.Jokers.j_hcm_round_and_round.loc_def(card)
@@ -3088,7 +3121,7 @@ function SMODS.INIT.HighCardMod()
     end
 end
 
-local add_to_deckref = Card.add_to_deck
+local add_to_deck_OG = Card.add_to_deck
 function Card:add_to_deck(from_debuff)
     if not self.added_to_deck then
         
@@ -3154,8 +3187,11 @@ function Card:add_to_deck(from_debuff)
         	--card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_red_labyrinth"]["card_eval"]})
             ease_background_colour{new_colour = G.C.RED, contrast = 3}
         end
+        if self.ability.name == 'HCM Balor' then 
+        	G.GAME.hcm_balor = true
+        end
     end
-    add_to_deckref(self, from_debuff)
+    add_to_deck_OG(self, from_debuff)
 end
 
 local remove_from_deck_OG = Card.remove_from_deck
@@ -3164,6 +3200,9 @@ function Card:remove_from_deck(from_debuff)
         if self.ability.name == 'HCM Neo New Nambu' then
             G.GAME.blind.debuff["h_size_ge"] = 1
             G.GAME.blind.loc_debuff_text = ''
+        end
+        if self.ability.name == 'HCM Balor' then
+            G.GAME.hcm_balor = false
         end
     end
     remove_from_deck_OG(self, from_debuff)
@@ -4230,7 +4269,7 @@ function hcm_draw_Straight_Flush(card_deck, card_hand, hand_space)
 	end
 end
 
-evaluate_play_OG = G.FUNCS.evaluate_play
+local evaluate_play_OG = G.FUNCS.evaluate_play
 function G.FUNCS.evaluate_play(self, e)
 	for _, jkr in pairs(G.jokers.cards) do
 		if jkr.ability.name == 'HCM The Zoo' then
@@ -4793,7 +4832,7 @@ function G.FUNCS.evaluate_play(self, e)
 	return result
 end
 
-play_cards_from_highlighted_OG = G.FUNCS.play_cards_from_highlighted
+local play_cards_from_highlighted_OG = G.FUNCS.play_cards_from_highlighted
 
 G.FUNCS.play_cards_from_highlighted = function(e)
 	sendInfoMessage("Play cards from highlighted!")
@@ -5173,16 +5212,14 @@ end
 local draw_from_deck_to_hand_OG = G.FUNCS.draw_from_deck_to_hand
 
 G.FUNCS.draw_from_deck_to_hand = function(e)
-	sendInfoMessage("draw cards now!")
+	--sendInfoMessage("draw cards now!")
 	if hcm_has_sq and hcm_sq and hcm_sq.ability.extra.indicator then 
 		hcm_sq.ability.extra.indicator = false 
-		sendInfoMessage("Actually, skipped!")
+		--sendInfoMessage("Actually, skipped!")
 	else
 		return draw_from_deck_to_hand_OG(e)
 	end
 end
-
-
 
 local draw_from_play_to_discard_OG = G.FUNCS.draw_from_play_to_discard
 
@@ -5276,7 +5313,6 @@ G.FUNCS.flame_handler = function(e)
 		end
 	end
 end
-
 
 function hcm_best_hand(current_suits, current_ranks)
     local suits, ranks = {}, {}
@@ -5437,6 +5473,102 @@ function Back:trigger_effect(args)
 	
 	]]--
 	
+end
+
+local deck_info_OG = G.UIDEF.deck_info
+
+function G.UIDEF.deck_info(_show_remaining)
+
+	if G.GAME.hcm_balor then
+		sendInfoMessage("Balor!")
+
+	  	return create_UIBox_generic_options({contents ={create_tabs(
+		    {tabs = _show_remaining and {
+		        {
+		          label = localize('b_remaining'),
+		          chosen = true,
+		          tab_definition_function = G.UIDEF.view_deck,
+		          tab_definition_function_args = true,
+		        },
+		        {
+		          label = G.localization.descriptions["Joker"]["j_hcm_balor"]["card_eval"],
+		          tab_definition_function = G.UIDEF.view_deck_balor,
+		          tab_definition_function_args = true,
+		        },
+		        {
+		            label = localize('b_full_deck'),
+		            tab_definition_function = G.UIDEF.view_deck
+		        },
+		    } or {
+		      {
+		        label = localize('b_full_deck'),
+		        chosen = true,
+		        tab_definition_function = G.UIDEF.view_deck
+		      },
+		    },
+		    tab_h = 8,
+		    snap_to_nav = true})}})
+	end
+	return deck_info_OG(_show_remaining)
+end
+
+function G.UIDEF.view_deck_balor(unplayed_only)
+	local deck_tables = {}
+	G.VIEWING_DECK = true
+	local cards_in_order = {}
+	for k, v in ipairs(G.deck.cards) do
+		table.insert(cards_in_order, v)
+	end
+
+	local view_deck = CardArea(
+		G.ROOM.T.x + 0.2*G.ROOM.T.w/2,G.ROOM.T.h,
+		6.5*G.CARD_W,
+		0.6*G.CARD_H,
+		{
+			card_limit = #cards_in_order, 
+			type = 'title', 
+			view_deck = true, 
+			highlight_limit = 0, 
+			card_w = G.CARD_W*0.7, 
+			draw_layers = {'card'}
+		}
+	)
+
+	table.insert(deck_tables, 
+		{n=G.UIT.R, config={align = "cm", padding = 0}, nodes={
+			{n=G.UIT.O, config={object = view_deck}}
+		}}
+	)
+
+	for i = #cards_in_order, 1, -1 do
+		if cards_in_order[i] then
+			local greyed, _scale = nil, 0.7
+			if unplayed_only and not ((cards_in_order[i].area and cards_in_order[i].area == G.deck) or cards_in_order[i].ability.wheel_flipped) then
+				greyed = true
+			end
+			local copy = copy_card(cards_in_order[i],nil, _scale)
+			copy.greyed = greyed
+			copy.T.x = view_deck.T.x + view_deck.T.w/2
+			copy.T.y = view_deck.T.y
+
+			copy:hard_set_T()
+			view_deck:emplace(copy)
+	    end
+	end
+
+	local t = 
+	{n=G.UIT.ROOT, config={align = "cm", colour = G.C.CLEAR}, nodes={
+		{n=G.UIT.R, config={align = "cm", padding = 0.05}, nodes={}},
+		{n=G.UIT.R, config={align = "cm"}, nodes={
+  			{n=G.UIT.C, config={align = "cm", padding = 0.1, r = 0.1, colour = G.C.BLACK, emboss = 0.05}, nodes=deck_tables}
+		}},
+		{n=G.UIT.R, config={align = "cm", minh = 0.8, padding = 0.05}, nodes={
+	  		{n=G.UIT.R, config={align = "cm"}, nodes={
+	    		{n=G.UIT.T, config={text = G.localization.descriptions["Joker"]["j_hcm_balor"]["card_explained"],colour = G.C.WHITE, scale =0.3}},
+	  		}} or nil,
+		}}
+	}}
+	return t
 end
 
 function hcm_wing_wind_bundle(card, already_happening, jkr)
