@@ -38,6 +38,7 @@ local xplaying_config = {
     XPlayingHeart6 = true,
     XPlayingHeart7 = true,
     XPlayingHeart8 = true,
+    XPlayingHeart9 = true, 
     XPlayingHeart10 = true,
     XPlayingHeartJ = true,
     XPlayingHeartQ = true,
@@ -426,6 +427,22 @@ local xplaying_jokers_info = {
         ability_name = "HCM Mun Pheromone Mun",
         slug = "hcm_mun_pheromone_mun",
         ability = { extra = { done = false} }
+    },
+    XPlayingHeart9 = {
+    	loc = {
+	        name = "Marvelous Genius",
+	        text = {
+	            "If you finish the round in",
+	            "{C:blue}1 hand{} after this card is",
+	            "added, gain {C:attention}#1#{} {C:tarot}Tarot{} cards.",
+	            "When round ends, transform",
+	            "back to {C:attention}X-Playing Joker{}."
+	        },
+	        card_eval = "Marvelous Genius!"
+	    },
+        ability_name = "HCM Marvelous Genius",
+        slug = "hcm_marvelous_genius",
+        ability = { extra = { done = false, tarot_cnt = 2, hand_cnt = 0 } }
     },
     XPlayingHeart10 = {
     	loc = {
@@ -2041,6 +2058,54 @@ function SMODS.INIT.HighCardMod()
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
+                end
+            end
+        end
+    end
+    if xplaying_config.XPlayingHeart9 then
+    	SMODS.Jokers.j_hcm_marvelous_genius.yes_pool_flag = 'X-Playing Card'
+        function SMODS.Jokers.j_hcm_marvelous_genius.loc_def(card)
+            return { card.ability.extra.tarot_cnt }
+        end
+        SMODS.Jokers.j_hcm_marvelous_genius.calculate = function(self, context)
+            if not context.blueprint then
+                if context.end_of_round and not self.ability.extra.done then
+                	if self.ability.extra.hand_cnt == 1 then
+	                    G.GAME.consumeable_buffer = G.GAME.consumeable_buffer + 2
+		                G.E_MANAGER:add_event(Event({
+		                    func = (function()
+		                        G.E_MANAGER:add_event(Event({
+		                            func = function() 
+		                                local card = create_card('Tarot',G.consumeables, nil, nil, nil, nil, nil, 'car')
+		                                card:add_to_deck()
+		                                G.consumeables:emplace(card)
+		                                G.GAME.consumeable_buffer = 0
+		                                return true
+		                            end}))   
+		                            card_eval_status_text(self, 'extra', nil, nil, nil, {message = localize('k_plus_tarot'), colour = G.C.PURPLE})                       
+		                        return true
+		                    end)}))
+		                G.E_MANAGER:add_event(Event({
+		                    func = (function()
+		                        G.E_MANAGER:add_event(Event({
+		                            func = function() 
+		                                local card = create_card('Tarot',G.consumeables, nil, nil, nil, nil, nil, 'car')
+		                                card:add_to_deck()
+		                                G.consumeables:emplace(card)
+		                                G.GAME.consumeable_buffer = 0
+		                                return true
+		                            end}))   
+		                            card_eval_status_text(self, 'extra', nil, nil, nil, {message = localize('k_plus_tarot'), colour = G.C.PURPLE})                       
+		                        return true
+		                    end)}))
+		                card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_marvelous_genius"]["card_eval"]})
+		            end
+                    end_xplay("XPlayingHeart9")
+                    self.ability.extra.done = true
+                end
+                if SMODS.end_calculate_context(context) then
+                    self.ability.extra.done = false
+                    self.ability.extra.hand_cnt = self.ability.extra.hand_cnt + 1
                 end
             end
         end
