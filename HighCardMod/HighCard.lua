@@ -1021,176 +1021,39 @@ function Back.apply_to_run(arg_56_0)
     end
 end
 
---[[
-local generate_card_ui_OG = generate_card_ui
-function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
-	local card = _c
-  	if _c and _c.config.center then card = _c.config.center end
-  	local first_pass = nil
-    if not full_UI_table then 
-        first_pass = true
-    end
-  	local supported_badge = {}
-  	local extra_badge = nil
-  	if first_pass and badges then 
-  		for k, v in ipairs(badges) do
-        	if v == 'X-Playing Card' then extra_badge = {key = _c.xability.handname, set = 'XPlaying'} 
-        	else table.insert(supported_badge, v)
-        	end
-        end
-  	end
-	local result_table = generate_card_ui_OG(card, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
+local hover_OG = Card.hover
 
+function Card:hover()
+	hover_OG(self)
+	if self.xability then
+		sendNestedMessage(self.ability_UIBox_table.name)
+		self.ability_UIBox_table.name = self.xability.name
+		sendNestedMessage(self.ability_UIBox_table.name)
+		Node.hover(self)
+	end 
 	--[[
-	if extra_badge then 
-		local desc_nodes = (not result_table.name and result_table.main) or result_table.info
-  		localize{type = 'other', key = extra_badge.key, nodes = desc_nodes, vars = specific_vars}
-  	end
-	
-	
+    self:juice_up(0.05, 0.03)
+    play_sound('paper1', math.random()*0.2 + 0.9, 0.35)
 
-  	return result_table
-end
-]]--
-
-
---[[
-local generate_card_ui_OG = generate_card_ui
-function generate_card_ui(_c, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
-  	local card = _c
-  	if _c and _c.config.center then card = card.config.center end
-  	if _c and (_c.xability and _c.xability.set == 'XPlaying') or (_c.set and _c.set == 'XPlaying' ) then
-	    local first_pass = nil
-	    if not full_UI_table then 
-	        first_pass = true
-	        full_UI_table = {
-	            main = {},
-	            info = {},
-	            type = {},
-	            name = nil,
-	            badges = badges or {}
-	        }
-	    end
-
-	    local desc_nodes = (not full_UI_table.name and full_UI_table.main) or full_UI_table.info
-	    local name_override = nil
-	    local info_queue = {}
-
-	    if full_UI_table.name then
-	        full_UI_table.info[#full_UI_table.info+1] = {}
-	        desc_nodes = full_UI_table.info[#full_UI_table.info]
-	    end
-
-	    if not full_UI_table.name then
-	        if specific_vars and specific_vars.no_name then
-	            full_UI_table.name = true
-	        elseif specific_vars and (card_type == 'Default' or card_type == 'Enhanced') then
-	            if (_c.name == 'Stone Card') then full_UI_table.name = true end
-	            if (specific_vars.playing_card and (_c.name ~= 'Stone Card')) then
-	                full_UI_table.name = {}
-	                localize{type = 'other', key = 'playing_card', set = 'Other', nodes = full_UI_table.name, vars = {localize(specific_vars.value, 'ranks'), localize(specific_vars.suit, 'suits_plural'), colours = {specific_vars.colour}}}
-	                full_UI_table.name = full_UI_table.name[1]
-	            end
-	        else
-	            full_UI_table.name = localize{type = 'name', set = _c.set, key = _c.key, nodes = full_UI_table.name}
-	        end
-	        full_UI_table.card_type = card_type or _c.set
-	    end 
-
-	    local loc_vars = {}
-	    if main_start then 
-	        desc_nodes[#desc_nodes+1] = main_start 
-	    end
-
-
-	    localize{type = 'descriptions', key = _c.key, set = _c.set, nodes = desc_nodes, vars = loc_vars}
-
-	    if main_end then 
-	        desc_nodes[#desc_nodes+1] = main_end 
-	    end
-
-	   --Fill all remaining info if this is the main desc
-	    if not ((specific_vars and not specific_vars.sticker) and (card_type == 'Default' or card_type == 'Enhanced')) then
-	        if desc_nodes == full_UI_table.main and not full_UI_table.name then
-	            localize{type = 'name', key = _c.key, set = _c.set, nodes = full_UI_table.name} 
-	            if not full_UI_table.name then full_UI_table.name = {} end
-	        elseif desc_nodes ~= full_UI_table.main then 
-	            desc_nodes.name = localize{type = 'name_text', key = name_override or _c.key, set = name_override and 'Other' or _c.set} 
-	        end
-	    end
-
-	    if first_pass and not (card.set == 'Edition') and badges then
-	        for k, v in ipairs(badges) do
-	        	if v == 'X-Playing Card' then info_queue[#info_queue+1] = {key = _c.xability.atlas, set = 'XPlaying'} end
-	            if v == 'foil' then info_queue[#info_queue+1] = G.P_CENTERS['e_foil'] end
-	            if v == 'holographic' then info_queue[#info_queue+1] = G.P_CENTERS['e_holo'] end
-	            if v == 'polychrome' then info_queue[#info_queue+1] = G.P_CENTERS['e_polychrome'] end
-	            if v == 'negative' then info_queue[#info_queue+1] = G.P_CENTERS['e_negative'] end
-	            if v == 'negative_consumable' then info_queue[#info_queue+1] = {key = 'e_negative_consumable', set = 'Edition', config = {extra = 1}} end
-	            if v == 'gold_seal' then info_queue[#info_queue+1] = {key = 'gold_seal', set = 'Other'} end
-	            if v == 'blue_seal' then info_queue[#info_queue+1] = {key = 'blue_seal', set = 'Other'} end
-	            if v == 'red_seal' then info_queue[#info_queue+1] = {key = 'red_seal', set = 'Other'} end
-	            if v == 'purple_seal' then info_queue[#info_queue+1] = {key = 'purple_seal', set = 'Other'} end
-	            if v == 'eternal' then info_queue[#info_queue+1] = {key = 'eternal', set = 'Other'} end
-	            if v == 'pinned_left' then info_queue[#info_queue+1] = {key = 'pinned_left', set = 'Other'} end
-	        end
-	    end
-
-	    for _, v in ipairs(info_queue) do
-	        generate_card_ui(v, full_UI_table)
-	    end
-
-	    return full_UI_table
+    --if this is the focused card
+    if self.states.focus.is and not self.children.focused_ui then
+        self.children.focused_ui = G.UIDEF.card_focus_ui(self)
     end
-  
-    return generate_card_ui_OG(card, full_UI_table, specific_vars, card_type, badges, hide_desc, main_start, main_end)
+
+    if self.facing == 'front' and (not self.states.drag.is or G.CONTROLLER.HID.touch) and not self.no_ui and not G.debug_tooltip_toggle then 
+        if self.children.alert and not self.config.center.alerted then
+            self.config.center.alerted = true
+            G:save_progress()
+        end
+           
+        self.ability_UIBox_table = self:generate_UIBox_ability_table()
+        self.config.h_popup = G.UIDEF.card_h_popup(self)
+        self.config.h_popup_config = self:align_h_popup()
+
+        Node.hover(self)
+    end
+    ]]--
 end
-]]--
-
---[[
-local generate_UIBox_ability_table_OG = Card.generate_UIBox_ability_table
-function Card:generate_UIBox_ability_table()
-  	if self.xability and self.xability.set == 'XPlaying' then
-	    local card_type, hide_desc = self.ability.set or "None", nil
-	    local loc_vars = nil
-	    local main_start, main_end = nil, nil
-	    local no_badge = nil
-	    local is_custom = false
- 
-		if self.debuff then
-	        loc_vars = { debuffed = true, playing_card = not not self.base.colour, value = self.base.value, suit = self.base.suit, colour = self.base.colour}
-	    elseif card_type == 'Default' or card_type == 'Enhanced' then
-	        loc_vars = { playing_card = not not self.base.colour, value = self.base.value, suit = self.base.suit, colour = self.base.colour,
-	                    nominal_chips = self.base.nominal > 0 and self.base.nominal or nil,
-	                    bonus_chips = (self.ability.bonus + (self.ability.perma_bonus or 0)) > 0 and (self.ability.bonus + (self.ability.perma_bonus or 0)) or nil,
-	                    x_playing = true,
-	                }
-	    end
-
-        local badges = {}
-	    if (card_type ~= 'Locked' and card_type ~= 'Undiscovered' and card_type ~= 'Default') or self.debuff then
-	          badges.card_type = card_type
-	    end
-	    if self.edition then
-	        if self.edition.type == 'negative' and self.ability.consumeable then
-	            badges[#badges + 1] = 'negative_consumable'
-	        else
-	            badges[#badges + 1] = (self.edition.type == 'holo' and 'holographic' or self.edition.type)
-	        end
-	    end
-	    badges[#badges + 1] = 'X-Playing Card'
-	    if self.seal then badges[#badges + 1] = string.lower(self.seal)..'_seal' end
-	    if self.ability.eternal then badges[#badges + 1] = 'eternal' end
-	    if self.pinned then badges[#badges + 1] = 'pinned_left' end
-
-	    if self.sticker then loc_vars = loc_vars or {}; loc_vars.sticker=self.sticker end
-
-	    return generate_card_ui(self, nil, loc_vars, card_type, badges, hide_desc, main_start, main_end)
-  	end
-
-  	return generate_UIBox_ability_table_OG(self)
-end
-]]--
 
 function Card:set_x_playing(hand_name)
 	-- Front:
@@ -1295,6 +1158,13 @@ function end_xplay(hand_name)
             G.GAME.joker_buffer = 0
             return true
         end}))
+end
+
+function hcm_determine_xplaying_key(card)
+	local suit = card.base.suit
+	local rank = card:get_id()
+	local xplaying_name = "XPlaying"..string.sub(suit, 1, -2)..hcm_id_to_rank(rank)
+	return xplaying_name
 end
 
 function hcm_id_to_rank(card_id)
@@ -3125,23 +2995,6 @@ local add_to_deck_OG = Card.add_to_deck
 function Card:add_to_deck(from_debuff)
     if not self.added_to_deck then
         
-        --[[
-		if self.ability.name == 'HCM X-Play' then 
-            for idx, jkr in pairs(xplaying_jokers) do
-                local jokers_for_remove = {}
-                for k, rjkr in pairs(G.P_JOKER_RARITY_POOLS[4]) do
-                    if rjkr.name == jkr.ability_name then
-                        jokers_for_remove[#jokers_for_remove + 1] = k
-                    end
-                end
-
-                for _, k in ipairs(jokers_for_remove) do
-                    G.P_JOKER_RARITY_POOLS[4][k] = nil
-                end
-            end
-        end
-        ]]--
-        
         if self.ability.name == 'HCM Neo New Nambu' then
             entrance_neo_new_nambu(self)
         end
@@ -3189,6 +3042,17 @@ function Card:add_to_deck(from_debuff)
         end
         if self.ability.name == 'HCM Balor' then 
         	G.GAME.hcm_balor = true
+        end
+        if self.ability.name == 'HCM San Galgano' then 
+        	G.GAME.hcm_san_galgano = true
+        	if G.GAME.hcm_disabled == nil then
+        		G.GAME.hcm_disabled = {}
+        		--[[
+				for k, v in pairs(xplaying_jokers_info) do
+	        		G.GAME.hcm_disabled[k] = false
+	        	end
+        		]]--
+	        end
         end
     end
     add_to_deck_OG(self, from_debuff)
@@ -3527,6 +3391,14 @@ function Card.update(self, dt)
         end
     end
     card_update_OG(self, dt)
+end
+
+local copy_card_OG = copy_card
+
+function copy_card(other, new_card, card_scale, playing_card, strip_edition)
+    local new_card = copy_card_OG(other, new_card, card_scale, playing_card, strip_edition)
+    if other.xability then new_card:set_x_playing(hcm_determine_xplaying_key(other)) end
+    return new_card
 end
 
 local draw_card_OG = draw_card
@@ -4307,7 +4179,7 @@ function G.FUNCS.evaluate_play(self, e)
 		end 
 		if jkr.ability.name == 'HCM Typhoid Mary' then
 			if jkr.ability.extra.bonus_hand then
-
+				--[[
 				local text,disp_text,poker_hands,scoring_hand,non_loc_disp_text = G.FUNCS.get_poker_hand_info(G.play.cards)
     
 			    G.GAME.hands[text].played = G.GAME.hands[text].played + 1
@@ -4822,7 +4694,7 @@ function G.FUNCS.evaluate_play(self, e)
 			        return true end)
 			      }))
 			    return true
-
+			    ]]--
 			end
 		end		
 	end
@@ -5066,81 +4938,6 @@ G.FUNCS.play_cards_from_highlighted = function(e)
 		    	card_eval_status_text(lowest_unhighlighted_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_juggling_gun"]["card_eval"]})
 			end
 		end
-		--[[
-		if jkr.ability.name == 'HCM Typhoid Mary' then
-			if jkr.ability.extra.bonus_hand then
-			    if G.play and G.play.cards[1] then return end
-			    --check the hand first
-			    sendInfoMessage("This is happening?")
-			    stop_use()
-			    G.GAME.blind.triggered = false
-			    G.CONTROLLER.interrupt.focus = true
-			    G.CONTROLLER:save_cardarea_focus('hand')
-
-			    for k, v in ipairs(G.playing_cards) do
-			        v.ability.forced_selection = nil
-			    end
-			    sendInfoMessage("This is after removing forced selection")
-			    
-			    table.sort(G.hand.highlighted, function(a,b) return a.T.x < b.T.x end)
-			    G.E_MANAGER:add_event(Event({
-			        trigger = 'immediate',
-			        func = function()
-			        	sendInfoMessage("Fuck?")
-			            G.STATE = G.STATES.HAND_PLAYED
-			            G.STATE_COMPLETE = true
-			            return true
-			        end
-			    }))
-			    inc_career_stat('c_cards_played', #G.hand.highlighted)
-			    inc_career_stat('c_hands_played', 1)
-			    ease_hands_played(-1)
-			    delay(0.4)
-			    sendInfoMessage("This is after hand ease")
-
-		        for i=1, #G.hand.highlighted do
-		            if G.hand.highlighted[i]:is_face() then inc_career_stat('c_face_cards_played', 1) end
-		            G.hand.highlighted[i].base.times_played = G.hand.highlighted[i].base.times_played + 1
-		            G.hand.highlighted[i].ability.played_this_ante = true
-		            G.GAME.round_scores.cards_played.amt = G.GAME.round_scores.cards_played.amt + 1
-		            draw_card(G.hand, G.play, i*100/#G.hand.highlighted, 'up', nil, G.hand.highlighted[i])
-		        end
-
-		        G.E_MANAGER:add_event(Event({
-		            trigger = 'immediate',
-		            func = (function()
-		                check_for_unlock({type = 'hand_contents', cards = G.play.cards})
-
-		                G.E_MANAGER:add_event(Event({
-		                    trigger = 'immediate',
-		                    func = function()
-		                        G.FUNCS.evaluate_play()
-		                        return true
-		                    end
-		                }))
-
-		                G.E_MANAGER:add_event(Event({
-		                    trigger = 'after',
-		                    delay = 0.1,
-		                    func = function()
-		                        check_for_unlock({type = 'play_all_hearts'})
-		                        G.FUNCS.draw_from_play_to_discard()
-		                        G.GAME.hands_played = G.GAME.hands_played + 1
-		                        G.GAME.current_round.hands_played = G.GAME.current_round.hands_played + 1
-		                        return true
-		                    end
-		                }))
-		                return true
-		            end)
-		        }))
-			        
-			    return true
-			end
-
-		end
-		]]--
-		
-		
 	end
 	return play_cards_from_highlighted_OG(e)
 end
@@ -5693,6 +5490,42 @@ function Card:set_edition(edition, immediate, silent)
     end
 
     self:set_cost()
+end
+
+function sendNestedMessage(message, logger)
+    if client then
+        level = "INFO "
+        logger = logger or "DefaultLogger"
+        message = message or "Default log message"
+        message = tableToString(message)
+        -- naive way to separate the logs if the console receive multiple logs at the same time
+        client:send(os.date('%Y-%m-%d %H:%M:%S') .. " :: " .. level .. " :: " .. logger .. " :: " .. message .. "ENDOFLOG")
+    end
+end
+
+function tableToString(t, seen)
+    if type(t) ~= "table" then
+        return tostring(t)
+    end
+    
+    seen = seen or {}
+    if seen[t] then
+        return "..."  -- Handle cyclic references
+    end
+    seen[t] = true
+
+    local parts = {}
+    for key, value in pairs(t) do
+        local keyString = tostring(key)
+        local valueString
+        if type(value) == "table" then
+            valueString = tableToString(value, seen)
+        else
+            valueString = tostring(value)
+        end
+        table.insert(parts, keyString .. "=" .. valueString)
+    end
+    return "{" .. table.concat(parts, ", ") .. "}"
 end
 
 ----------------------------------------------
