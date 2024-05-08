@@ -991,14 +991,30 @@ local x_sprite_info = {
 	XPlayingSpadeK = {max = 500, order = 1, name = "San Galgano", set = "XPlaying", pos = {x=0,y=0}, effect = "San Galgano", label = "San Galgano", config = {bonus = 1}, atlas = "m_hcm_san_galgano"},
 }
 
+local hcm_colour = {0.68627450980392, 0.51764705882353, 0.24313725490196, 1}
+
 local x_playing_loc = {
 	name = "X-Playing Card", 
 	text = {
+		"If your first hand",
+		"of the round scores",
+		"this as High Card,",
+        "create its joker!",
+    }, 
+    text_coloured = {
+		{{"If your ", G.C.UI.TEXT_DARK}, {"first hand", G.C.FILTER}},
+		{{"of the round scores", G.C.UI.TEXT_DARK}},
+		{{"this as ", G.C.UI.TEXT_DARK}, {"High Card,", G.C.FILTER}},
+        {{"create its joker!", G.C.UI.TEXT_DARK}},
+    }, 
+    --[[
+	text_clear = {
 		"If your {C:attention}first hand{}",
 		"of the round is",
 		"{C:attention}High Card{} of this,",
         "{C:red}PLAY{} this X-Playing Card!",
     }, 
+    ]]--
 }
 
 -- Initialize deck effect
@@ -1021,38 +1037,71 @@ function Back.apply_to_run(arg_56_0)
     end
 end
 
+local get_badge_colour_OG = get_badge_colour
+
+function get_badge_colour(key)
+    if key == "xplaying" then return hcm_colour end
+    return get_badge_colour_OG(key)
+end
+
+local card_h_popup_OG = G.UIDEF.card_h_popup
+
+function G.UIDEF.card_h_popup(card)
+
+	if card.xability then 
+		card.ability_UIBox_table.badges.xplaying = nil
+		if card.ability_UIBox_table.badges and card.ability_UIBox_table.badges.xplaying == nil then
+			--badge
+			card.ability_UIBox_table.badges[#card.ability_UIBox_table.badges + 1] = "xplaying"
+			--tooltip
+			local tool_tip = {}
+			for k, v in ipairs(x_playing_loc.text_coloured) do
+				tool_tip[#tool_tip + 1] = {}
+				for i, _ in ipairs(v) do
+					tool_tip[#tool_tip][i]={ 
+		              	n=G.UIT.T,
+		              	config={
+		                	text = v[i][1],
+		                	colour = v[i][2],
+		                	scale = 0.32*G.LANG.font.DESCSCALE
+		                },
+		        	}
+		        end
+			end
+			tool_tip["name"] = x_playing_loc.name
+			card.ability_UIBox_table.info[#card.ability_UIBox_table.info+1] = tool_tip
+			--name
+			card.ability_UIBox_table.name = {
+				--card.ability_UIBox_table.name[1],
+				card.ability_UIBox_table.name[#card.ability_UIBox_table.name]
+			}
+			card.ability_UIBox_table.name[#card.ability_UIBox_table.name].config.text = card.xability.name
+		end
+	end
+	local popup = card_h_popup_OG(card)
+	return popup
+end
+
 local hover_OG = Card.hover
 
 function Card:hover()
 	hover_OG(self)
 	if self.xability then
-		sendNestedMessage(self.ability_UIBox_table.name)
-		self.ability_UIBox_table.name = self.xability.name
-		sendNestedMessage(self.ability_UIBox_table.name)
-		Node.hover(self)
+		sendInfoMessage("bro")
+		--sendNestedMessage(self.ability_UIBox_table)
+		if self.ability_UIBox_table and self.ability_UIBox_table.info then sendNestedMessage(self.ability_UIBox_table.info) end
+		sendInfoMessage("blah")
+		--sendNestedMessage(self.config.h_popup)
+		--self.ability_UIBox_table.name = self.xability.name
+		--sendNestedMessage(self.ability_UIBox_table)
+		--Node.hover(self)
 	end 
-	--[[
-    self:juice_up(0.05, 0.03)
-    play_sound('paper1', math.random()*0.2 + 0.9, 0.35)
+end
 
-    --if this is the focused card
-    if self.states.focus.is and not self.children.focused_ui then
-        self.children.focused_ui = G.UIDEF.card_focus_ui(self)
-    end
+function hcm_draw_card_ui(UITable, card)
+	if UITable == nil then return nil end
 
-    if self.facing == 'front' and (not self.states.drag.is or G.CONTROLLER.HID.touch) and not self.no_ui and not G.debug_tooltip_toggle then 
-        if self.children.alert and not self.config.center.alerted then
-            self.config.center.alerted = true
-            G:save_progress()
-        end
-           
-        self.ability_UIBox_table = self:generate_UIBox_ability_table()
-        self.config.h_popup = G.UIDEF.card_h_popup(self)
-        self.config.h_popup_config = self:align_h_popup()
-
-        Node.hover(self)
-    end
-    ]]--
+	return UITable
 end
 
 function Card:set_x_playing(hand_name)
@@ -1086,6 +1135,22 @@ function Card:set_x_playing(hand_name)
         set = "XPlaying",
         atlas = x_sprite_info[hand_name].atlas
     }
+end
+
+local card_save_OG = Card.save
+function Card:save()
+    cardTable = card_save_OG(self)
+    if self.xability then cardTable["xability"] = self.xability end
+    return cardTable
+end
+
+local card_load_OG = Card.load
+function Card:load(cardTable, other_card)
+    card_load_OG(self, cardTable, other_card)
+    if cardTable.xability then 
+    	self.xability = cardTable.xability 
+    	self:set_x_playing(hcm_determine_xplaying_key(self))
+    end
 end
 
 -- X-Playing Mechanics
@@ -1225,6 +1290,7 @@ end
 function SMODS.INIT.HighCardMod()
 
     init_localization()
+    G.localization.misc["labels"]["xplaying"] = x_playing_loc.name
     --G.localization.descriptions.Other["XPlaying"] = {}
 
     -- Initialize the deck
@@ -4999,7 +5065,7 @@ function tableToString(t, seen)
         local keyString = tostring(key)
         local valueString
         if type(value) == "table" then
-            valueString = tableToString(value, seen)
+            valueString = tableToString(value)
         else
             valueString = tostring(value)
         end
