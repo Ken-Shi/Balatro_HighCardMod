@@ -10,9 +10,10 @@ The mod takes inspiration from the anime series "High Card", with joker art and 
 </div>
 
 # Installation
+
 1. Please install [Steamodded](https://github.com/Steamopollys/Steamodded) via its instructions (Currently support 0.9.8+). This is used by most of the Balatro mods.
    
-Quick Install for step 2: download the zip file and unzip them in Steamodded's Mods folder. You should get a folders called `HighCardMod`;
+Quick Install for step 2: download the zip file and unzip them in Steamodded's Mods folder. You should get a folders called `HighCardMod`; **(Currently you can try the alpha version that makes X-Playing Card as a new extension (neither enhancement nor edition nor seal!) of playing cards by downloading the code directly, not through the ZIP!)**
 
 2. Install HighCardMod simply by download `HighCardMod` folder put them in Steamodded's Mods folder.
 
@@ -20,15 +21,17 @@ Quick Install for step 2: download the zip file and unzip them in Steamodded's M
 
 **Note: There is a major rework of the mod released on April 8, 2024. If you have played a version prior to this date, I recommend a refresh install!** 
 
-# X-Playing Deck and X-Playing Joker
+# X-Playing Cards and X-Playing Deck
 
-Once you install the mod, you will see a new deck called *X-Playing Deck*, this deck will have all 52 regular poker cards and a legendary joker at the beginning of the run:
+Once you install the mod, you will see a new deck called *X-Playing Deck*, this deck will have **52 X-Playing Cards** and a Legendary Joker at the beginning of the run:
 
 ![X-Playing Joker](./HighCardMod/assets/2x/j_hcm_xplay.png)![X-Playing Deck](./HighCardMod/assets/2x/b_xplaying.png)
 
-This joker will **transform** into a X-Playing Card joker once you play your first hand of the round. Whichever hand you played, it will transfer (the corresponding High Card or X-Hand). 
+**X-Playing Card** will transform into a **special joker** once you play and score it as **High Card** as your **first hand of the round**.
 
-At the end of the round, it will transform back to X-Playing Joker so you can decide to **PLAY** something else next round! 
+At the end of the round, it will **transform** back to the **X-Playing Card** so you can decide to PLAY something else next round! (with a few exceptions!)
+
+**X-Playing Joker** on the other hand will convert regular playing cards into **X-Playing Cards** when needed!
 
 # Currently Supported X-Playing Cards (51 / 52)
 
