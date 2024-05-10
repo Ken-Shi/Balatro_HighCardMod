@@ -28,7 +28,7 @@ local xplaying_config = {
     XPlayingSpade10 = true,
     XPlayingSpadeJ = true,
     XPlayingSpadeQ = true,
-    XPlayingSpadeK = false,
+    XPlayingSpadeK = true,
     XPlayingSpadeA = true,
     -- Heart Family
     XPlayingHeart2 = true, 
@@ -81,10 +81,18 @@ local xplaying_jokers_info = {
     	loc = {
 	        name = "X-Playing Joker",
 	        text = {
+	            "If {C:attention}first hand{} of round",
+	            "is {C:attention}High Card{}, turn that",
+	            "into a {C:attention}X-Playing Card{} and",
+	            "activate it after scoring.",
+	        }, 
+	        --[[
+			text = {
 	            "{C:red}PLAY{} {C:attention}first hand{} of round.",
 	            "(Transform into the scoring",
 	            "X-Playing card or X-hand)"
 	        }, 
+	        ]]--
 	        card_eval = "PLAY!"
 	    },
         ability_name = "HCM X-Play",
@@ -100,7 +108,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}per hand{}, {C:attention}lose all discards{}",
 	            "and set hand size to {C:attention}#2#{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Neo New Nambu!"
 	    },
@@ -118,7 +126,7 @@ local xplaying_jokers_info = {
 	            "add a card of the {C:attention}missing suit{}",
 	            "to make it {C:attention}Four of a Kind{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Extend!"
 	    },
@@ -134,7 +142,7 @@ local xplaying_jokers_info = {
 	            "score {C:attention}exactly #2#{} cards,",
 	            "this card gives {X:mult,C:white}X#3#{} Mult. ",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Clear Lance!"
 	    },
@@ -152,7 +160,7 @@ local xplaying_jokers_info = {
 	            "accumulate {X:mult,C:white}X#1#{} Mult until",
 	            "end of round. {C:inactive}(Now {}{X:mult,C:white}X#2#{}{C:inactive}){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Brain Buster!"
 	    },
@@ -169,7 +177,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}card held in hand{} in addition",
 	            "to your selected cards for play.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Fire!"
 	    },
@@ -186,7 +194,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}remove all enhancements{} from ",
 	            "scoring cards afterwards.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval_on = "Interceptor On!",
 	        card_eval_off = "Interceptor Off!"
@@ -204,7 +212,7 @@ local xplaying_jokers_info = {
 	            "that are {C:attention}of the same suit{}. ",
 	            "each destruction gives {C:mult}+#1#{} Mult. ",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        }, 
 	        card_eval_pc = "Place Bomb..",
 	        card_eval_jk = "All Kaboom!"
@@ -221,7 +229,7 @@ local xplaying_jokers_info = {
 	            "Remove {C:attention}debuff{}",
 	            "from played cards.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Bokka!"
 	    },
@@ -237,7 +245,7 @@ local xplaying_jokers_info = {
 	            "into a {C:attention}random{} scored card",
 	            "{C:attention}after the scoring stage{}. ",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Honest Straight!",
 	        card_eval_pc = "HIT!"
@@ -255,7 +263,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}this hand is played{} to {C:mult}mult{}.",
 	            "{C:inactive}(Now Looking for{} {C:attention}#1#{}{C:inactive}...){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Marine Hunter!",
 	    },
@@ -270,7 +278,7 @@ local xplaying_jokers_info = {
 	            "After you play a hand,",
 	            "{C:attention}replay{} that hand with {X:mult,C:white}X#1#{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Typhoid Mary!",
 	    },
@@ -306,7 +314,7 @@ local xplaying_jokers_info = {
 	            "per card scored, but",
 	            "{C:attention}force a card{} for each hand.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Love & Peace!"
 	    },
@@ -323,7 +331,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}1 rank lower{} if that helps",
 	            "forming a better poker hand. ",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        }
 	    },
         ability_name = "HCM Jelly Crawler",
@@ -338,7 +346,7 @@ local xplaying_jokers_info = {
 	            "into {C:attention}Stone Card{}. Retriggers ",
 	            "played {C:attention}Stone Card{} for {C:attention}#1# times{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Rockin' Rocks!"
 	    },
@@ -354,7 +362,7 @@ local xplaying_jokers_info = {
 	            "played card used in",
 	            "scoring for {C:attention}#1# times{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Agent S!"
 	    },
@@ -371,7 +379,7 @@ local xplaying_jokers_info = {
 	            "card(s) discarded, but ",
 	            "you only play {C:attention}#2# hand{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Calorie's High!"
 	    },
@@ -388,7 +396,7 @@ local xplaying_jokers_info = {
 	            "to the {C:attention}leftmost{} scoring card",
 	            "if they are of the same {C:attention}rank{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "The Zoo!",
 	        card_eval_pc = "HIT!"
@@ -405,7 +413,7 @@ local xplaying_jokers_info = {
 	            "played cards to suit",
 	            "of {C:attention}a random played card{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Chameleon!"
 	    },
@@ -421,7 +429,7 @@ local xplaying_jokers_info = {
 	            "than 8, increase its {C:attention}rank{} by 1;",
 	            "if it's higher, decrease it by 1. ",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Mun!"
 	    },
@@ -437,7 +445,7 @@ local xplaying_jokers_info = {
 	            "{C:blue}1 hand{} after this card is",
 	            "added, gain {C:attention}#1#{} {C:tarot}Tarot{} cards.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Marvelous Genius!"
 	    },
@@ -453,7 +461,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}exactly #1# cards{}, this hand",
 	            "is regarded as {C:attention}Five of A Kind{}. ",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Common Destiny!"
 	    },
@@ -469,7 +477,7 @@ local xplaying_jokers_info = {
 	            "that's not High Card will",
 	            "give a corresponding {C:planet}Planet{} card.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Sky Dancer!"
 	    },
@@ -486,7 +494,7 @@ local xplaying_jokers_info = {
 	            "{C:red}up{}. This card gives {X:mult,C:white}X#2#{}",
 	            "{C:inactive}(Time left: #3#s){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Sonic Move!"
 	    },
@@ -500,10 +508,10 @@ local xplaying_jokers_info = {
 	        text = {
 	            "Destroy all scoring {C:attention}face cards{} and add",
 	            "{C:chips}+#1#{} chips and {C:mult}+#2#{} mult per card to {C:attention}both{}",
-	            "{C:attention}this joker and the playing card of this{}.",
+	            "{C:attention}this joker and the X-Playing Card{}.",
 	            "{C:inactive}(Now gives {}{C:chips}+#3#{} chips, {C:mult}+#4#{} mult{C:inactive}){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Masculine Parfait!"
 	    },
@@ -521,7 +529,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}playing card{} that forms",
 	            "a {C:attention}higher poker hand{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Faceless!"
 	    },
@@ -539,7 +547,7 @@ local xplaying_jokers_info = {
 	            "is always considered to",
 	            "have contained a {C:attention}Pair{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Love Connection!"
 	    },
@@ -554,7 +562,7 @@ local xplaying_jokers_info = {
 	            "Turn your {C:attention}scoring hand{}",
 	            "into {C:attention}Glass Card{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Marble Rumble!"
 	    },
@@ -570,7 +578,7 @@ local xplaying_jokers_info = {
 	            "you played {C:attention}exactly #1# cards{}",
 	            "and this helps to form {C:attention}Flush{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Musical Alchemist!"
 	    },
@@ -587,7 +595,7 @@ local xplaying_jokers_info = {
 	            "level of played {C:attention}poker hand{}.",
 	            "{C:inactive}(Current best is {}{C:attention}#1#{}{C:inactive}){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Evolve!"
 	    },
@@ -603,7 +611,7 @@ local xplaying_jokers_info = {
 	            "{C:red}#1#{} cards this round, ",
 	            "{C:attention}-#2# Ante{}. {C:inactive}({}{C:red}#3#{} {C:inactive}cards scored){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "13 Stairs!"
 	    },
@@ -620,7 +628,7 @@ local xplaying_jokers_info = {
 	            "add that amount to {C:mult}Mult{}",
 	            "and {X:chips,C:white}X#2#{} that amount to {C:chips}Chips{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval_on = "Never No Dollars!",
 	        card_eval_off = "No Dollar :("
@@ -638,7 +646,7 @@ local xplaying_jokers_info = {
 	            "and get a {C:attention}random consumeable of{}",
 	            "{C:attention}the same type{} if you have dollars.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Red Labyrinth!"
 	    },
@@ -674,7 +682,7 @@ local xplaying_jokers_info = {
 	            "{C:green,E:1,S:1.1}deterministic{} (always trigger)",
 	            "during the scoring stage.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Unlucky Poky!"
 	    },
@@ -691,7 +699,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}hand{} that's not High Card.",
 	            "{C:inactive}(Now it's{} {C:attention}#1#{}{C:inactive}...){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Out of Five!"
 	    },
@@ -708,7 +716,7 @@ local xplaying_jokers_info = {
 	            "cards in deck {C:attention}in the order{}",
 	            "{C:attention}of which they will be drawn.{}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Balor Vision",
 	        card_explained = "Cards will be drawn from left to right!"
@@ -726,7 +734,7 @@ local xplaying_jokers_info = {
 	            "your {C:chips}chips{} and {C:mult}mult{} and",
 	            "{C:attention}destroy{} all scoring cards.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Round & Round!"
 	    },
@@ -742,7 +750,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}exactly #1# card{}, retrigger",
 	            "this card {C:attention}#2# times{}. ",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Dynamic Kinesis!"
 	    },
@@ -757,7 +765,7 @@ local xplaying_jokers_info = {
 	            "{X:mult,C:white}X#1#{} per {C:attention}Steel Card{} or",
 	            "{C:attention}Gold Card{} played when scored.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Metallical Parade!",
 	        card_eval_pc = "Metal!",
@@ -774,7 +782,7 @@ local xplaying_jokers_info = {
 	            "is always considered",
 	            "{C:red}only{} as {C:attention}Straight{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Green Green!"
 	    },
@@ -790,7 +798,7 @@ local xplaying_jokers_info = {
 	            "can all trigger upon {C:attention}scoring{},",
 	            "{C:attention}discard{} or {C:attention}held at end of round{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Wing Wind!"
 	    },
@@ -807,7 +815,7 @@ local xplaying_jokers_info = {
 	            "round and {C:attention}destroy{} them.",
 	            "{C:inactive}(Currently{} {C:mult}+#2#{} {C:inactive}Mult){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval_pc = "Stomp!",
 	        card_eval_jk = "G Round!"
@@ -825,7 +833,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}scoring rank of this hand{}",
 	            "permanently gains {C:chips}+#1#{} chips.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Vortex!"
 	    },
@@ -841,7 +849,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}the fire{}, gain a random",
 	            "{C:spectral}Spectral{} card.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "PLAY FOR THE FIRE!"
 	    },
@@ -857,7 +865,7 @@ local xplaying_jokers_info = {
 	            "did not score add their",
 	            "{C:attention}base{} {C:chips}chips{} to {C:mult}mult{} instead.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval_pc = "Shadow..",
 	        card_eval_jk = "Sinking Shadow!"
@@ -874,7 +882,7 @@ local xplaying_jokers_info = {
 	            "considered as played {C:attention}#1#{}",
 	            "times in the {C:attention}record book{}. ",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Chlorophyll Overgrown"
 	    },
@@ -890,7 +898,7 @@ local xplaying_jokers_info = {
 	            "like {C:attention}Gold{} Card and {C:attention}vice versa{}.",
 	            "{C:red}(Only for {}{C:attention}enhancement{} {C:red}effects){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval_pc = "Conductive!",
 	        card_eval_jk = "Million Volt!"
@@ -908,7 +916,7 @@ local xplaying_jokers_info = {
 	            "form your {C:attention}most played hand{}. ",
 	            "{C:inactive}(Now Looking for{} {C:attention}#1#{}{C:inactive}...){}",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Coming Home!"
 	    },
@@ -918,18 +926,18 @@ local xplaying_jokers_info = {
     },
     XPlayingClubQ= {
     	loc = {
-	        name = "Funker Viper",
+	        name = "Punker Viper",
 	        text = {
 	            "{C:attention}Shuffle{} all cards played or ",
 	            "discarded {C:attention}back to the deck{}",
 	            "{C:attention}after you play a hand{}.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
-	        card_eval = "Funker Viper!"
+	        card_eval = "Punker Viper!"
 	    },
-        ability_name = "HCM Funker Viper",
-        slug = "hcm_funker_viper",
+        ability_name = "HCM Punker Viper",
+        slug = "hcm_punker_viper",
         ability = { extra = { best_hand = "High Card", done = false} }
     },
     XPlayingClubK= {
@@ -965,7 +973,7 @@ local xplaying_jokers_info = {
 	            "{C:attention}enhancement{}, add an {C:clubs}Ace of Clubs{}",
 	            "with that enhancement to your hand.",
 	            "When round ends, transform",
-	            "back to {C:attention}X-Playing Joker{}."
+	            "back to the {C:attention}X-Playing Card{}."
 	        },
 	        card_eval = "Life Binder!",
 	        card_eval_pc = "Create!"
@@ -978,8 +986,9 @@ local xplaying_jokers_info = {
 local xplaying_deck_info = {name = "X-Playing Deck",
 					        text = {
 					            "Start run as a {C:red}Player{}",
-					            "(i.e. Start with ",
-					            "{C:attention}X-Playing{} Joker)"
+					            "(i.e. Start with {C:attention}52{}",
+					            "{C:attention}X-Playing Cards{} and",
+					            "the {C:attention}X-Playing Joker{})"
 					        }}
 
 local faceless_trigger = true
@@ -988,10 +997,72 @@ local hcm_has_sq = false
 local hcm_sq = nil
 
 local x_sprite_info = {
-	XPlayingSpadeK = {max = 500, order = 1, name = "San Galgano", set = "XPlaying", pos = {x=0,y=0}, effect = "San Galgano", label = "San Galgano", config = {bonus = 1}, atlas = "m_hcm_san_galgano"},
+	-- Spade Family
+	XPlayingSpade2 = {name = "Neo New Nambu", pos = {x=0,y=0}, atlas = "m_hcm_neo_new_nambu"},
+	XPlayingSpade3 = {name = "Staff Master", pos = {x=0,y=0}, atlas = "m_hcm_staff_master"},
+	XPlayingSpade4 = {name = "Clear Lance", pos = {x=0,y=0}, atlas = "m_hcm_clear_lance"},
+	XPlayingSpade5 = {name = "Brain Buster", pos = {x=0,y=0}, atlas = "m_hcm_brain_buster"},
+	XPlayingSpade6 = {name = "Juggling Gun", pos = {x=0,y=0}, atlas = "m_hcm_juggling_gun"},
+	XPlayingSpade7 = {name = "Interceptor", pos = {x=0,y=0}, atlas = "m_hcm_interceptor"},
+	XPlayingSpade8 = {name = "All Kaboom", pos = {x=0,y=0}, atlas = "m_hcm_all_kaboom"},
+	XPlayingSpade9 = {name = "Bokka", pos = {x=0,y=0}, atlas = "m_hcm_bokka"},
+	XPlayingSpade10 = {name = "Honest Straight", pos = {x=0,y=0}, atlas = "m_hcm_honest_straight"},
+	XPlayingSpadeJ = {name = "Marine Hunter", pos = {x=0,y=0}, atlas = "m_hcm_marine_hunter"},
+	XPlayingSpadeQ = {name = "Typhoid Mary", pos = {x=0,y=0}, atlas = "m_hcm_typhoid_mary"},
+	XPlayingSpadeK = {name = "San Galgano", pos = {x=0,y=0}, atlas = "m_hcm_san_galgano"},
+	XPlayingSpadeA = {name = "Love & Peace", pos = {x=0,y=0}, atlas = "m_hcm_love_and_peace"},
+	-- Heart Family
+    XPlayingHeart2 = {name = "Jelly Crawler", pos = {x=0,y=0}, atlas = "m_hcm_jelly_crawler"}, 
+    XPlayingHeart3 = {name = "Rockin' Rocks", pos = {x=0,y=0}, atlas = "m_hcm_rockin_rocks"},
+    XPlayingHeart4 = {name = "Agent S", pos = {x=0,y=0}, atlas = "m_hcm_agent_s"},
+    XPlayingHeart5 = {name = "Calorie's High", pos = {x=0,y=0}, atlas = "m_hcm_calories_high"},
+    XPlayingHeart6 = {name = "The Zoo", pos = {x=0,y=0}, atlas = "m_hcm_the_zoo"},
+    XPlayingHeart7 = {name = "Chameleon", pos = {x=0,y=0}, atlas = "m_hcm_chameleon"},
+    XPlayingHeart8 = {name = "Mun Pheromone Mun", pos = {x=0,y=0}, atlas = "m_hcm_mun_pheromone_mun"},
+    XPlayingHeart9 = {name = "Marvelous Genius", pos = {x=0,y=0}, atlas = "m_hcm_marvelous_genius"}, 
+    XPlayingHeart10 = {name = "Common Destiny", pos = {x=0,y=0}, atlas = "m_hcm_common_destiny"},
+    XPlayingHeartJ = {name = "Sky Dancer", pos = {x=0,y=0}, atlas = "m_hcm_sky_dancer"},
+    XPlayingHeartQ = {name = "Sonic Move", pos = {x=0,y=0}, atlas = "m_hcm_sonic_move"},
+    XPlayingHeartK = {name = "Masculine Parfait", pos = {x=0,y=0}, atlas = "m_hcm_masculine_parfait"},
+    XPlayingHeartA = {name = "Faceless", pos = {x=0,y=0}, atlas = "m_hcm_faceless"},
+    -- Diamond Family
+    XPlayingDiamond2 = {name = "Love Connection", pos = {x=0,y=0}, atlas = "m_hcm_love_connection"},
+    XPlayingDiamond3 = {name = "Marble Rumble", pos = {x=0,y=0}, atlas = "m_hcm_marble_rumble"},
+    XPlayingDiamond4 = {name = "Musical Alchemist", pos = {x=0,y=0}, atlas = "m_hcm_musical_alchemist"},
+    XPlayingDiamond5 = {name = "Greatest Man", pos = {x=0,y=0}, atlas = "m_hcm_greatest_man"},
+    XPlayingDiamond6 = {name = "13 Stairs", pos = {x=0,y=0}, atlas = "m_hcm_13_stairs"},
+    XPlayingDiamond7 = {name = "Never No Dollars", pos = {x=0,y=0}, atlas = "m_hcm_never_no_dollars"},
+    XPlayingDiamond8 = {name = "Red Labyrinth", pos = {x=0,y=0}, atlas = "m_hcm_red_labyrinth"},
+    XPlayingDiamond9 = {name = "No Mercy", pos = {x=0,y=0}, atlas = "m_hcm_no_mercy"},
+    XPlayingDiamond10 = {name = "Unlucky Poky", pos = {x=0,y=0}, atlas = "m_hcm_unlucky_poky"},
+    XPlayingDiamondJ = {name = "Out of Five", pos = {x=0,y=0}, atlas = "m_hcm_out_of_five"},
+    XPlayingDiamondQ = {name = "Balor", pos = {x=0,y=0}, atlas = "m_hcm_balor"},
+    XPlayingDiamondK = {name = "Round & Round", pos = {x=0,y=0}, atlas = "m_hcm_round_and_round"},
+    XPlayingDiamondA = {name = "Dynamic Kinesis", pos = {x=0,y=0}, atlas = "m_hcm_dynamic_kinesis"},
+    -- Club Family
+    XPlayingClub2 = {name = "Metallical Parade", pos = {x=0,y=0}, atlas = "m_hcm_metallical_parade"},
+    XPlayingClub3 = {name = "Green Green", pos = {x=0,y=0}, atlas = "m_hcm_green_green"},
+    XPlayingClub4 = {name = "Wing Wind", pos = {x=0,y=0}, atlas = "m_hcm_wing_wind"},
+    XPlayingClub5 = {name = "G Round", pos = {x=0,y=0}, atlas = "m_hcm_g_round"},
+    XPlayingClub6 = {name = "Eye of the Storm", pos = {x=0,y=0}, atlas = "m_hcm_eye_of_the_storm"},
+    XPlayingClub7 = {name = "Lethal Scoville", pos = {x=0,y=0}, atlas = "m_hcm_lethal_scoville"},
+    XPlayingClub8 = {name = "Sinking Shadow", pos = {x=0,y=0}, atlas = "m_hcm_sinking_shadow"},
+    XPlayingClub9 = {name = "Chlorophyll Overgrown", pos = {x=0,y=0}, atlas = "m_hcm_chlorophyll_overgrown"},
+    XPlayingClub10 = {name = "Million Volt", pos = {x=0,y=0}, atlas = "m_hcm_million_volt"},
+    XPlayingClubJ = {name = "Coming Home", pos = {x=0,y=0}, atlas = "m_hcm_coming_home"},
+    XPlayingClubQ = {name = "Punker Viper", pos = {x=0,y=0}, atlas = "m_hcm_punker_viper"},
+    XPlayingClubK = {name = "Reaper's Hand", pos = {x=0,y=0}, atlas = "m_hcm_reapers_hand"},
+    XPlayingClubA = {name = "Life Binder", pos = {x=0,y=0}, atlas = "m_hcm_life_binder"},
 }
 
 local hcm_colour = {0.68627450980392, 0.51764705882353, 0.24313725490196, 1}
+
+local hcm_colour_mult = {0.99607843137255, 0.37254901960784, 0.33333333333333, 1}
+
+local hcm_colour_spade = {0.25098039215686, 0.22352941176471, 0.58431372549020, 1}
+local hcm_colour_heart = {0.94117647058824, 0.20392156862745, 0.3921568627451, 1}
+local hcm_colour_diamond = {0.00000000000000, 0.47058823529412, 0.73725490196078, 1}
+local hcm_colour_club = {0.00000000000000, 0.36862745098039, 0.05490196078431, 1}
 
 local x_playing_loc = {
 	name = "X-Playing Card", 
@@ -999,13 +1070,13 @@ local x_playing_loc = {
 		"If your first hand",
 		"of the round scores",
 		"this as High Card,",
-        "create its joker!",
+        "transform to its joker!",
     }, 
     text_coloured = {
 		{{"If your ", G.C.UI.TEXT_DARK}, {"first hand", G.C.FILTER}},
 		{{"of the round scores", G.C.UI.TEXT_DARK}},
 		{{"this as ", G.C.UI.TEXT_DARK}, {"High Card,", G.C.FILTER}},
-        {{"create its joker!", G.C.UI.TEXT_DARK}},
+        {{"transform to its joker!", G.C.UI.TEXT_DARK}},
     }, 
     --[[
 	text_clear = {
@@ -1017,6 +1088,21 @@ local x_playing_loc = {
     ]]--
 }
 
+function hcm_deep_cpy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        -- Check if the value is a table
+        if type(value) == "table" then
+            -- If the value is a table, recursively call deepCopy
+            copy[key] = hcm_deep_cpy(value)
+        else
+            -- If the value is not a table, simply copy it
+            copy[key] = value
+        end
+    end
+    return copy
+end
+
 -- Initialize deck effect
 local Backapply_to_runRef = Back.apply_to_run
 function Back.apply_to_run(arg_56_0)
@@ -1026,6 +1112,14 @@ function Back.apply_to_run(arg_56_0)
     if arg_56_0.effect.config.XPlayingDeck then
         G.E_MANAGER:add_event(Event({
             func = function()
+            	-- Loop over all cards
+                for i = #G.playing_cards, 1, -1 do
+                    -- Convert all to xplaying cards
+                    local xkey = hcm_determine_xplaying_key(G.playing_cards[i])
+                    if x_sprite_info[xkey] then
+                        G.playing_cards[i]:set_x_playing(xkey)
+                    end
+                end
                 -- Add X-playing Joker
                 local card = create_card('Joker', G.jokers, nil, nil, nil, nil, 'j_hcm_xplay', nil)
                 card:set_edition(nil, nil, true)
@@ -1048,6 +1142,7 @@ local card_h_popup_OG = G.UIDEF.card_h_popup
 
 function G.UIDEF.card_h_popup(card)
 
+	if card.config.center == G.P_CENTERS.m_stone then card.xability = nil end
 	if card.xability then 
 		card.ability_UIBox_table.badges.xplaying = nil
 		if card.ability_UIBox_table.badges and card.ability_UIBox_table.badges.xplaying == nil then
@@ -1076,32 +1171,38 @@ function G.UIDEF.card_h_popup(card)
 				card.ability_UIBox_table.name[#card.ability_UIBox_table.name]
 			}
 			card.ability_UIBox_table.name[#card.ability_UIBox_table.name].config.text = card.xability.name
+			local xcolour = hcm_determine_xplaying_colour(card)
+			if xcolour then card.ability_UIBox_table.name[#card.ability_UIBox_table.name].config.colour = xcolour end
+			--sendNestedMessage(card.ability_UIBox_table.name[#card.ability_UIBox_table.name].config.colour)
+			local xcard_name = hcm_determine_xplaying_key(card)
+			if xcard_name == "XPlayingHeartK" then 
+				sendNestedMessage(card.ability_UIBox_table.main)
+				sendInfoMessage(#card.ability_UIBox_table.main)
+				if card.ability and card.ability.perma_mult then
+					local extra_mult = hcm_deep_cpy(card.ability_UIBox_table.main[1])
+					extra_mult[1].config.colour = hcm_colour_mult
+					extra_mult[1].config.text = "+"..tostring(card.ability.perma_mult)
+					extra_mult[2].config.text = " extra mult"
+					if card.ability_UIBox_table.main[#card.ability_UIBox_table.main][2].config.text == " extra mult" then
+					else card.ability_UIBox_table.main[#card.ability_UIBox_table.main + 1] = extra_mult end
+				end
+			end
 		end
 	end
 	local popup = card_h_popup_OG(card)
 	return popup
 end
 
-local hover_OG = Card.hover
+local set_ability_OG = Card.set_ability
 
-function Card:hover()
-	hover_OG(self)
-	if self.xability then
-		sendInfoMessage("bro")
-		--sendNestedMessage(self.ability_UIBox_table)
-		if self.ability_UIBox_table and self.ability_UIBox_table.info then sendNestedMessage(self.ability_UIBox_table.info) end
-		sendInfoMessage("blah")
-		--sendNestedMessage(self.config.h_popup)
-		--self.ability_UIBox_table.name = self.xability.name
-		--sendNestedMessage(self.ability_UIBox_table)
-		--Node.hover(self)
-	end 
-end
-
-function hcm_draw_card_ui(UITable, card)
-	if UITable == nil then return nil end
-
-	return UITable
+function Card:set_ability(center, initial, delay_sprites)
+	local perma_mult = nil
+	local xability = nil
+	if self.ability and self.ability.perma_mult then perma_mult = self.ability.perma_mult end
+	if self.xability then xability = self.xability.handname end
+	set_ability_OG(self, center, initial, delay_sprites)
+	if self.ability and perma_mult then self.ability.perma_mult = perma_mult end
+	if xability and self.config.center ~= G.P_CENTERS.m_stone then self:set_x_playing(xability) end
 end
 
 function Card:set_x_playing(hand_name)
@@ -1140,6 +1241,7 @@ end
 local card_save_OG = Card.save
 function Card:save()
     cardTable = card_save_OG(self)
+    if self.config.center == G.P_CENTERS.m_stone then self.xability = nil end
     if self.xability then cardTable["xability"] = self.xability end
     return cardTable
 end
@@ -1156,73 +1258,106 @@ end
 -- X-Playing Mechanics
 function xplay(hand_name, card_info)
 	if not xplaying_config[hand_name] then return false end
-	local joker_to_destroy = nil
-    for i = 1, #G.jokers.cards do
-        if G.jokers.cards[i].ability.name == "HCM X-Play" then 
-            joker_to_destroy = G.jokers.cards[i] 
-        end
-    end
-    joker_to_destroy.getting_sliced = true
-    G.E_MANAGER:add_event(Event({
-        func = function()
-            joker_to_destroy:start_dissolve({G.C.RED}, nil, 1.6)
-            return true 
-        end }))
+	if G.GAME.hcm_disabled and G.GAME.hcm_disabled[hand_name] then return false end
     G.E_MANAGER:add_event(Event({
         func = function() 
-            local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_"..xplaying_jokers_info[hand_name].slug, nil)
-            card:set_edition(nil, nil, true)
-            if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_reapers_hand" then 
-                card:set_eternal(true) 
-            end
-            if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_no_mercy" then 
-                card:set_eternal(true) 
-            end
-            if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_masculine_parfait" then 
-                card.ability.extra.chips_acc = card_info:get_chip_bonus()
-                card.ability.extra.mult_acc = card_info:get_chip_mult()
-                card.ability.extra.transfer_card = card_info
-            end
-            card:add_to_deck()
-            G.jokers:emplace(card)
+        	local temp_card = copy_card(card_info)
+        	card_eval_status_text(temp_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_xplay"]["card_eval"]})
+        	temp_card.getting_sliced = true
+		    G.jokers:emplace(temp_card)
+		           
+		    G.E_MANAGER:add_event(Event({
+		        func = function()
+		        	local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_"..xplaying_jokers_info[hand_name].slug, nil)
+		            card:set_edition(nil, nil, true)
+		            if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_reapers_hand" then 
+		                card:set_eternal(true) 
+		            end
+		            if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_no_mercy" then 
+		                card:set_eternal(true) 
+		            end
+		            if "j_"..xplaying_jokers_info[hand_name].slug == "j_hcm_masculine_parfait" then 
+		                card.ability.extra.chips_acc = card_info:get_chip_bonus()
+		                card.ability.extra.mult_acc = card_info:get_chip_mult()
+		                --card.ability.extra.transfer_card = card_info
+		            end
+		            card:add_to_deck()
+		            G.jokers:remove_card(temp_card)
+		            temp_card:start_dissolve({G.C.RED}, nil, 1.6)
+		            G.jokers:emplace(card)
+		            card:start_materialize(nil, nil, 2.4)
+		            return true 
+		        end 
+		    }))
             return true
         end}))
-    return {
-        message = G.localization.descriptions["Joker"]["j_hcm_xplay"]["card_eval"],
-        card = self
-    }
 end
 
 function end_xplay(hand_name)
 	local joker_to_destroy = nil
+	local joker_idx = 1
     for i = 1, #G.jokers.cards do
         if G.jokers.cards[i].ability.name == xplaying_jokers_info[hand_name].ability_name then 
-            joker_to_destroy = G.jokers.cards[i] 
+            joker_to_destroy = G.jokers.cards[i]
+            joker_idx = i 
+            break
         end
     end
-    if joker_to_destroy == nil then return false end
-    joker_to_destroy.getting_sliced = true
-    G.E_MANAGER:add_event(Event({
-        func = function()
-            joker_to_destroy:start_dissolve({G.C.RED}, nil, 1.6)
-            return true 
-        end }))
-    G.GAME.joker_buffer = G.GAME.joker_buffer + 1
-    -- Add card
-    G.E_MANAGER:add_event(Event({
-        trigger = 'before',
-        delay = 0.0,
-        func = function() 
-            local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_hcm_xplay", nil)
-            --card:set_eternal(true)
-            card:set_edition(nil, nil, true)
-            --card:juice_up(1, 0.5)
-            --sendInfoMessage("set!")
-            card:add_to_deck()
-            G.jokers:emplace(card)
-            G.GAME.joker_buffer = 0
-            return true
+    if G.GAME.hcm_held or joker_to_destroy then
+    	if G.GAME.hcm_held == nil or G.GAME.hcm_held.base == nil then 
+    		local codexx = string.sub(hand_name, 9, 9).."_"..string.sub(hand_name, -1, -1)
+    		if string.sub(hand_name, -2, -1) == "10" then 
+    			codexx = string.sub(hand_name, 9, 9).."_T"
+    		end
+    		G.GAME.hcm_held = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[codexx], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+    		G.GAME.hcm_held:set_x_playing(hand_name)
+    		G.GAME.hcm_held.states.visible = false
+    		if codexx == "H_K" and joker_to_destroy then
+    			local extra_chip = joker_to_destroy.ability.extra.chips_acc - G.GAME.hcm_held.base.nominal
+    			local extra_mult = joker_to_destroy.ability.extra.mult_acc
+    			G.GAME.hcm_held.perma_bonus = (extra_chip > 0 and extra_chip) or nil
+    			G.GAME.hcm_held.perma_mult = (extra_mult > 0 and extra_mult) or nil
+    		end
+    	end
+    	if joker_idx < #G.jokers.cards then
+	    	for i = joker_idx, #G.jokers.cards - 1 do
+		    	G.jokers.cards[i], G.jokers.cards[i + 1] = G.jokers.cards[i + 1], G.jokers.cards[i]
+		    end
+		end
+	    if joker_to_destroy == nil then return false end
+	    joker_to_destroy.getting_sliced = true
+	    G.E_MANAGER:add_event(Event({
+        	func = function() 
+		    	--sendInfoMessage("found "..G.GAME.hcm_held.base.suit..G.GAME.hcm_held:get_id())
+		    	if G.GAME.hcm_held then
+			    	local held_card = G.GAME.hcm_held
+			    	G.jokers:remove_card(joker_to_destroy)
+			    	G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+					held_card:add_to_deck()
+					G.jokers:emplace(held_card)
+			    	G.E_MANAGER:add_event(Event({
+				        func = function()
+				        	held_card.states.visible = true
+							joker_to_destroy:start_dissolve({G.C.RED}, nil, 1.6)
+							held_card:start_materialize(nil, nil, 2.4)
+				            return true 
+				        end 
+				    }))
+					G.E_MANAGER:add_event(Event({
+				        func = function()
+				        	sendInfoMessage("thrown to deck")
+				        	G.jokers:remove_card(held_card)
+				            G.deck:emplace(held_card)
+				            table.insert(G.playing_cards, held_card)
+				            return true 
+				        end 
+				    }))
+					G.GAME.hcm_played = nil
+					G.GAME.hcm_held = nil
+				end
+				return true
         end}))
+	end
 end
 
 function hcm_determine_xplaying_key(card)
@@ -1230,6 +1365,17 @@ function hcm_determine_xplaying_key(card)
 	local rank = card:get_id()
 	local xplaying_name = "XPlaying"..string.sub(suit, 1, -2)..hcm_id_to_rank(rank)
 	return xplaying_name
+end
+
+function hcm_determine_xplaying_colour(card)
+	local suit = card.base.suit
+	local xcolour = nil 
+	if suit == "Spades" then xcolour = hcm_colour_spade 
+	elseif suit == "Hearts" then xcolour = hcm_colour_heart
+	elseif suit == "Diamonds" then xcolour = hcm_colour_diamond
+	elseif suit == "Clubs" then xcolour = hcm_colour_club
+	else end 
+	return xcolour
 end
 
 function hcm_id_to_rank(card_id)
@@ -1337,7 +1483,7 @@ function SMODS.INIT.HighCardMod()
             local sprite = SMODS.Sprite:new("j_" .. value.slug, SMODS.findModByID("HighCardMod").path,
                 "j_" .. value.slug .. ".png", 71, 95, "asset_atli")
             sprite:register()
-            if key == "XPlayingSpadeK" then
+            if x_sprite_info[key] then
 	            local m_sprite = SMODS.Sprite:new("m_" .. value.slug, SMODS.findModByID("HighCardMod").path,
 	                "m_" .. value.slug .. ".png", 71, 95, "asset_atli")
 	            m_sprite:register()
@@ -1355,17 +1501,20 @@ function SMODS.INIT.HighCardMod()
         SMODS.Jokers.j_hcm_xplay.calculate = function(self, context)
             if not context.blueprint then
                 if SMODS.end_calculate_context(context) then
-                    if G.GAME.current_round.hands_played == 0 then
+                	if G.GAME.current_round.hands_played == 0 then
                         if context.scoring_name == "High Card" then
-                        	if context.scoring_hand[1].config.center == G.P_CENTERS.m_stone then return false end
-                        	local card_rank = context.scoring_hand[1]:get_id()
-                        	local card_suit = context.scoring_hand[1].base.suit
-                        	local xcard_name = "XPlaying"..string.sub(card_suit, 1, -2)..hcm_id_to_rank(card_rank)
-                        	sendInfoMessage(xcard_name)
-                        	if xplaying_config[xcard_name] then
-                        		return xplay(xcard_name, context.scoring_hand[1])
+                        	local highcard = nil
+                        	for k, v in ipairs(context.scoring_hand) do
+								if v.config.center == G.P_CENTERS.m_stone then
+								else highcard = v end
+							end 
+                        	if highcard ~= nil and highcard.xability == nil then
+                        		local xcard_name = hcm_determine_xplaying_key(highcard)
+                        		if xplaying_config[xcard_name] then
+	                        		highcard:set_x_playing(xcard_name)
+	                        	end 
                         	end
-                        end 
+                        end
                     end
                 end
             end
@@ -1498,14 +1647,18 @@ function SMODS.INIT.HighCardMod()
                     for k, v in ipairs(context.scoring_hand) do
                         if v.config.center == G.P_CENTERS.m_stone then
                         elseif v.config.center ~= G.P_CENTERS.m_stone and not v.debuff then
+                            local percent = 1.15 - (k-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() v:flip();play_sound('card1', percent);v:juice_up(0.3, 0.3);return true end }))
+                        end
+                    end
+                    for k, v in ipairs(context.scoring_hand) do
+                        if v.config.center == G.P_CENTERS.m_stone then
+                        elseif v.config.center ~= G.P_CENTERS.m_stone and not v.debuff then
                             local selected_enhancement = enhance_options[pseudorandom(pseudoseed('seed'), 1, #enhance_options)]
                             v:set_ability(selected_enhancement, nil, true)
-                            G.E_MANAGER:add_event(Event({
-                                func = function()
-                                    v:juice_up()
-                                    return true
-                                end
-                            })) 
+                			G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.05,func = function() v:set_ability(selected_enhancement);return true end })) 
+                            local percent = 0.85 + (k-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() v:flip();play_sound('tarot2', percent, 0.6);v:juice_up(0.3, 0.3);return true end }))
                         end
                     end
                     return{
@@ -1514,16 +1667,17 @@ function SMODS.INIT.HighCardMod()
                     }
                 end
                 if context.after then 
+                	for k, v in ipairs(context.scoring_hand) do
+                        if v.config.center ~= G.P_CENTERS.m_stone and not v.debuff and not v.vampired then 
+                            local percent = 1.15 - (k-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() v:flip();play_sound('card1', percent);v:juice_up(0.3, 0.3);return true end }))
+                        end
+                    end
                     for k, v in ipairs(context.scoring_hand) do
                         if v.config.center ~= G.P_CENTERS.m_stone and not v.debuff and not v.vampired then 
-                            v:set_ability(G.P_CENTERS.c_base, nil, true)
-                            G.E_MANAGER:add_event(Event({
-                                func = function()
-                                    v:juice_up()
-                                    v.vampired = nil
-                                    return true
-                                end
-                            })) 
+                			G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.05,func = function() v:set_ability(G.P_CENTERS.c_base);return true end })) 
+                            local percent = 0.85 + (k-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() v:flip();play_sound('tarot2', percent, 0.6);v:juice_up(0.3, 0.3);v.vampired = nil;return true end }))
                         end
                     end
                     return{
@@ -1633,14 +1787,25 @@ function SMODS.INIT.HighCardMod()
 		            	if context.scoring_hand[i] == self.ability.extra.transfer_card then
 		            	else 
 		            		card_eval_status_text(context.scoring_hand[i], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_honest_straight"]["card_eval_pc"], chip_mod=1})
+		                
+			                local percent = 1.15 - (i-0.999)/(#context.scoring_hand-0.998)*0.3
+	        				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() context.scoring_hand[i]:flip();play_sound('card1', percent);context.scoring_hand[i]:juice_up(0.3, 0.3);return true end }))
 		                end
-		                G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.1, func = function()
-		                    if context.scoring_hand[i] ~= self.ability.extra.transfer_card then
-		                        copy_card(self.ability.extra.transfer_card, context.scoring_hand[i])
-		                    end
-		                    return true end 
-		                }))
 		            end 
+		            for i=1, #context.scoring_hand do
+		            	if context.scoring_hand[i] == self.ability.extra.transfer_card then
+		            	else 
+	            			G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.1, func = function()
+			                    if context.scoring_hand[i] ~= self.ability.extra.transfer_card then
+			                        copy_card(self.ability.extra.transfer_card, context.scoring_hand[i])
+			                    end
+			                    return true end 
+			                })) 
+	                        local percent = 0.85 + (i-0.999)/(#context.scoring_hand-0.998)*0.3
+	        				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.3,func = function() context.scoring_hand[i]:flip();play_sound('tarot2', percent, 0.6);context.scoring_hand[i]:juice_up(0.3, 0.3);return true end }))
+		                end
+		            end 
+		            card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_honest_straight"]["card_eval"]})
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
@@ -1819,14 +1984,13 @@ function SMODS.INIT.HighCardMod()
                     end_xplay("XPlayingHeart3")
                     self.ability.extra.done = true
                 end
-                if context.before then 
-                    context.scoring_hand[1]:set_ability(G.P_CENTERS.m_stone, nil, true)
-                    G.E_MANAGER:add_event(Event({
-                            func = function()
-                                context.scoring_hand[1]:juice_up()
-                                return true
-                            end
-                        })) 
+                if context.before then
+					local percent = 1.15 - (1-0.999)/(#context.scoring_hand-0.998)*0.3
+	        		G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() context.scoring_hand[1]:flip();play_sound('card1', percent);context.scoring_hand[1]:juice_up(0.3, 0.3);return true end }))
+                	context.scoring_hand[1]:set_ability(G.P_CENTERS.m_stone, nil, true)
+                	G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.05,func = function() context.scoring_hand[1]:set_ability(G.P_CENTERS.m_stone);return true end })) 
+                    percent = 0.85 + (1-0.999)/(#context.scoring_hand-0.998)*0.3
+            		G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.3,func = function() context.scoring_hand[1]:flip();play_sound('tarot2', percent, 0.6);context.scoring_hand[1]:juice_up(0.3, 0.3);return true end }))
                     return {
                         message = G.localization.descriptions["Joker"]["j_hcm_rockin_rocks"]["card_eval"],
                         card = self
@@ -1947,7 +2111,20 @@ function SMODS.INIT.HighCardMod()
                         local chosen_suit = all_played_suits[pseudorandom(pseudoseed('seed'), 1, #all_played_suits)]
                         context.scoring_hand = {}
                         for k, v in ipairs(context.full_hand) do
-                            v:change_suit(chosen_suit)
+                        	if v:is_suit(chosen_suit) then
+                        	else
+                        		local percent = 1.15 - (k-0.999)/(#context.full_hand-0.998)*0.3
+            					G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() v:flip();play_sound('card1', percent);v:juice_up(0.3, 0.3);return true end }))
+                            end
+                        end
+                        for k, v in ipairs(context.full_hand) do
+                        	if v:is_suit(chosen_suit) then
+                        	else
+                				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.05,func = function() v:change_suit(chosen_suit);return true end })) 
+                            	local percent = 0.85 + (k-0.999)/(#context.full_hand-0.998)*0.3
+            					G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() v:flip();play_sound('tarot2', percent, 0.6);v:juice_up(0.3, 0.3);return true end }))
+                            end
+                            --v:change_suit(chosen_suit)
                             table.insert(context.scoring_hand, v)
                         end
                         return {
@@ -1976,6 +2153,8 @@ function SMODS.INIT.HighCardMod()
                     	if context.scoring_hand[1].config.center == G.P_CENTERS.m_stone then return false end
                     	local card_rank = context.scoring_hand[1]:get_id()
                     	if card_rank > 8 then 
+                    		local percent = 1.15 - (1-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2,func = function() context.scoring_hand[1]:flip();play_sound('card1', percent);context.scoring_hand[1]:juice_up(0.3, 0.3);return true end }))
                     		G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.1,func = function()
 			                    local card = context.scoring_hand[1]
 			                    local suit_prefix = string.sub(card.base.suit, 1, 1)..'_'
@@ -1988,10 +2167,14 @@ function SMODS.INIT.HighCardMod()
 			                    elseif rank_suffix == 14 then rank_suffix = 'A'
 			                    end
 			                    card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
-			                    card:juice_up()
+			                    --card:juice_up()
 			                return true end }))
+			                percent = 0.85 + (1-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2,func = function() context.scoring_hand[1]:flip();play_sound('tarot2', percent, 0.6);context.scoring_hand[1]:juice_up(0.3, 0.3);return true end }))
 			                card_eval_status_text(context.scoring_hand[1], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_mun_pheromone_mun"]["card_eval"], Xmult_mod=1})
                     	elseif card_rank < 8 then 
+                    		local percent = 1.15 - (1-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2,func = function() context.scoring_hand[1]:flip();play_sound('card1', percent);context.scoring_hand[1]:juice_up(0.3, 0.3);return true end }))
                     		G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.1,func = function()
 			                    local card = context.scoring_hand[1]
 			                    local suit_prefix = string.sub(card.base.suit, 1, 1)..'_'
@@ -2004,8 +2187,10 @@ function SMODS.INIT.HighCardMod()
 			                    elseif rank_suffix == 14 then rank_suffix = 'A'
 			                    end
 			                    card:set_base(G.P_CARDS[suit_prefix..rank_suffix])
-			                    card:juice_up()
+			                    --card:juice_up()
 			                return true end }))
+			                percent = 0.85 + (1-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.2,func = function() context.scoring_hand[1]:flip();play_sound('tarot2', percent, 0.6);context.scoring_hand[1]:juice_up(0.3, 0.3);return true end }))
 			                card_eval_status_text(context.scoring_hand[1], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_mun_pheromone_mun"]["card_eval"], Xmult_mod=1})
                     	end
                     end 
@@ -2159,11 +2344,17 @@ function SMODS.INIT.HighCardMod()
                 end
                 if context.destroying_card then 
                     if context.destroying_card:is_face() then
+                    	if G.GAME.hcm_held == nil then 
+				    		local codexx = "H_K"
+				    		G.GAME.hcm_held = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[codexx], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+				    		G.GAME.hcm_held:set_x_playing(hcm_determine_xplaying_key(G.GAME.hcm_held))
+				    		G.GAME.hcm_held.states.visible = false
+				    	end
                     	if self.ability.extra.transfer_card then sendInfoMessage("card exist") end
-                    	self.ability.extra.transfer_card.ability.perma_bonus = (self.ability.extra.transfer_card.ability.perma_bonus or 0) + self.ability.extra.chips_gain
-                    	self.ability.extra.transfer_card.ability.mult = (self.ability.extra.transfer_card.ability.mult or 0) + self.ability.extra.mult_gain
-                    	self.ability.extra.chips_acc = self.ability.extra.transfer_card:get_chip_bonus()
-                    	self.ability.extra.mult_acc = self.ability.extra.transfer_card:get_chip_mult()
+                    	G.GAME.hcm_held.ability.perma_bonus = (G.GAME.hcm_held.ability.perma_bonus or 0) + self.ability.extra.chips_gain
+                    	G.GAME.hcm_held.ability.perma_mult = (G.GAME.hcm_held.ability.perma_mult or 0) + self.ability.extra.mult_gain
+                    	self.ability.extra.chips_acc = G.GAME.hcm_held:get_chip_bonus()
+                    	self.ability.extra.mult_acc = G.GAME.hcm_held:get_chip_mult()
                     	card_eval_status_text(context.destroying_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_masculine_parfait"]["card_eval"], Xmult_mod=1})
                     	return true
                     end
@@ -2236,15 +2427,20 @@ function SMODS.INIT.HighCardMod()
                     self.ability.extra.done = true
                 end
                 if context.before then 
+                	for k, v in ipairs(context.scoring_hand) do
+                        if v.config.center ~= G.P_CENTERS.m_stone then
+                            --v:set_ability(G.P_CENTERS.m_glass, nil, true)
+                            local percent = 1.15 - (k-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() v:flip();play_sound('card1', percent);v:juice_up(0.3, 0.3);return true end }))
+                        end
+                    end
                     for k, v in ipairs(context.scoring_hand) do
                         if v.config.center ~= G.P_CENTERS.m_stone then
                             v:set_ability(G.P_CENTERS.m_glass, nil, true)
-                            G.E_MANAGER:add_event(Event({
-                                func = function()
-                                    v:juice_up()
-                                    return true
-                                end
-                            })) 
+                            local percent = 1.15 - (k-0.999)/(#context.scoring_hand-0.998)*0.3
+                			G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.05,func = function() v:set_ability(G.P_CENTERS.m_glass);return true end })) 
+                            percent = 0.85 + (k-0.999)/(#context.scoring_hand-0.998)*0.3
+            				G.E_MANAGER:add_event(Event({trigger = 'after',delay = 0.1,func = function() v:flip();play_sound('tarot2', percent, 0.6);v:juice_up(0.3, 0.3);return true end }))
                         end
                     end
                     return {
@@ -2863,15 +3059,15 @@ function SMODS.INIT.HighCardMod()
         end
     end
     if xplaying_config.XPlayingClubQ then
-    	SMODS.Jokers.j_hcm_funker_viper.yes_pool_flag = 'X-Playing Card'
-        SMODS.Jokers.j_hcm_funker_viper.calculate = function(self, context)
+    	SMODS.Jokers.j_hcm_punker_viper.yes_pool_flag = 'X-Playing Card'
+        SMODS.Jokers.j_hcm_punker_viper.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
                     end_xplay("XPlayingClubQ")
                     self.ability.extra.done = true
                 end
                 --if context.after then 
-                --	card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_funker_viper"]["card_eval"]})
+                --	card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_punker_viper"]["card_eval"]})
                 --	G.FUNCS.draw_from_discard_to_deck()
                 --end
                 if SMODS.end_calculate_context(context) then
@@ -3369,6 +3565,13 @@ function evaluate_poker_hand(hand)
 	return new_results
 end
 
+local get_chip_mult_OG = Card.get_chip_mult
+
+function Card:get_chip_mult()
+    local mult_value = get_chip_mult_OG(self)
+    return mult_value + (self.ability.perma_mult or 0)
+end
+
 local sell_card_OG = Card.sell_card
 function Card:sell_card()
 	local alternative = false
@@ -3441,8 +3644,14 @@ function Card:sell_card()
 end
 
 local card_update_OG = Card.update
-function Card.update(self, dt)
+function Card:update(dt)
     if G.STAGE == G.STAGES.RUN then
+    	if self.xability and self.children.front then
+    		if self.config.center == G.P_CENTERS.m_stone then self.xability = nil
+    		elseif self.children.front.atlas ~= G.ASSET_ATLAS[self.xability.atlas] then 
+    			self:set_x_playing(hcm_determine_xplaying_key(self))
+    		end
+    	end
         if self.config.center.key == "j_hcm_sonic_move" and not self.debuff then
             self.ability.extra.timer = self.ability.extra.timer - (dt / G.SETTINGS.GAMESPEED)
             if self.ability.extra.timer <= 0 and G.STATE ~= G.STATES.GAME_OVER then
@@ -4222,24 +4431,18 @@ function G.FUNCS.evaluate_play(self, e)
             	if i == 1 then
             	elseif scoring_hand[i]:get_id() == jkr.ability.extra.transfer_card:get_id() then
             		card_eval_status_text(scoring_hand[i], 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_the_zoo"]["card_eval_pc"], chip_mod=1})
-
             		for idx, val in ipairs(G.play.cards) do
         				if scoring_hand[i] == G.play.cards[idx] then
+        					local percent = 1.15 - (idx-0.999)/(#G.play.cards-0.998)*0.3
+        					G.play.cards[idx]:flip()
+        					play_sound('card1', percent)
+        					G.play.cards[idx]:juice_up(0.3, 0.3)
                     		G.play.cards[idx] = copy_card(jkr.ability.extra.transfer_card, G.play.cards[idx])
+                    		percent = 0.85 + (idx-0.999)/(#G.play.cards-0.998)*0.3
+    						G.E_MANAGER:add_event(Event({trigger = 'before',delay = 0.1,func = function() G.play.cards[idx]:flip();play_sound('tarot2', percent, 0.6);G.play.cards[idx]:juice_up(0.3, 0.3);return true end }))
                     		--G.play.cards[idx]:juice_up()
                     	end
                     end
-
-            		G.E_MANAGER:add_event(Event({trigger = 'before', func = function()
-            			for idx, val in ipairs(G.play.cards) do
-            				if scoring_hand[i] == G.play.cards[idx] then
-	                    		--G.play.cards[idx] = copy_card(jkr.ability.extra.transfer_card, G.play.cards[idx])
-	                    		G.play.cards[idx]:juice_up()
-	                    	end
-	                    end
-	                    return true end 
-	                }))
-
                 end
             end 
 		end 
@@ -4247,6 +4450,41 @@ function G.FUNCS.evaluate_play(self, e)
 	sendInfoMessage("Actual Eval Play")
 	result = evaluate_play_OG(self, e)
 	sendInfoMessage("Done!")
+	for _, card in pairs(G.play.cards) do
+		if card.xability and G.GAME.current_round.hands_played == 0 then 
+			if G.GAME.hcm_played == nil then
+				local text,disp_text,poker_hands,scoring_hand,non_loc_disp_text = G.FUNCS.get_poker_hand_info(G.play.cards)
+				--card = G.GAME.hcm_held
+				local highcard = nil
+            	for k, v in ipairs(scoring_hand) do
+					if v.config.center == G.P_CENTERS.m_stone then
+					else highcard = v end
+				end 
+				if text == "High Card" and highcard == card then
+		        	if card.config.center == G.P_CENTERS.m_stone then return result end
+		        	local xcard_name = hcm_determine_xplaying_key(card)
+		        	sendInfoMessage(xcard_name)
+		        	if xplaying_config[xcard_name] then
+		        		xplay(xcard_name, card)
+		        		G.GAME.hcm_held = copy_card(card)
+		        		--sendInfoMessage("Copied "..G.GAME.hcm_held.base.suit..G.GAME.hcm_held:get_id())
+		        		G.GAME.hcm_held:remove_from_area()
+		        		G.GAME.hcm_held.states.visible = false
+		        		--sendInfoMessage("Copied "..G.GAME.hcm_held.base.suit..G.GAME.hcm_held:get_id())
+		        		card.destroyed = true
+		        		G.E_MANAGER:add_event(Event({
+			        		func = function()
+					            card:start_dissolve({G.C.RED}, nil, 0)
+					            return true 
+					        end 
+					    }))
+		        		G.GAME.hcm_played = true
+		        	end
+		        	--G.GAME.hcm_played = true
+		        end 
+			end
+		end
+	end
 	return result
 end
 
@@ -4567,7 +4805,6 @@ end
 local draw_from_play_to_discard_OG = G.FUNCS.draw_from_play_to_discard
 
 G.FUNCS.draw_from_play_to_discard = function(e)
-	--[[]]
 	draw_from_play_to_discard_OG()
 	for _, jkr in pairs(G.jokers.cards) do
 		if jkr.ability.name == 'HCM Typhoid Mary' then
@@ -4619,9 +4856,9 @@ G.FUNCS.draw_from_play_to_discard = function(e)
 	--]]--
     --draw_from_play_to_discard_OG()
 	for _, jkr in pairs(G.jokers.cards) do
-    	if jkr.ability.name == 'HCM Funker Viper' then
-			sendInfoMessage("Funker Viper!")
-		    card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_funker_viper"]["card_eval"]})
+    	if jkr.ability.name == 'HCM Punker Viper' then
+			sendInfoMessage("Punker Viper!")
+		    card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_punker_viper"]["card_eval"]})
             G.FUNCS.draw_from_discard_to_deck(e)
 		end
 	end
