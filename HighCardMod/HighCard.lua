@@ -28,7 +28,7 @@ local xplaying_config = {
     XPlayingSpade10 = true,
     XPlayingSpadeJ = true,
     XPlayingSpadeQ = true,
-    XPlayingSpadeK = true,
+    XPlayingSpadeK = false,
     XPlayingSpadeA = true,
     -- Heart Family
     XPlayingHeart2 = true, 
@@ -291,19 +291,30 @@ local xplaying_jokers_info = {
     	loc = {
 	        name = "San Galgano",
 	        text = {
-	            "When you play and score {C:attention}High Card{},",
-	            "{C:attention}consume{} the scoring card and disable",
-	            "its transformation. Gain {X:mult,C:white}X#1#{} per card",
-	            "consumed. {C:inactive}(Currently give{} {X:mult,C:white}X#2#{} {C:inactive}){}",
+	            "When you score any {C:attention}X-Playing Card{} as ",
+	            "{C:attention}High Card{}, {C:red}consume{} the X-Playing Card",
+	            "and {C:red}disable{} its transformation from ",
+	            "all its replicas. Gain {X:mult,C:white}X#1#{} per card",
+	            "consumed. {C:inactive}(Currently gives{} {X:mult,C:white}X#2#{} {C:inactive}){}",
 	            "{C:red}Warning: This card has a mind of its own!{}"
 	        },
-	        card_eval_consume = "Consume..",
+	        card_eval_default = "Kneel before San Galgano!",
+	        card_eval_awaken = "I AM AWAKENED!",
+	        card_eval_return = "I WILL RETURN!",
+	        card_eval_enter = "I HAVE RETURNED!",
+	        card_eval_consume = "Your Power is Mine!",
+	        card_eval_disabled = "The power was consumed!",
+	        card_eval_hesitate_1 = "YOU DON'T WANT TO DO THIS!",
+	        card_eval_hesitate_2 = "THINK TWICE!",
+	        card_eval_hesitate_3 = "PLEASE DON'T...",
+	        card_eval_sealed = "NO!!!",
+	        card_eval = "San Galgano!",
 	        card_eval_replace = "My Turn!",
 	        card_eval_takeover = "THE THRONE IS MINE!"
 	    },
         ability_name = "HCM San Galgano",
         slug = "hcm_san_galgano",
-        ability = { extra = { Xmult = 1, Xmult_acc = 1, card_consumed = 0, 
+        ability = { extra = { Xmult = 1, Xmult_acc = 1, card_consumed = 0, hesitation = 0,
         			done = false} }
     },
     XPlayingSpadeA = {
@@ -1088,6 +1099,20 @@ local x_playing_loc = {
     ]]--
 }
 
+local hcm_misc_loc = {
+	extra_mult=" extra mult",
+	hcm_disabled="Power Disabled",
+}
+
+local hcm_cursed_desc = {
+	text_coloured = {
+		--"X-Playing Card"
+		{{"The", G.C.UI.TEXT_DARK}, {" SOUL", G.C.SECONDARY_SET.Spectral}, {" of", G.C.UI.TEXT_DARK}},
+		{{"San Galgano", G.C.SUITS.Spades}},
+		{{"was", G.C.UI.TEXT_DARK}, {" AWAKENED", G.C.RED}, {"!", G.C.UI.TEXT_DARK}},
+    }, 
+}
+
 function hcm_deep_cpy(original)
     local copy = {}
     for key, value in pairs(original) do
@@ -1116,7 +1141,7 @@ function Back.apply_to_run(arg_56_0)
                 for i = #G.playing_cards, 1, -1 do
                     -- Convert all to xplaying cards
                     local xkey = hcm_determine_xplaying_key(G.playing_cards[i])
-                    if x_sprite_info[xkey] then
+                    if x_sprite_info[xkey] and xplaying_config[xkey] then
                         G.playing_cards[i]:set_x_playing(xkey)
                     end
                 end
@@ -1129,6 +1154,31 @@ function Back.apply_to_run(arg_56_0)
             end
         }))
     end
+end
+
+function hcm_san_galgano_dialogue(jkr, cmd)
+	if cmd == nil then return false end
+	local command_map = {
+		awaken="card_eval_awaken",
+		exit="card_eval_return",
+		consume="card_eval_consume",
+		disabled="card_eval_disabled",
+		sealed="card_eval_sealed",
+	}
+	G.E_MANAGER:add_event(Event({
+		func = function()
+			local cmd_key = command_map[cmd]
+			if cmd_key == nil then cmd_key = "card_eval_default" end
+			local text = G.localization.descriptions["Joker"]["j_hcm_san_galgano"][cmd_key]
+	        play_sound('gong', 0.94, 0.3)
+	        play_sound('gong', 0.94*1.5, 0.2)
+	        play_sound('tarot1', 1.5)
+    		attention_text({
+                scale = 1.4, text = text, hold = 2, align = 'cm', offset = {x = 0,y = -2.7},major = G.play
+            })
+            return true
+		end 
+	}))
 end
 
 local get_badge_colour_OG = get_badge_colour
@@ -1182,9 +1232,36 @@ function G.UIDEF.card_h_popup(card)
 					local extra_mult = hcm_deep_cpy(card.ability_UIBox_table.main[1])
 					extra_mult[1].config.colour = hcm_colour_mult
 					extra_mult[1].config.text = "+"..tostring(card.ability.perma_mult)
-					extra_mult[2].config.text = " extra mult"
-					if card.ability_UIBox_table.main[#card.ability_UIBox_table.main][2].config.text == " extra mult" then
+					extra_mult[2].config.text = hcm_misc_loc["extra_mult"]
+					if card.ability_UIBox_table.main[#card.ability_UIBox_table.main][2].config.text == hcm_misc_loc["extra_mult"] then
 					else card.ability_UIBox_table.main[#card.ability_UIBox_table.main + 1] = extra_mult end
+				end
+			end
+			if xcard_name == "XPlayingSpadeK" and G.GAME.hcm_san_galgano then
+				local cursed_text = {}
+				for k, v in ipairs(hcm_cursed_desc.text_coloured) do
+					cursed_text[#cursed_text + 1] = {}
+					for i, _ in ipairs(v) do
+						cursed_text[#cursed_text][i]={ 
+			              	n=G.UIT.T,
+			              	config={
+			                	text = v[i][1],
+			                	colour = v[i][2],
+			                	scale = 0.32*G.LANG.font.DESCSCALE
+			                },
+			        	}
+			        end
+				end
+				card.ability_UIBox_table.main = cursed_text
+			end
+			if G.GAME.hcm_san_galgano or xcard_name == "XPlayingSpadeK" then
+				if G.GAME.hcm_disabled and G.GAME.hcm_disabled[xcard_name] then
+					local cursed_text = hcm_deep_cpy(card.ability_UIBox_table.main[1])
+					cursed_text[1].config.colour = G.C.SUITS.Spades
+					cursed_text[1].config.text = hcm_misc_loc["hcm_disabled"]
+					table.remove(cursed_text, 2)
+					if card.ability_UIBox_table.main[#card.ability_UIBox_table.main][1].config.text == hcm_misc_loc["hcm_disabled"] then
+					else card.ability_UIBox_table.main[#card.ability_UIBox_table.main + 1] = cursed_text end
 				end
 			end
 		end
@@ -1258,7 +1335,10 @@ end
 -- X-Playing Mechanics
 function xplay(hand_name, card_info)
 	if not xplaying_config[hand_name] then return false end
-	if G.GAME.hcm_disabled and G.GAME.hcm_disabled[hand_name] then return false end
+	if G.GAME.hcm_disabled and G.GAME.hcm_disabled[hand_name] then 
+		sendInfoMessage("X Play Disabled!")
+		return true 
+	end
     G.E_MANAGER:add_event(Event({
         func = function() 
         	local temp_card = copy_card(card_info)
@@ -1337,8 +1417,13 @@ function end_xplay(hand_name)
 					G.jokers:emplace(held_card)
 			    	G.E_MANAGER:add_event(Event({
 				        func = function()
-				        	held_card.states.visible = true
+				        	
 							joker_to_destroy:start_dissolve({G.C.RED}, nil, 1.6)
+							if held_card.xability and held_card.xability.handname == "XPlayingSpadeK" then 
+								if G.GAME.hcm_san_galgano == nil then return true
+        						else hcm_san_galgano_dialogue(joker_to_destroy, "exit") end
+							end
+							held_card.states.visible = true
 							held_card:start_materialize(nil, nil, 2.4)
 				            return true 
 				        end 
@@ -1347,6 +1432,9 @@ function end_xplay(hand_name)
 				        func = function()
 				        	sendInfoMessage("thrown to deck")
 				        	G.jokers:remove_card(held_card)
+				        	if held_card.xability and held_card.xability.handname == "XPlayingSpadeK" then 
+								if G.GAME.hcm_san_galgano == nil then return true end
+							end
 				            G.deck:emplace(held_card)
 				            table.insert(G.playing_cards, held_card)
 				            return true 
@@ -1887,9 +1975,52 @@ function SMODS.INIT.HighCardMod()
                     end_xplay("XPlayingSpadeK")
                     self.ability.extra.done = true
                 end
+                if context.destroying_card then 
+                	local text,disp_text,poker_hands,scoring_hand,non_loc_disp_text = G.FUNCS.get_poker_hand_info(G.play.cards)
+                	if text == "High Card" then
+                		local highcard = nil
+                    	for k, v in ipairs(scoring_hand) do
+							if v.config.center == G.P_CENTERS.m_stone then
+							else highcard = v end
+						end
+						if G.GAME.hcm_disabled == nil then G.GAME.hcm_disabled = {} end
+						if highcard.xability and xplaying_config[highcard.xability.handname] then 
+							if highcard == context.destroying_card then 
+								return true
+							end
+						end
+					end
+					return nil
+                end
+
                 if SMODS.end_calculate_context(context) then
                 	self.ability.extra.done = false
-                	if context.scoring_hand[1]:get_id() == 13 and context.scoring_hand[1].base.suit == "Spades" then
+                	if context.scoring_name == "High Card" then
+                		local highcard = nil
+                    	for k, v in ipairs(context.scoring_hand) do
+							if v.config.center == G.P_CENTERS.m_stone then
+							else highcard = v end
+						end 
+						if G.GAME.hcm_disabled == nil then G.GAME.hcm_disabled = {} end
+						if highcard.xability and xplaying_config[highcard.xability.handname] and G.GAME.hcm_disabled[highcard.xability.handname] == nil then 
+							if highcard.xability.handname == "XPlayingSpadeK" then 
+								G.GAME.hcm_disabled = {}
+								G.GAME.hcm_disabled[highcard.xability.handname] = true
+								hcm_san_galgano_dialogue(self, "sealed")
+								G.GAME.hcm_san_galgano = nil
+								end_xplay("XPlayingSpadeK")
+								return{
+			                        card = self,
+			                    }
+							else
+								G.GAME.hcm_disabled[highcard.xability.handname] = true
+								card_eval_status_text(self, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_san_galgano"]["card_eval"]})
+								hcm_san_galgano_dialogue(self, "consume")
+							end
+						end
+                	end
+                	--[[
+					if context.scoring_hand[1]:get_id() == 13 and context.scoring_hand[1].base.suit == "Spades" then
                     	sendInfoMessage("Trying to set ability")
                     	G.E_MANAGER:add_event(Event({
 				            func = function()
@@ -1899,7 +2030,18 @@ function SMODS.INIT.HighCardMod()
 				        })) 
                     	sendInfoMessage("Ability set")
                     end
-                	
+                	]]--
+                	local consumed = 0
+				    for k, v in pairs(G.GAME.hcm_disabled) do
+				        consumed = consumed + 1
+				    end
+                    self.ability.extra.card_consumed = consumed
+					self.ability.extra.Xmult_acc = self.ability.extra.Xmult * self.ability.extra.card_consumed + 1
+                	return{
+                        message = G.localization.descriptions["Joker"]["j_hcm_san_galgano"]["card_eval"],
+                        card = self,
+                        Xmult_mod = self.ability.extra.Xmult_acc
+                    }
                 end
             end
         end
@@ -2344,11 +2486,13 @@ function SMODS.INIT.HighCardMod()
                 end
                 if context.destroying_card then 
                     if context.destroying_card:is_face() then
-                    	if G.GAME.hcm_held == nil then 
+                    	if G.GAME.hcm_held == nil or G.GAME.hcm_held.ability == nil then 
 				    		local codexx = "H_K"
 				    		G.GAME.hcm_held = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[codexx], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
 				    		G.GAME.hcm_held:set_x_playing(hcm_determine_xplaying_key(G.GAME.hcm_held))
 				    		G.GAME.hcm_held.states.visible = false
+				    		if self.ability.extra.chips_acc then G.GAME.hcm_held.ability.perma_bonus = self.ability.extra.chips_acc - 10 end
+				    		if self.ability.extra.mult_acc then G.GAME.hcm_held.ability.perma_mult = self.ability.extra.mult_acc end
 				    	end
                     	if self.ability.extra.transfer_card then sendInfoMessage("card exist") end
                     	G.GAME.hcm_held.ability.perma_bonus = (G.GAME.hcm_held.ability.perma_bonus or 0) + self.ability.extra.chips_gain
@@ -3306,6 +3450,9 @@ function Card:add_to_deck(from_debuff)
         	G.GAME.hcm_balor = true
         end
         if self.ability.name == 'HCM San Galgano' then 
+        	if G.GAME.hcm_san_galgano == nil then 
+        		hcm_san_galgano_dialogue(self, "awaken")
+        	end
         	G.GAME.hcm_san_galgano = true
         	if G.GAME.hcm_disabled == nil then
         		G.GAME.hcm_disabled = {}
@@ -3315,6 +3462,12 @@ function Card:add_to_deck(from_debuff)
 	        	end
         		]]--
 	        end
+	        local consumed = 0
+		    for k, v in pairs(G.GAME.hcm_disabled) do
+		        consumed = consumed + 1
+		    end
+            self.ability.extra.card_consumed = consumed
+			self.ability.extra.Xmult_acc = self.ability.extra.Xmult * self.ability.extra.card_consumed + 1
         end
     end
     add_to_deck_OG(self, from_debuff)
@@ -3329,6 +3482,10 @@ function Card:remove_from_deck(from_debuff)
         end
         if self.ability.name == 'HCM Balor' then
             G.GAME.hcm_balor = false
+        end
+        if self.ability.name == 'HCM San Galgano' then 
+        	--if G.GAME.hcm_san_galgano == nil then
+        	--else hcm_san_galgano_dialogue(self, "exit") end
         end
     end
     remove_from_deck_OG(self, from_debuff)
@@ -4464,7 +4621,10 @@ function G.FUNCS.evaluate_play(self, e)
 		        	if card.config.center == G.P_CENTERS.m_stone then return result end
 		        	local xcard_name = hcm_determine_xplaying_key(card)
 		        	sendInfoMessage(xcard_name)
-		        	if xplaying_config[xcard_name] then
+		        	if G.GAME.hcm_disabled and G.GAME.hcm_disabled[card.xability.handname] then 
+						sendInfoMessage("disabled!")
+						hcm_san_galgano_dialogue(nil, "disabled")
+					elseif xplaying_config[xcard_name] then
 		        		xplay(xcard_name, card)
 		        		G.GAME.hcm_held = copy_card(card)
 		        		--sendInfoMessage("Copied "..G.GAME.hcm_held.base.suit..G.GAME.hcm_held:get_id())
