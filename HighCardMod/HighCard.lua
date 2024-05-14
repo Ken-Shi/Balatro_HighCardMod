@@ -28,7 +28,7 @@ local xplaying_config = {
     XPlayingSpade10 = true,
     XPlayingSpadeJ = true,
     XPlayingSpadeQ = true,
-    XPlayingSpadeK = false,
+    XPlayingSpadeK = true,
     XPlayingSpadeA = true,
     -- Heart Family
     XPlayingHeart2 = true, 
@@ -304,18 +304,20 @@ local xplaying_jokers_info = {
 	        card_eval_enter = "I HAVE RETURNED!",
 	        card_eval_consume = "Your Power is Mine!",
 	        card_eval_disabled = "The power was consumed!",
+	        card_eval_hesitate_0 = "?!",
 	        card_eval_hesitate_1 = "YOU DON'T WANT TO DO THIS!",
 	        card_eval_hesitate_2 = "THINK TWICE!",
 	        card_eval_hesitate_3 = "PLEASE DON'T...",
 	        card_eval_sealed = "NO!!!",
 	        card_eval = "San Galgano!",
 	        card_eval_replace = "My Turn!",
+	        card_eval_regenerate = "YOU CAN'T GET RID OF ME!",
 	        card_eval_takeover = "THE THRONE IS MINE!"
 	    },
         ability_name = "HCM San Galgano",
         slug = "hcm_san_galgano",
         ability = { extra = { Xmult = 1, Xmult_acc = 1, card_consumed = 0, hesitation = 0,
-        			done = false} }
+        			shown = false, joker_sliced = false, done = false} }
     },
     XPlayingSpadeA = {
     	loc = {
@@ -716,7 +718,7 @@ local xplaying_jokers_info = {
 	    },
         ability_name = "HCM Out of Five",
         slug = "hcm_out_of_five",
-        ability = { extra = { best_hand = "Nothing else", msg_on = false, 
+        ability = { extra = { best_hand = "Nothing else", msg_on = false, shown = false,
         			done = false} }
     },
     XPlayingDiamondQ= {
@@ -1164,10 +1166,20 @@ function hcm_san_galgano_dialogue(jkr, cmd)
 		consume="card_eval_consume",
 		disabled="card_eval_disabled",
 		sealed="card_eval_sealed",
+		hesitate_1="card_eval_hesitate_1",
+		hesitate_2="card_eval_hesitate_2",
+		hesitate_3="card_eval_hesitate_3",
+		replace="card_eval_replace",
+		regenerate="card_eval_regenerate",
+		takeover="card_eval_takeover",
 	}
 	G.E_MANAGER:add_event(Event({
 		func = function()
 			local cmd_key = command_map[cmd]
+			if cmd == "hesitate" and jkr then 
+				jkr.ability.extra.hesitation = jkr.ability.extra.hesitation + 1
+				cmd_key = command_map[cmd.."_"..jkr.ability.extra.hesitation]
+			end
 			if cmd_key == nil then cmd_key = "card_eval_default" end
 			local text = G.localization.descriptions["Joker"]["j_hcm_san_galgano"][cmd_key]
 	        play_sound('gong', 0.94, 0.3)
@@ -1335,9 +1347,87 @@ end
 -- X-Playing Mechanics
 function xplay(hand_name, card_info)
 	if not xplaying_config[hand_name] then return false end
-	if G.GAME.hcm_disabled and G.GAME.hcm_disabled[hand_name] then 
-		sendInfoMessage("X Play Disabled!")
-		return true 
+	local num_disabled = 0
+	if G.GAME.hcm_disabled then
+		if G.GAME.hcm_disabled[hand_name] then 
+			sendInfoMessage("X Play Disabled!")
+			return true
+		end 
+		for k, v in pairs(G.GAME.hcm_disabled) do 
+			num_disabled = num_disabled + 1
+		end
+	end
+	if G.GAME.hcm_san_galgano and hand_name ~= "XPlayingSpadeK" and G.GAME.hcm_disabled and num_disabled >= 5 then 
+		G.GAME.hcm_disabled[hand_name] = true
+		local take_over = nil 
+		for k, v in ipairs(G.deck.cards) do
+			if v.xability and v.xability.handname == "XPlayingSpadeK" then 
+				take_over = v
+			end
+		end
+		if take_over then 
+			G.E_MANAGER:add_event(Event({
+		        func = function() 
+		        	hcm_san_galgano_dialogue(nil, "replace")
+		        	card_eval_status_text(take_over, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_xplay"]["card_eval"]})
+				    take_over.getting_sliced = true
+				    take_over.states.visible = true
+				    G.deck:remove_card(take_over)
+				    G.jokers:emplace(take_over)      
+				    G.E_MANAGER:add_event(Event({
+				        func = function()
+				        	local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_hcm_san_galgano", nil)
+				            card:set_edition(nil, nil, true)
+				            card:add_to_deck()
+				            G.jokers:remove_card(take_over)
+				            take_over:start_dissolve({G.C.RED}, nil, 1.6)
+				            G.jokers:emplace(card)
+				            card:start_materialize(nil, nil, 2.4)
+				            return true 
+				        end 
+				    }))
+		            return true
+		    	end
+		    }))
+		else
+			G.E_MANAGER:add_event(Event({
+		        func = function() 
+		        	local temp_card = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS['S_K'], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+				    temp_card:set_x_playing(hcm_determine_xplaying_key(G.GAME.hcm_held))
+		        	temp_card.getting_sliced = true
+		        	temp_card.states.visible = true
+				    G.jokers:emplace(temp_card)
+				    G.E_MANAGER:add_event(Event({
+				    	delay=2.4,
+				        func = function()
+				    		temp_card:start_materialize(nil, nil, 2.4)
+				    		hcm_san_galgano_dialogue(nil, "regenerate")
+				    		return true
+				    	end 
+				    }))
+				    G.E_MANAGER:add_event(Event({
+				        func = function()
+				    		card_eval_status_text(temp_card, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_xplay"]["card_eval"]})
+				    		return true
+				    	end 
+				    }))
+				    G.E_MANAGER:add_event(Event({
+				        func = function()
+				        	local card = create_card('Joker', G.jokers, nil, nil, nil, nil, "j_hcm_san_galgano", nil)
+				            card:set_edition(nil, nil, true)
+				            card:add_to_deck()
+				            G.jokers:remove_card(temp_card)
+				            temp_card:start_dissolve({G.C.RED}, nil, 1.6)
+				            G.jokers:emplace(card)
+				            card:start_materialize(nil, nil, 2.4)
+				            return true 
+				        end 
+				    }))
+		            return true
+	        	end
+	        }))
+		end
+		return true
 	end
     G.E_MANAGER:add_event(Event({
         func = function() 
@@ -1374,77 +1464,90 @@ function xplay(hand_name, card_info)
 end
 
 function end_xplay(hand_name)
-	local joker_to_destroy = nil
-	local joker_idx = 1
+	local jokers_to_destroy = {}
+	local potential_san_galgano = nil
+	local san_idx = 1
     for i = 1, #G.jokers.cards do
         if G.jokers.cards[i].ability.name == xplaying_jokers_info[hand_name].ability_name then 
-            joker_to_destroy = G.jokers.cards[i]
-            joker_idx = i 
-            break
+            jokers_to_destroy[G.jokers.cards[i]] = i
+        end
+        if G.jokers.cards[i].ability.name == "HCM San Galgano" then 
+        	potential_san_galgano = G.jokers.cards[i]
+        	san_idx = i
         end
     end
-    if G.GAME.hcm_held or joker_to_destroy then
-    	if G.GAME.hcm_held == nil or G.GAME.hcm_held.base == nil then 
-    		local codexx = string.sub(hand_name, 9, 9).."_"..string.sub(hand_name, -1, -1)
-    		if string.sub(hand_name, -2, -1) == "10" then 
-    			codexx = string.sub(hand_name, 9, 9).."_T"
-    		end
-    		G.GAME.hcm_held = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[codexx], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
-    		G.GAME.hcm_held:set_x_playing(hand_name)
-    		G.GAME.hcm_held.states.visible = false
-    		if codexx == "H_K" and joker_to_destroy then
-    			local extra_chip = joker_to_destroy.ability.extra.chips_acc - G.GAME.hcm_held.base.nominal
-    			local extra_mult = joker_to_destroy.ability.extra.mult_acc
-    			G.GAME.hcm_held.perma_bonus = (extra_chip > 0 and extra_chip) or nil
-    			G.GAME.hcm_held.perma_mult = (extra_mult > 0 and extra_mult) or nil
-    		end
-    	end
-    	if joker_idx < #G.jokers.cards then
-	    	for i = joker_idx, #G.jokers.cards - 1 do
-		    	G.jokers.cards[i], G.jokers.cards[i + 1] = G.jokers.cards[i + 1], G.jokers.cards[i]
-		    end
+    if not next(jokers_to_destroy) and potential_san_galgano and not G.GAME.hcm_joker_sliced then 
+    	jokers_to_destroy[potential_san_galgano] = san_idx
+    end
+    for joker_to_destroy, joker_idx in pairs(jokers_to_destroy) do
+	    if G.GAME.hcm_held or joker_to_destroy then
+	    	if G.GAME.hcm_held == nil or G.GAME.hcm_held.base == nil or (G.GAME.hcm_held.ability.name ~= "HCM San Galgano" and hand_name == "XPlayingSpadeK") then 
+	    		local codexx = string.sub(hand_name, 9, 9).."_"..string.sub(hand_name, -1, -1)
+	    		if string.sub(hand_name, -2, -1) == "10" then 
+	    			codexx = string.sub(hand_name, 9, 9).."_T"
+	    		end
+	    		local xcard_name = hand_name
+	    		if G.GAME.hcm_held and G.GAME.hcm_held.ability and G.GAME.hcm_held.ability.name ~= "HCM San Galgano" and hand_name == "XPlayingSpadeK" then 
+	    			codexx = "S_K"
+	    			xcard_name = "XPlayingSpadeK"
+	    		end
+	    		G.GAME.hcm_held = Card(G.play.T.x + G.play.T.w/2, G.play.T.y, G.CARD_W, G.CARD_H, G.P_CARDS[codexx], G.P_CENTERS['c_base'], {playing_card = G.playing_card})
+	    		G.GAME.hcm_held:set_x_playing(xcard_name)
+	    		G.GAME.hcm_held.states.visible = false
+	    		if codexx == "H_K" and joker_to_destroy then
+	    			local extra_chip = joker_to_destroy.ability.extra.chips_acc - G.GAME.hcm_held.base.nominal
+	    			local extra_mult = joker_to_destroy.ability.extra.mult_acc
+	    			G.GAME.hcm_held.perma_bonus = (extra_chip > 0 and extra_chip) or nil
+	    			G.GAME.hcm_held.perma_mult = (extra_mult > 0 and extra_mult) or nil
+	    		end
+	    	end
+	    	if joker_idx < #G.jokers.cards then
+		    	for i = joker_idx, #G.jokers.cards - 1 do
+			    	G.jokers.cards[i], G.jokers.cards[i + 1] = G.jokers.cards[i + 1], G.jokers.cards[i]
+			    end
+			end
+		    if joker_to_destroy == nil then return false end
+		    joker_to_destroy.getting_sliced = true
+		    G.E_MANAGER:add_event(Event({
+	        	func = function() 
+			    	--sendInfoMessage("found "..G.GAME.hcm_held.base.suit..G.GAME.hcm_held:get_id())
+			    	if G.GAME.hcm_held then
+				    	local held_card = G.GAME.hcm_held
+				    	G.jokers:remove_card(joker_to_destroy)
+				    	G.playing_card = (G.playing_card and G.playing_card + 1) or 1
+						held_card:add_to_deck()
+						G.jokers:emplace(held_card)
+				    	G.E_MANAGER:add_event(Event({
+					        func = function()
+					        	
+								joker_to_destroy:start_dissolve({G.C.RED}, nil, 1.6)
+								if held_card.xability and held_card.xability.handname == "XPlayingSpadeK" then 
+									if G.GAME.hcm_san_galgano == nil then return true
+	        						else hcm_san_galgano_dialogue(joker_to_destroy, "exit") end
+								end
+								held_card.states.visible = true
+								held_card:start_materialize(nil, nil, 2.4)
+					            return true 
+					        end 
+					    }))
+						G.E_MANAGER:add_event(Event({
+					        func = function()
+					        	sendInfoMessage("thrown to deck")
+					        	G.jokers:remove_card(held_card)
+					        	if held_card.xability and held_card.xability.handname == "XPlayingSpadeK" then 
+									if G.GAME.hcm_san_galgano == nil then return true end
+								end
+					            G.deck:emplace(held_card)
+					            table.insert(G.playing_cards, held_card)
+					            return true 
+					        end 
+					    }))
+						G.GAME.hcm_played = nil
+						G.GAME.hcm_held = nil
+					end
+					return true
+	        end}))
 		end
-	    if joker_to_destroy == nil then return false end
-	    joker_to_destroy.getting_sliced = true
-	    G.E_MANAGER:add_event(Event({
-        	func = function() 
-		    	--sendInfoMessage("found "..G.GAME.hcm_held.base.suit..G.GAME.hcm_held:get_id())
-		    	if G.GAME.hcm_held then
-			    	local held_card = G.GAME.hcm_held
-			    	G.jokers:remove_card(joker_to_destroy)
-			    	G.playing_card = (G.playing_card and G.playing_card + 1) or 1
-					held_card:add_to_deck()
-					G.jokers:emplace(held_card)
-			    	G.E_MANAGER:add_event(Event({
-				        func = function()
-				        	
-							joker_to_destroy:start_dissolve({G.C.RED}, nil, 1.6)
-							if held_card.xability and held_card.xability.handname == "XPlayingSpadeK" then 
-								if G.GAME.hcm_san_galgano == nil then return true
-        						else hcm_san_galgano_dialogue(joker_to_destroy, "exit") end
-							end
-							held_card.states.visible = true
-							held_card:start_materialize(nil, nil, 2.4)
-				            return true 
-				        end 
-				    }))
-					G.E_MANAGER:add_event(Event({
-				        func = function()
-				        	sendInfoMessage("thrown to deck")
-				        	G.jokers:remove_card(held_card)
-				        	if held_card.xability and held_card.xability.handname == "XPlayingSpadeK" then 
-								if G.GAME.hcm_san_galgano == nil then return true end
-							end
-				            G.deck:emplace(held_card)
-				            table.insert(G.playing_cards, held_card)
-				            return true 
-				        end 
-				    }))
-					G.GAME.hcm_played = nil
-					G.GAME.hcm_held = nil
-				end
-				return true
-        end}))
 	end
 end
 
@@ -1567,6 +1670,7 @@ function SMODS.INIT.HighCardMod()
             --if value.ability_name == "HCM X-Play" then joker.eternal_compat = true end
             if value.ability_name == "HCM Reapers Hand" then joker.eternal_compat = true end
             if value.ability_name == "HCM No Mercy" then joker.eternal_compat = true end
+            if value.ability_name == "HCM San Galgano" then joker.eternal_compat = true end
             joker:register()
             local sprite = SMODS.Sprite:new("j_" .. value.slug, SMODS.findModByID("HighCardMod").path,
                 "j_" .. value.slug .. ".png", 71, 95, "asset_atli")
@@ -1972,7 +2076,8 @@ function SMODS.INIT.HighCardMod()
         SMODS.Jokers.j_hcm_san_galgano.calculate = function(self, context)
             if not context.blueprint then
                 if context.end_of_round and not self.ability.extra.done then
-                    end_xplay("XPlayingSpadeK")
+                	if G.GAME.hcm_joker_sliced then
+                    else end_xplay("XPlayingSpadeK") end
                     self.ability.extra.done = true
                 end
                 if context.destroying_card then 
@@ -1995,6 +2100,34 @@ function SMODS.INIT.HighCardMod()
 
                 if SMODS.end_calculate_context(context) then
                 	self.ability.extra.done = false
+                	if G.GAME.hcm_disabled then
+                		local num_disabled = 0
+                		for k, v in pairs(G.GAME.hcm_disabled) do 
+							num_disabled = num_disabled + 1
+						end
+						if num_disabled >= 50 then 
+							for _, jkr in pairs(G.jokers.cards) do
+								if jkr.ability.name == 'HCM X-Play' then
+									jkr.getting_sliced = true
+									G.GAME.hcm_joker_sliced = true
+								    G.E_MANAGER:add_event(Event({
+							        	func = function() 
+									    	G.E_MANAGER:add_event(Event({
+										        func = function()
+										        	G.jokers:remove_card(jkr)
+													jkr:start_dissolve({G.C.RED}, nil, 1.6)
+													hcm_san_galgano_dialogue(self, "takeover")
+													self:set_eternal(true)
+										            return true 
+										        end 
+										    }))
+											return true
+							        	end
+							        }))
+								end
+							end
+						end
+                	end
                 	if context.scoring_name == "High Card" then
                 		local highcard = nil
                     	for k, v in ipairs(context.scoring_hand) do
@@ -2036,7 +2169,7 @@ function SMODS.INIT.HighCardMod()
 				        consumed = consumed + 1
 				    end
                     self.ability.extra.card_consumed = consumed
-					self.ability.extra.Xmult_acc = self.ability.extra.Xmult * self.ability.extra.card_consumed + 1
+					self.ability.extra.Xmult_acc = self.ability.extra.Xmult * self.ability.extra.card_consumed + (G.GAME.hcm_joker_sliced and 100 or 1)
                 	return{
                         message = G.localization.descriptions["Joker"]["j_hcm_san_galgano"]["card_eval"],
                         card = self,
@@ -3572,8 +3705,30 @@ function evaluate_poker_hand(hand)
 	local unpack = table.unpack or unpack
 	local result = evaluate_poker_hand_OG(hand)
 	local new_results = result
-	if new_results.top == nil then return result end
+	if new_results.top == nil then 
+		for _, jkr in pairs(G.jokers.cards) do
+			if jkr.ability.name == 'HCM Out of Five' then
+				jkr.ability.extra.shown = false
+			end
+			if jkr.ability.name == 'HCM San Galgano' then
+				jkr.ability.extra.shown = false
+			end
+		end
+		return result 
+	end
 	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM San Galgano' then 
+			if result.top == result["High Card"] and result.top and next(result.top) then 
+				for k, v in ipairs(result.top[1]) do
+					if v.xability and v.xability.handname == "XPlayingSpadeK" and not jkr.ability.extra.shown then
+						card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_san_galgano"]["card_eval_hesitate_0"]})
+						jkr.ability.extra.shown = true
+					end
+				end
+			else
+				jkr.ability.extra.shown = false
+			end
+		end
 		if jkr.ability.name == 'HCM Green Green' then
             new_results = {
 		        ["Flush Five"] = {},
@@ -3694,20 +3849,23 @@ function evaluate_poker_hand(hand)
 		elseif jkr.ability.name == 'HCM Out of Five' then 
 		    local replacement = hcm_hand_most_played(false)
 		    if replacement == nil then return result end
-		    if next(result["Flush Five"]) then 
-		    elseif next(result["Flush House"]) then 
-		    elseif next(result["Five of a Kind"]) then
-		    elseif next(result["Straight Flush"]) then 
-		    elseif next(result["Four of a Kind"]) then  
-		    elseif next(result["Full House"]) then 
-		    elseif next(result["Flush"]) then  
-		    elseif next(result["Straight"]) then
-		    elseif next(result["Three of a Kind"]) then 
-		    elseif next(result["Two Pair"]) then 
-		    elseif next(result["Pair"]) then
-		    elseif next(result["High Card"]) then
+		    if next(result["Flush Five"]) then if replacement~="Flush Five" then jkr.ability.extra.shown = false end
+		    elseif next(result["Flush House"]) then if replacement~="Flush House" then jkr.ability.extra.shown = false end
+		    elseif next(result["Five of a Kind"]) then if replacement~="Five of a Kind" then jkr.ability.extra.shown = false end
+		    elseif next(result["Straight Flush"]) then if replacement~="Straight Flush" then jkr.ability.extra.shown = false end
+		    elseif next(result["Four of a Kind"]) then if replacement~="Four of a Kind" then jkr.ability.extra.shown = false end  
+		    elseif next(result["Full House"]) then if replacement~="Full House" then jkr.ability.extra.shown = false end 
+		    elseif next(result["Flush"]) then if replacement~="Flush" then jkr.ability.extra.shown = false end  
+		    elseif next(result["Straight"]) then if replacement~="Straight" then jkr.ability.extra.shown = false end
+		    elseif next(result["Three of a Kind"]) then if replacement~="Three of a Kind" then jkr.ability.extra.shown = false end 
+		    elseif next(result["Two Pair"]) then if replacement~="Two Pair" then jkr.ability.extra.shown = false end 
+		    elseif next(result["Pair"]) then if replacement~="Pair" then jkr.ability.extra.shown = false end
+		    elseif next(result["High Card"]) then 
 		        new_results[replacement] = result["High Card"]
-		        card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_out_of_five"]["card_eval"]})
+		        if not jkr.ability.extra.shown then
+		        	card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_out_of_five"]["card_eval"]})
+		        	jkr.ability.extra.shown = true
+		        end
 		    end   
 		    return new_results
 		end
@@ -4653,6 +4811,36 @@ local play_cards_from_highlighted_OG = G.FUNCS.play_cards_from_highlighted
 G.FUNCS.play_cards_from_highlighted = function(e)
 	sendInfoMessage("Play cards from highlighted!")
 	for _, jkr in pairs(G.jokers.cards) do
+		if jkr.ability.name == 'HCM San Galgano' then
+			local text,disp_text,poker_hands,scoring_hand,non_loc_disp_text = G.FUNCS.get_poker_hand_info(G.hand.highlighted)
+			if text == "High Card" then
+				for k, v in ipairs(G.hand.highlighted) do
+			    	if v.xability and v.xability.handname == "XPlayingSpadeK" then
+			    		if jkr.ability.extra.hesitation >= 3 then
+			    		else 
+			    			hcm_san_galgano_dialogue(jkr, "hesitate")
+			    			G.hand:unhighlight_all()
+			    			G.E_MANAGER:add_event(Event({
+						        trigger = 'immediate',
+						        func = function()
+						            G.STATE = G.STATES.HAND_PLAYED
+						            G.STATE_COMPLETE = true
+						            return true
+						        end
+						    })) 
+						    G.E_MANAGER:add_event(Event({
+			                    trigger = 'immediate',
+			                    func = function()
+			                        G.STATE_COMPLETE = false
+			                        return true
+			                    end
+			                }))
+			    			return
+			    		end
+				    end
+			    end
+			end
+		end
 		if jkr.ability.name == 'HCM Staff Master' then
 			sendInfoMessage("Staff Master Generation Process!")
 			if #G.hand.highlighted <= 2 then return play_cards_from_highlighted_OG() end
