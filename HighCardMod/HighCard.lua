@@ -1115,6 +1115,15 @@ local hcm_cursed_desc = {
     }, 
 }
 
+local hcm_lowlight_loc = {
+	name = "Low Light Cigarette Pack",
+	text = {
+		"Choose {C:attention}1{} of up to",
+      	"{C:attention}3{C:attention} X-Playing Cards{} to",
+      	"add to your deck"
+	}
+}
+
 function hcm_deep_cpy(original)
     local copy = {}
     for key, value in pairs(original) do
@@ -1641,6 +1650,24 @@ function SMODS.INIT.HighCardMod()
         SMODS.Sprite:new("b_xplaying", SMODS.findModByID("HighCardMod").path, "b_xplaying.png", 71, 95, "asset_atli"):register();
         newDeck:register()
     end
+
+    SMODS.Sprite:new("lowlight_cigar", SMODS.findModByID("HighCardMod").path, "p_lowlight_normal.png", 71, 95, "asset_atli"):register();
+    -- Initialize the booster packs
+	local lowlight_setting = {
+		discovered = true, 
+		name = "Low Light Cigarette Pack", 
+		set = "Booster", 
+		order = table_length(G.P_CENTER_POOLS['Booster']) + 1, 
+		key = "p_lowlight_normal", 
+		pos = {x = 1, y = 0}, 
+		cost = 5, 
+		config = {extra = 3, choose = 1}, 
+		weight = 1, 
+		kind = "Low Light", 
+		atlas = "lowlight_cigar"
+	}
+	G.P_CENTERS[lowlight_setting.key] = lowlight_setting
+	table.insert(G.P_CENTER_POOLS['Booster'], lowlight_setting)
 
     -- Initialize joker configs
     xplaying_jokers = {}
@@ -2195,9 +2222,12 @@ function SMODS.INIT.HighCardMod()
                     end
                     if not any_forced then 
                         G.hand:unhighlight_all()
-                        local forced_card = pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
-                        forced_card.ability.forced_selection = true
-                        G.hand:add_to_highlighted(forced_card)
+                        local forced_card = nil
+                        if G.hand.cards then 
+                        	pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
+                        	forced_card.ability.forced_selection = true
+                        	G.hand:add_to_highlighted(forced_card)
+						end
                     end
                 end
                 if context.discard then 
@@ -5543,6 +5573,192 @@ function hcm_wing_wind_bundle(card, already_happening, jkr)
     	hcm_triggered = true
     end
     return hcm_triggered
+end
+
+function Game:update_xplaying_pack(dt)
+    if self.buttons then self.buttons:remove(); self.buttons = nil end
+    if self.shop then G.shop.alignment.offset.y = G.ROOM.T.y+11 end
+
+    if not G.STATE_COMPLETE then
+        G.STATE_COMPLETE = true
+        G.CONTROLLER.interrupt.focus = true
+        G.E_MANAGER:add_event(Event({
+            trigger = 'immediate',
+            func = function()
+                G.booster_pack_sparkles = Particles(1, 1, 0,0, {
+                    timer = 0.015,
+                    scale = 0.3,
+                    initialize = true,
+                    lifespan = 3,
+                    speed = 0.2,
+                    padding = -1,
+                    attach = G.ROOM_ATTACH,
+                    colours = {G.C.BLACK, G.C.RED},
+                    fill = true
+                })
+                G.booster_pack_sparkles.fade_alpha = 1
+                G.booster_pack_sparkles:fade(1, 0)
+                G.booster_pack = UIBox{
+                    definition = create_UIBox_xplaying_pack(),
+                    config = {align="tmi", offset = {x=0,y=G.ROOM.T.y + 9},major = G.hand, bond = 'Weak'}
+                }
+                G.booster_pack.alignment.offset.y = -2.2
+                        G.ROOM.jiggle = G.ROOM.jiggle + 3
+                ease_background_colour_blind(G.STATES.STANDARD_PACK)
+                G.E_MANAGER:add_event(Event({
+                    trigger = 'immediate',
+                    func = function()
+                        G.E_MANAGER:add_event(Event({
+                            trigger = 'after',
+                            delay = 0.5,
+                            func = function()
+                                G.CONTROLLER:recall_cardarea_focus('pack_cards')
+                                return true
+                            end}))
+                        return true
+                    end
+                }))  
+                return true
+            end
+        }))  
+    end
+end
+
+
+local card_open_OG = Card.open
+function Card:open()
+	if self.ability.set == "Booster" and self.ability.name:find('Low Light') then
+		stop_use()
+        G.STATE_COMPLETE = false 
+        self.opening = true
+        self.states.hover.can = false
+        G.ARGS.is_xplaying_booster = true
+        G.STATE = G.STATES.STANDARD_PACK
+        G.GAME.pack_size = self.ability.extra
+        G.GAME.pack_choices = self.config.center.config.choose or 1
+        if self.cost > 0 then 
+            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.2, func = function()
+                inc_career_stat('c_shop_dollars_spent', self.cost)
+                self:juice_up()
+            return true end }))
+            ease_dollars(-self.cost) 
+       	else
+           	delay(0.2)
+       	end
+       	G.E_MANAGER:add_event(Event({trigger = 'after', delay = 0.4, 
+       		func = function()
+	            self:explode()
+	            local pack_cards = {}
+
+	            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 1.3*math.sqrt(G.SETTINGS.GAMESPEED), blockable = false, blocking = false, 
+	            	func = function()
+		                local _size = self.ability.extra
+		                
+		                for i = 1, _size do
+		                    local card = nil
+		                    card = create_card("Base", G.pack_cards, nil, nil, nil, true, nil, 'sta')
+		                    card:set_edition(nil)
+		                    card.T.x = self.T.x
+		                    card.T.y = self.T.y
+		                    card:set_x_playing(hcm_determine_xplaying_key(card))
+		                    card:start_materialize({G.C.WHITE, G.C.WHITE}, nil, 1.5*G.SETTINGS.GAMESPEED)
+		                    pack_cards[i] = card
+		                end
+		                return true
+		            end
+		        }))
+
+	            G.E_MANAGER:add_event(Event({trigger = 'after', delay = 1.3*math.sqrt(G.SETTINGS.GAMESPEED), blockable = false, blocking = false, 
+	            	func = function()
+		                if G.pack_cards then 
+		                    if G.pack_cards and G.pack_cards.VT.y < G.ROOM.T.h then 
+		                    for k, v in ipairs(pack_cards) do
+		                        G.pack_cards:emplace(v)
+		                    end
+		                    return true
+		                    end
+		                end
+		            end
+		        }))
+
+	            for i = 1, #G.jokers.cards do
+	                G.jokers.cards[i]:calculate_joker({open_booster = true, card = self})
+	            end
+
+	            if G.GAME.modifiers.inflation then 
+	                G.GAME.inflation = G.GAME.inflation + 1
+	                G.E_MANAGER:add_event(Event({
+	                	func = function()
+		                  	for k, v in pairs(G.I.CARD) do
+		                      	if v.set_cost then v:set_cost() end
+		                  	end
+		                  	return true 
+		                end 
+		            }))
+	            end
+
+	        	return true 
+	    	end 
+		}))
+	else
+		G.ARGS.is_xplaying_booster = false
+		card_open_OG(self)
+	end
+end
+
+local update_standard_pack_OG = Game.update_standard_pack;
+function Game:update_standard_pack(dt)
+	if G.ARGS.is_xplaying_booster then
+		Game:update_xplaying_pack(dt)
+	else
+		update_standard_pack_OG(self, dt)
+	end
+end
+
+function create_UIBox_xplaying_pack()
+  	local _size = G.GAME.pack_size
+  	G.pack_cards = CardArea(
+    	G.ROOM.T.x + 9 + G.hand.T.x, G.hand.T.y,
+    	_size*G.CARD_W*1.1,
+    	1.05*G.CARD_H, 
+    	{card_limit = _size, type = 'consumeable', highlight_limit = 1})
+
+    local t = {n=G.UIT.ROOT, config = {align = 'tm', r = 0.15, colour = G.C.CLEAR, padding = 0.15}, nodes={
+      	{n=G.UIT.R, config={align = "cl", colour = G.C.CLEAR,r=0.15, padding = 0.1, minh = 2, shadow = true}, nodes={
+        	{n=G.UIT.R, config={align = "cm"}, nodes={
+        		{n=G.UIT.C, config={align = "cm", padding = 0.1}, nodes={
+          			{n=G.UIT.C, config={align = "cm", r=0.2, colour = G.C.CLEAR, shadow = true}, nodes={
+            			{n=G.UIT.O, config={object = G.pack_cards}},
+          			}}
+        		}}
+      		}},
+      		{n=G.UIT.R, config={align = "cm"}, nodes={
+      		}},
+      		{n=G.UIT.R, config={align = "tm"}, nodes={
+        		{n=G.UIT.C,config={align = "tm", padding = 0.05, minw = 2.4}, nodes={}},
+        		{n=G.UIT.C,config={align = "tm", padding = 0.05}, nodes={
+        			UIBox_dyn_container({
+          				{n=G.UIT.C, config={align = "cm", padding = 0.05, minw = 4}, nodes={
+            				{n=G.UIT.R,config={align = "bm", padding = 0.05}, nodes={
+              					{n=G.UIT.O, config={object = DynaText({string = localize('k_standard_pack'), colours = {G.C.WHITE},shadow = true, rotate = true, bump = true, spacing =2, scale = 0.7, maxw = 4, pop_in = 0.5})}}
+            				}},
+            				{n=G.UIT.R,config={align = "bm", padding = 0.05}, nodes={
+              					{n=G.UIT.O, config={object = DynaText({string = {localize('k_choose')..' '}, colours = {G.C.WHITE},shadow = true, rotate = true, bump = true, spacing =2, scale = 0.5, pop_in = 0.7})}},
+              					{n=G.UIT.O, config={object = DynaText({string = {{ref_table = G.GAME, ref_value = 'pack_choices'}}, colours = {G.C.WHITE},shadow = true, rotate = true, bump = true, spacing =2, scale = 0.5, pop_in = 0.7})}}
+            				}},
+          				}}
+        			}),
+      			}},
+        		{n=G.UIT.C,config={align = "tm", padding = 0.05, minw = 2.4}, nodes={
+          			{n=G.UIT.R,config={minh =0.2}, nodes={}},
+          			{n=G.UIT.R,config={align = "tm",padding = 0.2, minh = 1.2, minw = 1.8, r=0.15,colour = G.C.GREY, one_press = true, button = 'skip_booster', hover = true,shadow = true, func = 'can_skip_booster'}, nodes = {
+            			{n=G.UIT.T, config={text = localize('b_skip'), scale = 0.5, colour = G.C.WHITE, shadow = true, focus_args = {button = 'y', orientation = 'bm'}, func = 'set_button_pip'}}
+          			}}
+        		}}
+      		}}
+    	}}
+  	}}
+  	return t
 end
 
 -- This is an important replacement that handles a piece of faulty code in OG game
