@@ -11,15 +11,15 @@ The mod takes inspiration from the anime series "High Card", with joker art and 
 
 # Installation
 
-1. Please install [Steamodded](https://github.com/Steamopollys/Steamodded) via its instructions (Currently support 0.9.8+). This is used by most of the Balatro mods.
+1. Please install [Steamodded](https://github.com/Steamopollys/Steamodded) via its instructions (Currently support 0.9.8+, 1.0 WIP). This is used by most of the Balatro mods.
    
-Quick Install for step 2: download the zip file and unzip them in Steamodded's Mods folder. You should get a folders called `HighCardMod`;
+Quick Install for step 2: download the zip file and unzip them in Steamodded's Mods folder (the version number indicates steamodded version). You should get a folders called `HighCardMod`;
 
 2. Install HighCardMod simply by download `HighCardMod` folder put them in Steamodded's Mods folder.
 
 3. Enjoy your journey as a **PLAYER**!
 
-**Note: There is a major rework of the mod released on April 8, 2024. If you have played a version prior to this date, I recommend a refresh install!** 
+**Note: The first full release of this mod happened on May 18, 2024. If you have played a version prior to this date, I recommend a refresh install!** 
 
 # X-Playing Cards and X-Playing Deck
 
