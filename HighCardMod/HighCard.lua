@@ -1116,12 +1116,19 @@ local hcm_cursed_desc = {
 }
 
 local hcm_lowlight_loc = {
-	name = "Low Light Cigarette Pack",
+	--name = "Low Light Cigarette Pack",
+	name = "Cigarette Pack...?",
 	text = {
 		"Choose {C:attention}1{} of up to",
       	"{C:attention}3{C:attention} X-Playing Cards{} to",
       	"add to your deck"
-	}
+	},
+	text_coloured = {
+		{{"Choose", G.C.UI.TEXT_DARK}, {" 1", G.C.FILTER}, {" of up to", G.C.UI.TEXT_DARK}, {" 3", G.C.FILTER}}, 
+		{{"X-Playing Cards", G.C.FILTER}, {" to", G.C.UI.TEXT_DARK}},
+		{{"add to your deck", G.C.UI.TEXT_DARK}},
+    }, 
+    short = "Cigarette Pack"
 }
 
 function hcm_deep_cpy(original)
@@ -1209,11 +1216,68 @@ function get_badge_colour(key)
     return get_badge_colour_OG(key)
 end
 
+--[[
+local generate_UIBox_ability_table_OG = Card.generate_UIBox_ability_table
+function Card:generate_UIBox_ability_table()
+    local table_ui = generate_UIBox_ability_table_OG(self)
+    for k, v in pairs(table_ui) do
+    	sendInfoMessage("Found: "..k)
+	end
+	--sendInfoMessage(table_ui.card_type)
+	--if not next(table_ui.type) then sendInfoMessage("There's nothing!") end
+	--sendNestedMessage(table_ui.name)
+	sendInfoMessage("==================================================")
+	--sendNestedMessage(table_ui.main)
+    return table_ui
+end
+]]--
+
+
 local card_h_popup_OG = G.UIDEF.card_h_popup
 
 function G.UIDEF.card_h_popup(card)
 
 	if card.config.center == G.P_CENTERS.m_stone then card.xability = nil end
+	
+	if card.ability and card.ability.set == "Booster" then 
+		sendInfoMessage("Booster!") 
+		for k, v in pairs(card.ability) do 
+			sendInfoMessage("Ability: "..k)
+		end
+		sendInfoMessage(card.ability.name)
+
+		if card.ability.name == "Low Light Cigarette Pack" then
+
+			if card.ability_UIBox_table and 
+			   card.ability_UIBox_table.name then
+			   	sendInfoMessage("Changed!")
+			   	card.ability_UIBox_table.name = localize{type = 'name', set = 'Other', key = "p_lowlight_normal", nodes = card.ability_UIBox_table.name}
+			   	--card.ability_UIBox_table.name[1].config.object.string = hcm_lowlight_loc.name
+			   	
+			end
+			if card.ability_UIBox_table and 
+			   card.ability_UIBox_table.main then 
+			   	local new_main = {}
+				for k, v in ipairs(hcm_lowlight_loc.text_coloured) do
+					new_main[#new_main + 1] = {}
+					for i, _ in ipairs(v) do
+						new_main[#new_main][i]={ 
+			              	n=G.UIT.T,
+			              	config={
+			                	text = v[i][1],
+			                	colour = v[i][2],
+			                	scale = 0.32*G.LANG.font.DESCSCALE
+			                },
+			        	}
+			        end
+			        card.ability_UIBox_table.main = new_main
+				end
+				sendInfoMessage("main changed!")
+			end
+		end
+	end
+	
+	
 	if card.xability then 
 		card.ability_UIBox_table.badges.xplaying = nil
 		if card.ability_UIBox_table.badges and card.ability_UIBox_table.badges.xplaying == nil then
@@ -1651,7 +1715,7 @@ function SMODS.INIT.HighCardMod()
         newDeck:register()
     end
 
-    SMODS.Sprite:new("lowlight_cigar", SMODS.findModByID("HighCardMod").path, "p_lowlight_normal.png", 71, 95, "asset_atli"):register();
+    SMODS.Sprite:new("p_lowlight_normal", SMODS.findModByID("HighCardMod").path, "p_lowlight_normal.png", 71, 95, "asset_atli"):register();
     -- Initialize the booster packs
 	local lowlight_setting = {
 		discovered = true, 
@@ -1659,15 +1723,17 @@ function SMODS.INIT.HighCardMod()
 		set = "Booster", 
 		order = table_length(G.P_CENTER_POOLS['Booster']) + 1, 
 		key = "p_lowlight_normal", 
-		pos = {x = 1, y = 0}, 
+		pos = {x = 0, y = 0}, 
 		cost = 5, 
 		config = {extra = 3, choose = 1}, 
-		weight = 1, 
-		kind = "Low Light", 
-		atlas = "lowlight_cigar"
+		weight = 4, 
+		kind = "Celestial", 
+		atlas = "p_lowlight_normal"
 	}
 	G.P_CENTERS[lowlight_setting.key] = lowlight_setting
 	table.insert(G.P_CENTER_POOLS['Booster'], lowlight_setting)
+	G.localization.descriptions.Other["p_lowlight_normal"] = hcm_lowlight_loc
+	G.localization.misc.dictionary['k_cigarette_pack'] = hcm_lowlight_loc.short
 
     -- Initialize joker configs
     xplaying_jokers = {}
@@ -5740,7 +5806,7 @@ function create_UIBox_xplaying_pack()
         			UIBox_dyn_container({
           				{n=G.UIT.C, config={align = "cm", padding = 0.05, minw = 4}, nodes={
             				{n=G.UIT.R,config={align = "bm", padding = 0.05}, nodes={
-              					{n=G.UIT.O, config={object = DynaText({string = localize('k_standard_pack'), colours = {G.C.WHITE},shadow = true, rotate = true, bump = true, spacing =2, scale = 0.7, maxw = 4, pop_in = 0.5})}}
+              					{n=G.UIT.O, config={object = DynaText({string = localize('k_cigarette_pack'), colours = {G.C.WHITE},shadow = true, rotate = true, bump = true, spacing =2, scale = 0.7, maxw = 4, pop_in = 0.5})}}
             				}},
             				{n=G.UIT.R,config={align = "bm", padding = 0.05}, nodes={
               					{n=G.UIT.O, config={object = DynaText({string = {localize('k_choose')..' '}, colours = {G.C.WHITE},shadow = true, rotate = true, bump = true, spacing =2, scale = 0.5, pop_in = 0.7})}},
@@ -5850,7 +5916,9 @@ function sendNestedMessage(message, logger)
     end
 end
 
-function tableToString(t, seen)
+function tableToString(t, seen, depth)
+	local hdepth = depth
+	if not depth then hdepth = 0 end
     if type(t) ~= "table" then
         return tostring(t)
     end
@@ -5866,7 +5934,8 @@ function tableToString(t, seen)
         local keyString = tostring(key)
         local valueString
         if type(value) == "table" then
-            valueString = tableToString(value)
+        	if hdepth > 5 then valueString = "[TABLE: "..key.."]"
+            else valueString = tableToString(value, nil, hdepth + 1) end
         else
             valueString = tostring(value)
         end
