@@ -3,6 +3,8 @@ A Balatro mod that introduces X-Play Mechanics to the game along with 1 deck and
 
 [Official Website](https://www.balatrohighcardmod.com/) is now available! 
 
+[Mod Trailer](https://www.youtube.com/watch?v=ae5O06sSRlY) is also available!
+
 The mod takes inspiration from the anime series "High Card", with joker art and mechanics dedicated to connecting the two popular works on poker cards. 
 
 <div align="center">
