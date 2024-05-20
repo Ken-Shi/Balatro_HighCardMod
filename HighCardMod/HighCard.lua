@@ -2026,27 +2026,7 @@ function SMODS.INIT.HighCardMod()
                     self.ability.extra.done = true
                 end
                 if context.before then 
-                    local protected = false
-                    for k, v in ipairs(context.full_hand) do
-                        if v.debuff then
-                            protected = true
-                        end
-                    end
-                    if protected then 
-                        G.E_MANAGER:add_event(Event({
-                        func = function() 
-                            for k, v in ipairs(context.full_hand) do
-                                if v.debuff then
-                                    v:set_debuff(false)
-                                end
-                            end
-                            return true
-                        end}))
-                        return {
-                            message = G.localization.descriptions["Joker"]["j_hcm_bokka"]["card_eval"],
-                            card = self
-                        } 
-                    end
+                    
                 end
                 if SMODS.end_calculate_context(context) then
                     self.ability.extra.done = false
@@ -4856,6 +4836,29 @@ function G.FUNCS.evaluate_play(self, e)
                     end
                 end
             end 
+		end 
+		if jkr.ability.name == 'HCM Bokka' then
+			local protected = false
+            for k, v in ipairs(G.play.cards) do
+                if v.debuff then
+                    protected = true
+                end
+            end
+            if protected then
+             	card_eval_status_text(jkr, 'extra', nil, nil, nil, {message = G.localization.descriptions["Joker"]["j_hcm_bokka"]["card_eval"]})
+                for idx, val in ipairs(G.play.cards) do
+    				if val.debuff then
+    					local percent = 1.15 - (idx-0.999)/(#G.play.cards-0.998)*0.3
+    					G.play.cards[idx]:flip()
+    					play_sound('card1', percent)
+    					G.play.cards[idx]:juice_up(0.3, 0.3)
+                		G.play.cards[idx]:set_debuff(false)
+                		percent = 0.85 + (idx-0.999)/(#G.play.cards-0.998)*0.3
+						G.E_MANAGER:add_event(Event({trigger = 'before',delay = 0.1,func = function() G.play.cards[idx]:flip();play_sound('tarot2', percent, 0.6);G.play.cards[idx]:juice_up(0.3, 0.3);return true end }))
+                		--G.play.cards[idx]:juice_up()
+                	end
+                end
+            end
 		end 
 	end
 	sendInfoMessage("Actual Eval Play")
