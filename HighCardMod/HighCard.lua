@@ -2270,9 +2270,11 @@ function SMODS.INIT.HighCardMod()
                         G.hand:unhighlight_all()
                         local forced_card = nil
                         if G.hand.cards then 
-                        	pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
-                        	forced_card.ability.forced_selection = true
-                        	G.hand:add_to_highlighted(forced_card)
+                        	forced_card = pseudorandom_element(G.hand.cards, pseudoseed('cerulean_bell'))
+                        	if forced_card then
+                        		forced_card.ability.forced_selection = true
+                        		G.hand:add_to_highlighted(forced_card)
+                        	end
 						end
                     end
                 end
