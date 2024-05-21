@@ -5726,6 +5726,9 @@ function Card:open()
 		                for i = 1, _size do
 		                    local card = nil
 		                    card = create_card("Base", G.pack_cards, nil, nil, nil, true, nil, 'sta')
+		                    while not xplaying_config[hcm_determine_xplaying_key(card)] do
+		                    	card = create_card("Base", G.pack_cards, nil, nil, nil, true, nil, 'sta')
+		                    end
 		                    card:set_edition(nil)
 		                    card.T.x = self.T.x
 		                    card.T.y = self.T.y
@@ -5830,6 +5833,12 @@ function create_UIBox_xplaying_pack()
   	return t
 end
 
+local poll_edition_OG = poll_edition
+function poll_edition(_key, _mod, _no_neg, _guaranteed)
+	--'edi'..(key_append or '')..G.GAME.round_resets.ante
+end
+
+
 -- This is an important replacement that handles a piece of faulty code in OG game
 function Card:set_edition(edition, immediate, silent)
     self.edition = nil
@@ -5907,6 +5916,8 @@ function Card:set_edition(edition, immediate, silent)
 
     self:set_cost()
 end
+
+
 
 function sendNestedMessage(message, logger)
     if client then
