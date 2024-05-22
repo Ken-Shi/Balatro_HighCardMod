@@ -1315,9 +1315,15 @@ function G.UIDEF.card_h_popup(card)
 				sendInfoMessage(#card.ability_UIBox_table.main)
 				if card.ability and card.ability.perma_mult then
 					local extra_mult = hcm_deep_cpy(card.ability_UIBox_table.main[1])
-					extra_mult[1].config.colour = hcm_colour_mult
-					extra_mult[1].config.text = "+"..tostring(card.ability.perma_mult)
-					extra_mult[2].config.text = hcm_misc_loc["extra_mult"]
+					if next(extra_mult) then
+						if extra_mult[1] then
+							extra_mult[1].config.colour = hcm_colour_mult
+							extra_mult[1].config.text = "+"..tostring(card.ability.perma_mult)
+						end
+						if extra_mult[2] then
+							extra_mult[2].config.text = hcm_misc_loc["extra_mult"]
+						end
+					end
 					if card.ability_UIBox_table.main[#card.ability_UIBox_table.main][2].config.text == hcm_misc_loc["extra_mult"] then
 					else card.ability_UIBox_table.main[#card.ability_UIBox_table.main + 1] = extra_mult end
 				end
