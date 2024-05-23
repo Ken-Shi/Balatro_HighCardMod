@@ -1313,7 +1313,7 @@ function G.UIDEF.card_h_popup(card)
 			if xcard_name == "XPlayingHeartK" then 
 				sendNestedMessage(card.ability_UIBox_table.main)
 				sendInfoMessage(#card.ability_UIBox_table.main)
-				if card.ability and card.ability.perma_mult then
+				if card.ability and card.ability.perma_mult and not card.debuff then
 					local extra_mult = hcm_deep_cpy(card.ability_UIBox_table.main[1])
 					if next(extra_mult) then
 						if extra_mult[1] then
@@ -4873,7 +4873,10 @@ function G.FUNCS.evaluate_play(self, e)
 	result = evaluate_play_OG(self, e)
 	sendInfoMessage("Done!")
 	for _, card in pairs(G.play.cards) do
-		if card.xability and G.GAME.current_round.hands_played == 0 then 
+		local is_debuffed = false 
+		if card.debuff then is_debuffed = true end
+		if card.xability and card.xability.handname == "XPlayingSpade9" then is_debuffed = false end
+		if card.xability and G.GAME.current_round.hands_played == 0 and not is_debuffed then 
 			if G.GAME.hcm_played == nil then
 				local text,disp_text,poker_hands,scoring_hand,non_loc_disp_text = G.FUNCS.get_poker_hand_info(G.play.cards)
 				--card = G.GAME.hcm_held
