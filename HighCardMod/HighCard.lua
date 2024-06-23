@@ -3731,7 +3731,7 @@ function Card:calculate_seal(context)
 			end
 		end
 	end
-	calculate_seal_OG(self, context)
+	return calculate_seal_OG(self, context)
 end
 
 function entrance_neo_new_nambu(xcard)
@@ -5844,10 +5844,13 @@ function create_UIBox_xplaying_pack()
   	return t
 end
 
+--[[
 local poll_edition_OG = poll_edition
 function poll_edition(_key, _mod, _no_neg, _guaranteed)
 	--'edi'..(key_append or '')..G.GAME.round_resets.ante
 end
+]]--
+
 
 
 -- This is an important replacement that handles a piece of faulty code in OG game
